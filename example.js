@@ -8,5 +8,5 @@ uQuik.get('/', (request, response) => {
 })
 
 uQuik.listen(5000, '127.0.0.1')
-  .then((socket) => console.log('Server started'))
-  .catch((error) => console.log('Failed to start a server', error))
+  .then((socket) => console.log('[Example] Server started'))
+  .catch((error) => console.log('[Example] Failed to start a server', error))
