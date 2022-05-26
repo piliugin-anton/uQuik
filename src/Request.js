@@ -1,18 +1,18 @@
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
-const cookie = require('cookie')
-const signature = require('cookie-signature')
-const querystring = require('qs')
+const cookie = require('./helpers/cookie')
+const signature = require('./helpers/cookie-signature')
+const qsParse = require('./helpers/qs.parse')
 const stream = require('stream')
-const busboy = require('busboy')
+const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
 const { arrayBufferToString } = require('./utils')
 
 // ExpressJS compatibility packages
-const accepts = require('accepts')
-const parse_range = require('range-parser')
-const type_is = require('type-is')
-const is_ip = require('net').isIP
+const accepts = require('./helpers/accepts')
+const parseRange = require('./helpers/range-parser')
+const typeIs = require('./helpers/type-is')
+const isIP = require('net').isIP
 
 class Request extends stream.Readable {
   locals = {}
@@ -352,7 +352,7 @@ class Request extends stream.Readable {
     if (this.#body_urlencoded) return this.#body_urlencoded
 
     // Retrieve text body, parse as a query string, cache and resolve
-    this.#body_urlencoded = querystring.parse(this.#body_text || (await this.text()))
+    this.#body_urlencoded = qsParse(this.#body_text || (await this.text()))
     return this.#body_urlencoded
   }
 
@@ -572,8 +572,8 @@ class Request extends stream.Readable {
     // Return from cache if already parsed once
     if (this.#query_parameters) return this.#query_parameters
 
-    // Parse query using querystring and cache results
-    this.#query_parameters = querystring.parse(this.#query)
+    // Parse query using qsParse and cache results
+    this.#query_parameters = qsParse(this.#query)
     return this.#query_parameters
   }
 
@@ -675,7 +675,7 @@ class Request extends stream.Readable {
   range (size, options) {
     const range = this.get('Range')
     if (!range) return
-    return parse_range(size, range, options)
+    return parseRange(size, range, options)
   }
 
   /**
@@ -710,7 +710,7 @@ class Request extends stream.Readable {
       arr = new Array(arguments.length)
       for (let i = 0; i < arr.length; i++) arr[i] = arguments[i]
     }
-    return type_is(this, arr)
+    return typeIs(this, arr)
   }
 
   /**
@@ -826,7 +826,7 @@ class Request extends stream.Readable {
     if (!hostname) return []
 
     const offset = 2
-    const subdomains = !is_ip(hostname) ? hostname.split('.').reverse() : [hostname]
+    const subdomains = !isIP(hostname) ? hostname.split('.').reverse() : [hostname]
     return subdomains.slice(offset)
   }
 
