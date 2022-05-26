@@ -77,12 +77,10 @@ class Request extends stream.Readable {
      * @private
      * @param {Array} parameters_key [[key, index], ...]
      */
-  _path_parameters (parametersKey) {
-    if (parametersKey.length !== 0) {
-      parametersKey.forEach(
-        (keySet) => (this.#path_parameters[keySet[0]] = this.#rawRequest.getParameter(keySet[1]))
-      )
-    }
+  _parse_path_parameters (parametersKey) {
+    parametersKey.forEach(
+      (keySet) => (this.#path_parameters[keySet[0]] = this.#rawRequest.getParameter(keySet[1]))
+    )
   }
 
   /* Request Methods/Operators */
