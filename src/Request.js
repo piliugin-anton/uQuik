@@ -45,9 +45,11 @@ class Request extends stream.Readable {
     this.#rawResponse = rawResponse
     this.#options = opts
 
-    // Execute request operators for pre-parsing common access data
-    this._request_information()
-    this._path_parameters(pathParametersKey)
+    // Parse basic request information that will be made unavailable after this synchronous call from uWS.HttpRequest
+    this._parse_request_information()
+
+    // Parse path parameters from request path if we have a path parameters parsing key
+    if (pathParametersKey.length) this._parse_path_parameters(pathParametersKey)
   }
 
   /**
@@ -56,7 +58,7 @@ class Request extends stream.Readable {
      * This method parses initial data from uWS.Request and uWS.Response to prevent forbidden
      * stack memory access errors for asynchronous usage
      */
-  _request_information () {
+  _parse_request_information () {
     // Perform request pre-parsing for common access data
     // This is required as uWS.Request is forbidden for access after initial execution
     this.#method = this.#rawRequest.getMethod().toUpperCase()
@@ -65,6 +67,8 @@ class Request extends stream.Readable {
     this.#url = this.#path + (this.#query ? '?' + this.#query : '')
     this.#remote_ip = this.#rawResponse.getRemoteAddressAsText()
     this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddressAsText()
+
+    // Parse headers into a key-value object
     this.#rawRequest.forEach((key, value) => (this.#headers[key] = value))
   }
 

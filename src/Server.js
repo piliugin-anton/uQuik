@@ -314,7 +314,7 @@ class Server extends Router {
   _parse_content_length (wrappedRequest) {
     // Ensure we have some content-length value which specifies incoming bytes
     const contentLength = +wrappedRequest.headers['content-length']
-    return !isNaN(contentLength) && contentLength > 0 ? contentLength : undefined
+    return !isNaN(contentLength) ? contentLength : undefined
   }
 
   /**
@@ -417,15 +417,15 @@ class Server extends Router {
       }
     }
 
-    // Trigger user assigned route handler with wrapped request/response objects.
-    // Safely execute the user assigned handler and catch both sync/async errors.
-    new Promise((resolve, reject) => {
-      try {
-        resolve(route.handler(request, response))
-      } catch (error) {
-        reject(error)
-      }
-    }).catch(next)
+    // Safely execute the user provided route handler
+    try {
+      // If route handler returns a Promise, bind a catch handler to trigger the error handler
+      const output = route.handler(request, response, response.upgrade_socket)
+      if (output instanceof Promise) output.catch(next)
+    } catch (error) {
+      // If route handler throws an error, trigger error handler
+      next(error)
+    }
   }
 
   /* Safe Server Getters */
