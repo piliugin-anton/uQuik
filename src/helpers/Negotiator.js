@@ -1,76 +1,107 @@
 class Negotiator {
-  static get simpleMediaTypeRegExp () {
+  constructor (headers) {
+    this.headers = headers
+  }
+
+  get simpleMediaTypeRegExp () {
     return /^\s*([^\s/;]+)\/([^;\s]+)\s*(?:;(.*))?$/
   }
 
-  static get simpleCharsetEncodingRegExp () {
+  get simpleCharsetEncodingRegExp () {
     return /^\s*([^\s;]+)\s*(?:;(.*))?$/
   }
 
-  static get simpleLanguageRegExp () {
+  get simpleLanguageRegExp () {
     return /^\s*([^\s\-;]+)(?:-([^\s;]+))?\s*(?:;(.*))?$/
   }
 
-  static preferredCharset (accept) {
-    return Negotiator.preferred(accept, undefined, 'Charset')
+  charset (available) {
+    const set = this.charsets(available)
+    return set && set[0]
   }
 
-  static preferredCharsets (accept, provided) {
-    return Negotiator.preferred(accept, provided, 'Charset')
+  charsets (provided) {
+    return this.preferred(this.headers['accept-charset'], provided, 'charset')
   }
 
-  static preferredEncoding (accept) {
-    return Negotiator.preferred(accept, undefined, 'Encoding')
+  encoding (available) {
+    const set = this.encodings(available)
+    return set && set[0]
   }
 
-  static preferredEncodings (accept, provided) {
-    return Negotiator.preferred(accept, provided, 'Encoding')
+  encodings (provided) {
+    return this.preferred(this.headers['accept-encoding'], provided, 'encoding')
   }
 
-  static preferredLanguage (accept) {
-    return Negotiator.preferred(accept, undefined, 'Language')
+  language (available) {
+    const set = this.languages(available)
+    return set && set[0]
   }
 
-  static preferredLanguages (accept, provided) {
-    return Negotiator.preferred(accept, provided, 'Language')
+  languages (provided) {
+    return this.preferred(this.headers['accept-language'], provided, 'language')
   }
 
-  static preferred (accept, provided, what) {
+  mediaType (available) {
+    const set = this.mediaTypes(available)
+    return set && set[0]
+  }
+
+  mediaTypes (provided) {
+    return this.preferred(this.headers.accept, provided, 'media')
+  }
+
+  preferred (accept, provided, what) {
     // RFC 2616 sec 14.2: no header = *
-    const parameter = (what === 'Charset' || what === 'Language') ? accept === undefined ? (what === 'Media' ? '*/*' : '*') : accept : accept
-    const accepts = Negotiator[`parseAccept${(what === 'Charset' || what === 'Language' || what === 'Media') ? 'CharsetLanguageMedia' : what}`](parameter || '', what)
+    const acceptParameter = {
+      charset: accept === undefined ? '*' : accept,
+      language: accept === undefined ? '*' : accept,
+      media: accept === undefined ? '*/*' : accept,
+      encoding: accept || ''
+    }
+    const acceptParser = {
+      charset: 'parseAcceptCharsetLanguageMedia',
+      language: 'parseAcceptCharsetLanguageMedia',
+      media: 'parseAcceptCharsetLanguageMedia',
+      encoding: 'parseAcceptEncoding'
+    }
+    const parameter = acceptParameter[what]
+    const accepts = this[acceptParser[what]](parameter || '', what)
 
     if (!provided) {
       // sorted list of all charsets
-      let mapping = 'encoding'
-      if (what === 'Charset') {
-        mapping = 'charset'
-      } else if (what === 'Language') {
-        mapping = 'full'
+      const mappings = {
+        charset: (spec) => spec.charset,
+        language: (spec) => spec.full,
+        encoding: (spec) => spec.encoding,
+        media: (spec) => spec.type + '/' + spec.subtype
       }
 
       return accepts
-        .filter(Negotiator.isQuality)
-        .sort(Negotiator.compareSpecs)
-        .map((v) => what === 'Media' ? v.type + '/' + v.subtype : v[mapping])
+        .filter(this.isQuality)
+        .sort(this.compareSpecs)
+        .map((v) => mappings[what](v))
     }
 
-    const priorities = provided.map((type, index) => {
-      return Negotiator.getPriority(type, accepts, index, what.toLowerCase())
-    })
+    const priorities = provided.map((type, index) => this.getPriority(type, accepts, index, what))
 
     // sorted list of accepted charsets
-    return priorities.filter(Negotiator.isQuality).sort(Negotiator.compareSpecs).map((priority) => {
+    return priorities.filter(this.isQuality).sort(this.compareSpecs).map((priority) => {
       return provided[priorities.indexOf(priority)]
     })
   }
 
-  static parseAcceptCharsetLanguageMedia (accept, what) {
-    const accepts = what === 'Media' ? Negotiator.splitMediaTypes(accept) : accept.split(',')
+  parseAcceptCharsetLanguageMedia (accept, what) {
+    const accepts = what === 'media' ? this.splitMediaTypes(accept) : accept.split(',')
+    const whateverMappings = {
+      charset: 'parseCharsetEncoding',
+      language: 'parseLanguage',
+      media: 'parseMediaType'
+    }
 
     let j = 0
     for (let i = 0; i < accepts.length; i++) {
-      const whatever = what === 'Language' ? Negotiator.parseLanguage(accepts[i].trim(), i) : Negotiator.parseCharsetEncoding(accepts[i].trim(), i, what.toLowerCase())
+      const whatever = this[whateverMappings[what]](accepts[i].trim(), i, what)
 
       if (whatever) {
         accepts[j++] = whatever
@@ -80,7 +111,7 @@ class Negotiator {
     return accepts.slice(0, j)
   }
 
-  static parseAcceptEncoding (accept) {
+  parseAcceptEncoding (accept) {
     const accepts = accept.split(',')
     let hasIdentity = false
     let minQuality = 1
@@ -88,11 +119,11 @@ class Negotiator {
     let i = 0
     let j = 0
     for (; i < accepts.length; i++) {
-      const encoding = Negotiator.parseCharsetEncoding(accepts[i].trim(), i, 'encoding')
+      const encoding = this.parseCharsetEncoding(accepts[i].trim(), i, 'encoding')
 
       if (encoding) {
         accepts[j++] = encoding
-        hasIdentity = hasIdentity || Negotiator.specify('identity', encoding, undefined, 'encoding')
+        hasIdentity = hasIdentity || this.specify('identity', encoding, undefined, 'encoding')
         minQuality = Math.min(minQuality, encoding.q || 1)
       }
     }
@@ -112,9 +143,16 @@ class Negotiator {
     return accepts.splice(0, j)
   }
 
-  static parseCharsetEncoding (str, i, what) {
-    const match = Negotiator.simpleCharsetEncodingRegExp.exec(str)
+  parseCharsetEncoding (str, i, what) {
+    const match = this.simpleCharsetEncodingRegExp.exec(str)
     if (!match) return null
+
+    const keyMappings = {
+      charset: 'charset',
+      language: 'language',
+      encoding: 'encoding'
+    }
+    const key = keyMappings[what]
 
     const whatever = match[1]
     let q = 1
@@ -130,14 +168,14 @@ class Negotiator {
     }
 
     return {
-      [what]: whatever,
+      [key]: whatever,
       q,
       i
     }
   }
 
-  static parseLanguage (str, i) {
-    const match = Negotiator.simpleLanguageRegExp.exec(str)
+  parseLanguage (str, i) {
+    const match = this.simpleLanguageRegExp.exec(str)
     if (!match) return null
 
     const prefix = match[1]
@@ -164,8 +202,8 @@ class Negotiator {
     }
   }
 
-  static parseMediaType (str, i) {
-    const match = Negotiator.simpleMediaTypeRegExp.exec(str)
+  parseMediaType (str, i) {
+    const match = this.simpleMediaTypeRegExp.exec(str)
     if (!match) return null
 
     const params = Object.create(null)
@@ -174,7 +212,7 @@ class Negotiator {
     const type = match[1]
 
     if (match[3]) {
-      const kvps = Negotiator.splitParameters(match[3]).map(Negotiator.splitKeyValuePair)
+      const kvps = this.splitParameters(match[3]).map(this.splitKeyValuePair)
 
       for (let j = 0; j < kvps.length; j++) {
         const pair = kvps[j]
@@ -205,16 +243,18 @@ class Negotiator {
     }
   }
 
-  static getPriority (whatever, accepted, index, what) {
+  getPriority (whatever, accepted, index, what) {
     let priority = { o: -1, q: 0, s: 0 }
 
+    const specifyMappings = {
+      charset: 'specify',
+      language: 'specifyLanguage',
+      encoding: 'specify',
+      media: 'specifyMedia'
+    }
+
     for (let i = 0; i < accepted.length; i++) {
-      let spec = Negotiator.specify(whatever, accepted[i], index, what)
-      if (what === 'Language') {
-        spec = Negotiator.specifyLanguage(whatever, accepted[i], index)
-      } else if (what === 'Media') {
-        spec = Negotiator.specifyMedia(whatever, accepted[i], index)
-      }
+      const spec = this[specifyMappings[what]](whatever, accepted[i], index, what)
 
       if (spec && (priority.s - spec.s || priority.q - spec.q || priority.o - spec.o) < 0) {
         priority = spec
@@ -224,12 +264,16 @@ class Negotiator {
     return priority
   }
 
-  static specify (whatever, spec, index, what) {
+  specify (whatever, spec, index, what) {
     let s = 0
-    console.log('whatever spec what', whatever, spec, what)
-    if (spec[what].toLowerCase() === whatever.toLowerCase()) {
+    const keyMappings = {
+      charset: 'charset',
+      encoding: 'encoding'
+    }
+    const key = keyMappings[what]
+    if (spec[key].toLowerCase() === whatever.toLowerCase()) {
       s |= 1
-    } else if (spec[what] !== '*') {
+    } else if (spec[key] !== '*') {
       return null
     }
 
@@ -241,8 +285,8 @@ class Negotiator {
     }
   }
 
-  static specifyLanguage (language, spec, index) {
-    const p = Negotiator.parseLanguage(language)
+  specifyLanguage (language, spec, index) {
+    const p = this.parseLanguage(language)
     if (!p) return null
     let s = 0
     if (spec.full.toLowerCase() === p.full.toLowerCase()) {
@@ -263,8 +307,8 @@ class Negotiator {
     }
   }
 
-  static specifyMedia (type, spec, index) {
-    const p = Negotiator.parseMediaType(type)
+  specifyMedia (type, spec, index) {
+    const p = this.parseMediaType(type)
     let s = 0
 
     if (!p) {
@@ -302,15 +346,15 @@ class Negotiator {
     }
   }
 
-  static compareSpecs (a, b) {
+  compareSpecs (a, b) {
     return (b.q - a.q) || (b.s - a.s) || (a.o - b.o) || (a.i - b.i) || 0
   }
 
-  static isQuality (spec) {
+  isQuality (spec) {
     return spec.q > 0
   }
 
-  static quoteCount (string) {
+  quoteCount (string) {
     let count = 0
     let index = 0
 
@@ -322,7 +366,7 @@ class Negotiator {
     return count
   }
 
-  static splitKeyValuePair (str) {
+  splitKeyValuePair (str) {
     const index = str.indexOf('=')
     let key
     let val
@@ -337,12 +381,12 @@ class Negotiator {
     return [key, val]
   }
 
-  static splitMediaTypes (accept) {
+  splitMediaTypes (accept) {
     const accepts = accept.split(',')
 
     let j = 0
     for (let i = 1; i < accepts.length; i++) {
-      if (Negotiator.quoteCount(accepts[j]) % 2 === 0) {
+      if (this.quoteCount(accepts[j]) % 2 === 0) {
         accepts[++j] = accepts[i]
       } else {
         accepts[j] += ',' + accepts[i]
@@ -352,12 +396,12 @@ class Negotiator {
     return accepts.slice(0, j + 1)
   }
 
-  static splitParameters (str) {
+  splitParameters (str) {
     let parameters = str.split(';')
 
     let j = 0
     for (let i = 1; i < parameters.length; i++) {
-      if (Negotiator.quoteCount(parameters[j]) % 2 === 0) {
+      if (this.quoteCount(parameters[j]) % 2 === 0) {
         parameters[++j] = parameters[i]
       } else {
         parameters[j] += ';' + parameters[i]
