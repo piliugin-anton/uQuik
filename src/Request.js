@@ -16,7 +16,6 @@ const isIP = require('net').isIP
 
 class Request extends stream.Readable {
   locals = {}
-  #masterContext
   #stream_ended = false
   #stream_raw_chunks = false
   #rawRequest = null
@@ -35,15 +34,16 @@ class Request extends stream.Readable {
   #body_text
   #body_json
   #body_urlencoded
+  #options
 
-  constructor (streamOptions, rawRequest, rawResponse, pathParametersKey, masterContext) {
+  constructor (streamOptions, rawRequest, rawResponse, pathParametersKey, opts) {
     // Initialize the request readable stream for body consumption
     super(streamOptions)
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
     this.#rawRequest = rawRequest
     this.#rawResponse = rawResponse
-    this.#masterContext = masterContext
+    this.#options = opts
 
     // Execute request operators for pre-parsing common access data
     this._request_information()
@@ -57,18 +57,14 @@ class Request extends stream.Readable {
      * stack memory access errors for asynchronous usage
      */
   _request_information () {
-    // Retrieve raw uWS request & response objects
-    const request = this.#rawRequest
-    const response = this.#rawResponse
-
     // Perform request pre-parsing for common access data
     // This is required as uWS.Request is forbidden for access after initial execution
-    this.#method = request.getMethod().toUpperCase()
-    this.#path = request.getUrl()
-    this.#query = request.getQuery()
+    this.#method = this.#rawRequest.getMethod().toUpperCase()
+    this.#path = this.#rawRequest.getUrl()
+    this.#query = this.#rawRequest.getQuery()
     this.#url = this.#path + (this.#query ? '?' + this.#query : '')
-    this.#remote_ip = response.getRemoteAddressAsText()
-    this.#remote_proxy_ip = response.getProxiedRemoteAddressAsText()
+    this.#remote_ip = this.#rawResponse.getRemoteAddressAsText()
+    this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddressAsText()
     this.#rawRequest.forEach((key, value) => (this.#headers[key] = value))
   }
 
@@ -78,7 +74,7 @@ class Request extends stream.Readable {
      * @param {Array} parameters_key [[key, index], ...]
      */
   _path_parameters (parametersKey) {
-    if (parametersKey.length > 0) {
+    if (parametersKey.length !== 0) {
       parametersKey.forEach(
         (keySet) => (this.#path_parameters[keySet[0]] = this.#rawRequest.getParameter(keySet[1]))
       )
@@ -231,7 +227,7 @@ class Request extends stream.Readable {
       reference.#buffer_resolve = resolve
 
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
-      const useFastBuffers = reference.#masterContext.options.fast_buffers
+      const useFastBuffers = reference.#options.fast_buffers
       const body = {
         cursor: 0,
         buffer: Buffer[useFastBuffers ? 'allocUnsafe' : 'alloc'](contentLength)
@@ -487,14 +483,6 @@ class Request extends stream.Readable {
      */
   get raw () {
     return this.#rawRequest
-  }
-
-  /**
-     * Returns the Server instance this Request object originated from.
-     * @returns {Server}
-     */
-  get app () {
-    return this.#masterContext
   }
 
   /**
@@ -768,12 +756,12 @@ class Request extends stream.Readable {
      */
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
-    const trustProxy = this.#masterContext.options.trust_proxy
+    const trustProxy = this.#options.trust_proxy
     const xForwardedProto = this.get('X-Forwarded-Proto')
     if (trustProxy && xForwardedProto) { return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto }
 
     // Use uWS initially defined protocol
-    return this.#masterContext.is_ssl ? 'https' : 'http'
+    return this.#options.is_ssl ? 'https' : 'http'
   }
 
   /**
@@ -791,7 +779,7 @@ class Request extends stream.Readable {
   get ips () {
     const clientIP = this.ip
     const proxyIP = this.proxy_ip
-    const trustProxy = this.#masterContext.trust_proxy
+    const trustProxy = this.#options.trust_proxy
     const xForwardedFor = this.get('X-Forwarded-For')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
     return [clientIP, proxyIP]
@@ -801,7 +789,7 @@ class Request extends stream.Readable {
      * ExpressJS: Parse the "Host" header field to a hostname.
      */
   get hostname () {
-    const trustProxy = this.#masterContext.trust_proxy
+    const trustProxy = this.#options.trust_proxy
     let host = this.get('X-Forwarded-Host')
 
     if (!host || !trustProxy) {

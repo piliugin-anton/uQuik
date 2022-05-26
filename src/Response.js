@@ -20,20 +20,18 @@ class Response extends Writable {
   #middleware_cursor
   #raw_response
   #master_context
-  #upgrade_socket
   #status_code
   #headers
   #cookies
   #sse
 
-  constructor (streamOptions = {}, wrappedRequest, rawResponse, socket, masterContext) {
+  constructor (streamOptions = {}, wrappedRequest, rawResponse, masterContext) {
     // Initialize the writable stream for this response
     super(streamOptions)
 
     // Store the provided parameter properties for later use
     this.#wrapped_request = wrappedRequest
     this.#raw_response = rawResponse
-    this.#upgrade_socket = socket || null
     this.#master_context = masterContext
 
     // Bind the abort handler as required by uWebsockets.js
@@ -672,14 +670,6 @@ class Response extends Writable {
      */
   get completed () {
     return this.#completed
-  }
-
-  /**
-     * Upgrade socket context for upgrade requests.
-     * @returns {uWebsockets.ux_socket_context}
-     */
-  get upgrade_socket () {
-    return this.#upgrade_socket
   }
 
   /**

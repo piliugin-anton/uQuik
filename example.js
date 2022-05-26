@@ -3,7 +3,7 @@ const { Server } = require('./')
 // eslint-disable-next-line new-cap
 const uQuik = new Server()
 
-uQuik.get('/', (request, response) => {
+uQuik.get('/:test', (request, response) => {
   response.send('hello world')
 })
 

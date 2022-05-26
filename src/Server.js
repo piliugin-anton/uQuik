@@ -258,7 +258,7 @@ class Server extends Router {
 
     // Bind uWS.method() route which passes incoming request/respone to our handler
     return this.#uws_instance[method](pattern, (response, request) =>
-      this._handle_uws_request(route, request, response, null)
+      this._handle_uws_request(route, request, response)
     )
   }
 
@@ -325,16 +325,15 @@ class Server extends Router {
      * @param {Route} route
      * @param {Request} request
      * @param {Response} response
-     * @param {uWebSockets.us_socket_context_t} [socket]
      */
-  async _handle_uws_request (route, request, response, socket) {
+  _handle_uws_request (route, request, response) {
     // Wrap uWS.Request -> Request
     const wrappedRequest = new Request(
       route.streaming.readable,
       request,
       response,
       route.path_parameters_key,
-      route.app
+      route.app._options
     )
 
     // Wrap uWS.Response -> Response
@@ -364,7 +363,7 @@ class Server extends Router {
     }
 
     // Chain incoming request/response through all global/local/route-specific middlewares
-    route.app._chain_middlewares(route, wrappedRequest, wrappedResponse)
+    return route.app._chain_middlewares(route, wrappedRequest, wrappedResponse)
   }
 
   /**
@@ -384,8 +383,9 @@ class Server extends Router {
     if (error instanceof Error) return response.throw(error)
 
     // Determine next callback based on if either global or route middlewares exist
-    const hasGlobalMiddlewares = this.#middlewares['/'].length > 0
-    const hasRouteMiddlewares = route.middlewares.length > 0
+    const hasGlobalMiddlewares = this.#middlewares['/'].length !== 0
+    const hasRouteMiddlewares = route.middlewares.length !== 0
+
     const next =
     hasGlobalMiddlewares || hasRouteMiddlewares
       ? (err) => route.app._chain_middlewares(route, request, response, cursor + 1, err)
@@ -418,11 +418,10 @@ class Server extends Router {
     }
 
     // Trigger user assigned route handler with wrapped request/response objects.
-    // Provide socket_context for upgrade requests.
     // Safely execute the user assigned handler and catch both sync/async errors.
     new Promise((resolve, reject) => {
       try {
-        resolve(route.handler(request, response, response.upgrade_socket))
+        resolve(route.handler(request, response))
       } catch (error) {
         reject(error)
       }

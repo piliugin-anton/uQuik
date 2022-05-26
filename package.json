@@ -4,7 +4,7 @@
   "description": "uQuik server",
   "main": "index.js",
   "scripts": {
-    "example": "node example.js",
+    "debug": "node --inspect example.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
