@@ -286,10 +286,7 @@ class Response extends Writable {
       this._initiate_response()
 
       // Attempt to write the chunk to the client
-      const lastOffset = this.write_offset
-      const written = this.#raw_response.write(chunk)
-
-      if (written) {
+      if (this.#raw_response.write(chunk)) {
         // If chunk write was a success, we can move onto consuming the next chunk
         if (callback) callback()
 
@@ -300,7 +297,7 @@ class Response extends Writable {
         const reference = this
         return this.drain((offset) => {
           // Retry the sliced chunk based on the drained offset - last offset
-          const sliced = chunk.slice(offset - lastOffset)
+          const sliced = chunk.slice(offset - this.write_offset)
           const retried = reference.#raw_response.write(sliced)
 
           // Only call the callback to consume more chunks we are able to successfully retry this chunk

@@ -35,6 +35,9 @@ class Request extends stream.Readable {
   #body_json
   #body_urlencoded
   #options
+  #buffer_promise
+  #buffer_resolve
+  #multipart_promise
 
   constructor (streamOptions, rawRequest, rawResponse, pathParametersKey, opts) {
     // Initialize the request readable stream for body consumption
@@ -200,9 +203,6 @@ class Request extends stream.Readable {
     this.#stream_ended = true
   }
 
-  #buffer_promise
-  #buffer_resolve
-
   /**
      * Initiates body buffer download process by consuming the request readable stream.
      *
@@ -230,10 +230,9 @@ class Request extends stream.Readable {
       reference.#buffer_resolve = resolve
 
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
-      const useFastBuffers = reference.#options.fast_buffers
       const body = {
         cursor: 0,
-        buffer: Buffer[useFastBuffers ? 'allocUnsafe' : 'alloc'](contentLength)
+        buffer: Buffer[reference.#options.fast_buffers ? 'allocUnsafe' : 'alloc'](contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -266,8 +265,11 @@ class Request extends stream.Readable {
     })
 
     // Bind a then handler for caching the downloaded buffer
-    this.#buffer_promise.then((buffer) => (this.#body_buffer = buffer))
-    return this.#buffer_promise
+
+    // this.#buffer_promise.then((buffer) => (this.#body_buffer = buffer))
+    // return this.#buffer_promise
+
+    return this.#buffer_promise.then((buffer) => (this.#body_buffer = buffer))
   }
 
   /**
@@ -351,11 +353,11 @@ class Request extends stream.Readable {
     if (this.#body_urlencoded) return this.#body_urlencoded
 
     // Retrieve text body, parse as a query string, cache and resolve
-    this.#body_urlencoded = qsParse(this.#body_text || (await this.text()))
-    return this.#body_urlencoded
-  }
+    // this.#body_urlencoded = qsParse(this.#body_text || (await this.text()))
+    // return this.#body_urlencoded
 
-  #multipart_promise
+    return (this.#body_urlencoded = qsParse(this.#body_text || (await this.text())))
+  }
 
   /**
      * Handles incoming multipart fields from uploader and calls user specified handler with MultipartField.
@@ -567,8 +569,11 @@ class Request extends stream.Readable {
     if (this.#query_parameters) return this.#query_parameters
 
     // Parse query using qsParse and cache results
-    this.#query_parameters = qsParse(this.#query)
-    return this.#query_parameters
+
+    // this.#query_parameters = qsParse(this.#query)
+    // return this.#query_parameters
+
+    return (this.#query_parameters = qsParse(this.#query))
   }
 
   /**
@@ -588,7 +593,10 @@ class Request extends stream.Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.#remote_proxy_ip !== 'string') { this.#remote_proxy_ip = arrayBufferToString(this.#remote_proxy_ip) }
+    if (typeof this.#remote_proxy_ip !== 'string') {
+      this.#remote_proxy_ip = arrayBufferToString(this.#remote_proxy_ip)
+    }
+
     return this.#remote_proxy_ip
   }
 
