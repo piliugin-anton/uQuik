@@ -78,6 +78,7 @@ class Request extends stream.Readable {
      * @param {Array} parameters_key [[key, index], ...]
      */
   _parse_path_parameters (parametersKey) {
+    // Iterate over each expected path parameter key value pair and parse the value from uWS.HttpRequest.getParameter()
     parametersKey.forEach(
       (keySet) => (this.#path_parameters[keySet[0]] = this.#rawRequest.getParameter(keySet[1]))
     )
