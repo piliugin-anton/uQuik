@@ -1,7 +1,7 @@
-const uQuikServer = require('./')
+const { Server } = require('./')
 
 // eslint-disable-next-line new-cap
-const uQuik = new uQuikServer()
+const uQuik = new Server()
 
 uQuik.get('/', (request, response) => {
   response.send('hello world')

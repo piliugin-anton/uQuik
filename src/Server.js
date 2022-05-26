@@ -6,7 +6,7 @@ const Stream = require('stream') // lgtm [js/unused-local-variable]
 const Request = require('./Request')
 const Response = require('./Response')
 
-const { wrapObject } = require('../utils')
+const { wrapObject } = require('./utils')
 
 class Server extends Router {
   #uws_instance

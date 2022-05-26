@@ -1,12 +1,13 @@
-const Server = require('../Server.js') // lgtm [js/unused-local-variable]
-const cookie = require('cookie')
-const signature = require('cookie-signature')
-const status_codes = require('../../constants/status_codes.json')
-const mime_types = require('mime-types')
+// eslint-disable-next-line no-unused-vars
+const Server = require('./Server.js') // lgtm [js/unused-local-variable]
+const cookie = require('./helpers/cookie')
+const signature = require('./helpers/cookie-signature')
+const statusCodes = require('./statusCodes.json')
+const mimeTypes = require('./helpers/mime-types')
 const { Readable, Writable } = require('stream')
 
-const SSEventStream = require('../plugins/SSEventStream.js')
-const LiveFile = require('../plugins/LiveFile.js')
+const SSEventStream = require('./SSEventStream')
+const LiveFile = require('./LiveFile')
 const FilePool = {}
 
 class Response extends Writable {
@@ -25,15 +26,15 @@ class Response extends Writable {
   #cookies
   #sse
 
-  constructor (stream_options = {}, wrapped_request, raw_response, socket, master_context) {
+  constructor (streamOptions = {}, wrappedRequest, rawResponse, socket, masterContext) {
     // Initialize the writable stream for this response
-    super(stream_options)
+    super(streamOptions)
 
     // Store the provided parameter properties for later use
-    this.#wrapped_request = wrapped_request
-    this.#raw_response = raw_response
+    this.#wrapped_request = wrappedRequest
+    this.#raw_response = rawResponse
     this.#upgrade_socket = socket || null
-    this.#master_context = master_context
+    this.#master_context = masterContext
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
@@ -65,7 +66,7 @@ class Response extends Writable {
      */
   _track_middleware_cursor (position) {
     // Initialize cursor on first invocation
-    if (this.#middleware_cursor == undefined) return (this.#middleware_cursor = position)
+    if (this.#middleware_cursor === undefined) return (this.#middleware_cursor = position)
 
     // Check if position is greater than last cursor and update
     if (position > this.#middleware_cursor) return (this.#middleware_cursor = position)
@@ -73,7 +74,7 @@ class Response extends Writable {
     // If position is not greater than last cursor then we likely have a double middleware execution
     this.throw(
       new Error(
-        'HyperExpress: Double middleware execution detected! You have a bug where one of your middlewares is calling both the next() callback and also resolving from a Promise/async middleware. You must only use one of these not both.'
+        'Double middleware execution detected! You have a bug where one of your middlewares is calling both the next() callback and also resolving from a Promise/async middleware. You must only use one of these not both.'
       )
     )
   }
@@ -96,7 +97,7 @@ class Response extends Writable {
      * @param {Function} handler
      */
   atomic (handler) {
-    if (typeof handler !== 'function') { this.throw(new Error('HyperExpress: atomic(handler) -> handler must be a Javascript function')) }
+    if (typeof handler !== 'function') { this.throw(new Error('atomic(handler) -> handler must be a Javascript function')) }
 
     this._resume_if_paused()
     return this.#raw_response.cork(handler)
@@ -113,7 +114,7 @@ class Response extends Writable {
     if (this.initiated) {
       this.throw(
         new Error(
-          'HyperExpress: Response.status(code) -> HTTP Status Code cannot be changed once a response has been initiated.'
+          'Response.status(code) -> HTTP Status Code cannot be changed once a response has been initiated.'
         )
       )
     }
@@ -126,18 +127,18 @@ class Response extends Writable {
   /**
      * This method is used to set the response content type header based on the provided mime type. Example: type('json')
      *
-     * @param {String} mime_type Mime type
+     * @param {String} mimeType Mime type
      * @returns {Response} Response (Chainable)
      */
-  type (mime_type) {
+  type (mimeType) {
     // Remove leading dot from mime type if present
-    if (mime_type.startsWith('.')) mime_type = mime_type.substring(1)
+    if (mimeType.startsWith('.')) mimeType = mimeType.substring(1)
 
     // Determine proper mime type and send response
-    const mime_header = mime_types.lookup(mime_type) || 'text/plain'
+    const mimeHeader = mimeTypes.lookup(mimeType) || 'text/plain'
     if (!this.#completed) {
       this.#type_written = true
-      this.header('content-type', mime_header)
+      this.header('content-type', mimeHeader)
     }
     return this
   }
@@ -154,7 +155,7 @@ class Response extends Writable {
     if (this.initiated) {
       this.throw(
         new Error(
-          'HyperExpress: Response.header(name, value) -> Headers cannot be written after a response has already been initiated.'
+          'Response.header(name, value) -> Headers cannot be written after a response has already been initiated.'
         )
       )
     }
@@ -166,15 +167,15 @@ class Response extends Writable {
     }
 
     // Initialize headers container
-    if (this.#headers == undefined) this.#headers = {}
+    if (this.#headers === undefined) this.#headers = {}
 
     // Initialize header values as an array to allow for multiple values
-    if (this.#headers[name] == undefined) this.#headers[name] = []
+    if (this.#headers[name] === undefined) this.#headers[name] = []
 
     // Ensure that the value is always a string type
     if (typeof value !== 'string') {
       this.throw(
-        new Error('HyperExpress: header(name, value) -> value candidates must always be of type string')
+        new Error('header(name, value) -> value candidates must always be of type string')
       )
     }
 
@@ -202,7 +203,7 @@ class Response extends Writable {
      * @param {String} value Cookie Value
      * @param {Number} expiry In milliseconds
      * @param {CookieOptions} options Cookie Options
-     * @param {Boolean} sign_cookie Enables/Disables Cookie Signing
+     * @param {Boolean} signCookie Enables/Disables Cookie Signing
      * @returns {Response} Response (Chainable)
      */
   cookie (
@@ -214,7 +215,7 @@ class Response extends Writable {
       sameSite: 'none',
       path: '/'
     },
-    sign_cookie = true
+    signCookie = true
   ) {
     // Determine if this is a delete operation and recursively call self with appropriate options
     if (name && value === null) {
@@ -227,52 +228,17 @@ class Response extends Writable {
     if (typeof expiry === 'number') options.expires = new Date(Date.now() + expiry)
 
     // Sign cookie value if signing is enabled and a valid secret is provided
-    if (sign_cookie && typeof options.secret === 'string') {
+    if (signCookie && typeof options.secret === 'string') {
       options.encode = false // Turn off encoding to prevent loss of signature structure
       value = signature.sign(value, options.secret)
     }
 
     // Initialize cookies holder and store cookie value
-    if (this.#cookies == undefined) this.#cookies = {}
+    if (this.#cookies === undefined) this.#cookies = {}
     this.#cookies[name] = value
 
     // Serialize the cookie options and write the 'Set-Cookie' header
     return this.header('set-cookie', cookie.serialize(name, value, options))
-  }
-
-  /**
-     * This method is used to upgrade an incoming upgrade HTTP request to a Websocket connection.
-     * @param {Object=} context Store information about the websocket connection
-     */
-  upgrade (context) {
-    if (!this.#completed) {
-      // Ensure a upgrade_socket exists before upgrading ensuring only upgrade handler requests are handled
-      if (this.#upgrade_socket == null) {
-        this.throw(
-          new Error(
-            'HyperExpress: You cannot upgrade a request that does not come from an upgrade handler. No upgrade socket was found.'
-          )
-        )
-      }
-
-      // Ensure our request is not paused for whatever reason
-      this._resume_if_paused()
-
-      // Call uWS.Response.upgrade() method with user data, protocol headers and uWS upgrade socket
-      const headers = this.#wrapped_request.headers
-      this.#raw_response.upgrade(
-        {
-          context
-        },
-        headers['sec-websocket-key'],
-        headers['sec-websocket-protocol'],
-        headers['sec-websocket-extensions'],
-        this.#upgrade_socket
-      )
-
-      // Mark request as complete so no more operations can be performed
-      this.#completed = true
-    }
   }
 
   /**
@@ -293,7 +259,7 @@ class Response extends Writable {
     this._resume_if_paused()
 
     // Write the appropriate status code to the response along with mapped status code message
-    if (this.#status_code) { this.#raw_response.writeStatus(this.#status_code + ' ' + status_codes[this.#status_code]) }
+    if (this.#status_code) { this.#raw_response.writeStatus(this.#status_code + ' ' + statusCodes[this.#status_code]) }
 
     // Iterate through all headers and write them to uWS
     if (this.#headers) {
@@ -301,36 +267,6 @@ class Response extends Writable {
         this.#headers[name].forEach((value) => this.#raw_response.writeHeader(name, value))
       )
     }
-  }
-
-  /**
-     * Binds a drain handler which gets called with a byte offset that can be used to try a failed chunk write.
-     * You MUST perform a write call inside the handler for uWS chunking to work properly.
-     * You MUST return a boolean value indicating if the write was successful or not.
-     *
-     * @param {function(number):boolean} handler Synchronous callback only
-     */
-  drain (handler) {
-    // Ensure handler is a function type
-    if (typeof handler !== 'function') { this.throw(new Error('HyperExpress: Response.drain(handler) -> handler must be a Function.')) }
-
-    // Bind a writable handler with a fallback return value to true as uWS expects a Boolean
-    this.#raw_response.onWritable((offset) => {
-      // Retrieve the write result from the handler
-      const output = handler(offset)
-
-      // Throw an exception if the handler did not return a boolean value as that is an improper implementation
-      if (typeof output !== 'boolean') {
-        this.throw(
-          new Error(
-            'HyperExpress: Response.drain(handler) -> handler must return a boolean value stating if the write was successful or not.'
-          )
-        )
-      }
-
-      // Return the boolean value to uWS as required by uWS documentation
-      return output
-    })
   }
 
   /**
@@ -352,7 +288,7 @@ class Response extends Writable {
       this._initiate_response()
 
       // Attempt to write the chunk to the client
-      const last_offset = this.write_offset
+      const lastOffset = this.write_offset
       const written = this.#raw_response.write(chunk)
 
       if (written) {
@@ -366,7 +302,7 @@ class Response extends Writable {
         const reference = this
         return this.drain((offset) => {
           // Retry the sliced chunk based on the drained offset - last offset
-          const sliced = chunk.slice(offset - last_offset)
+          const sliced = chunk.slice(offset - lastOffset)
           const retried = reference.#raw_response.write(sliced)
 
           // Only call the callback to consume more chunks we are able to successfully retry this chunk
@@ -413,10 +349,10 @@ class Response extends Writable {
      * This method is used to end the current request and send response with specified body and headers.
      *
      * @param {String|Buffer|ArrayBuffer} body Optional
-     * @param {Boolean=} close_connection
+     * @param {Boolean=} closeConnection
      * @returns {Boolean} 'false' signifies that the body was not sent due to built up backpressure or closed connection.
      */
-  send (body, close_connection) {
+  send (body, closeConnection) {
     // Ensure response connection is still active
     if (!this.#completed) {
       // Initiate response to write status code and headers
@@ -426,7 +362,7 @@ class Response extends Writable {
       this.#wrapped_request._stop_streaming()
 
       // Mark request as completed and end request using uWS.Response.end()
-      const sent = this.#raw_response.end(body, close_connection)
+      const sent = this.#raw_response.end(body, closeConnection)
 
       // Emit the 'finish' event to signify that the response has been sent without streaming
       if (!this.#streaming) this.emit('finish', this.#wrapped_request, this)
@@ -454,18 +390,18 @@ class Response extends Writable {
      *
      * @param {Readable} stream
      * @param {Buffer} chunk
-     * @param {Number=} total_size
+     * @param {Number=} totalSize
      */
-  _stream_chunk (stream, chunk, total_size) {
+  _stream_chunk (stream, chunk, totalSize) {
     // Ensure the client is still connected and request is pending
     if (!this.#completed) {
       // Attempt to stream the chunk using appropriate uWS.Response chunk serving method
       // This will depend on whether a total_size is specified or not
       let sent, finished
-      const last_offset = this.write_offset
-      if (total_size) {
+      const lastOffset = this.write_offset
+      if (totalSize) {
         // Attempt to stream the current chunk using uWS.tryEnd with a total size
-        const [ok, done] = this.#raw_response.tryEnd(chunk, total_size)
+        const [ok, done] = this.#raw_response.tryEnd(chunk, totalSize)
         sent = ok
         finished = done
       } else {
@@ -487,10 +423,10 @@ class Response extends Writable {
         const reference = this
         this.drain((offset) => {
           // Retry writing the sliced chunk based on the drained offset - last offset
-          const sliced = chunk.slice(offset - last_offset)
-          if (total_size) {
+          const sliced = chunk.slice(offset - lastOffset)
+          if (totalSize) {
             // Attempt to stream the current chunk using uWS.tryEnd with a total size
-            const [ok, done] = reference.#raw_response.tryEnd(sliced, total_size)
+            const [ok, done] = reference.#raw_response.tryEnd(sliced, totalSize)
             sent = ok
             finished = done
           } else {
@@ -517,13 +453,13 @@ class Response extends Writable {
      * If your use-case requires a content-length header, you must specify the total payload size.
      *
      * @param {Readable} readable A Readable stream which will be consumed as response body
-     * @param {Number=} total_size Total size of the Readable stream source in bytes (Optional)
+     * @param {Number=} totalSize Total size of the Readable stream source in bytes (Optional)
      */
-  stream (readable, total_size) {
+  stream (readable, totalSize) {
     // Ensure readable is an instance of a stream.Readable
     if (!(readable instanceof Readable)) {
       this.throw(
-        new Error('HyperExpress: Response.stream(readable, total_size) -> readable must be a Readable stream.')
+        new Error('Response.stream(readable, totalSize) -> readable must be a Readable stream.')
       )
     }
 
@@ -536,12 +472,12 @@ class Response extends Writable {
     this._initiate_response()
 
     // Bind a listener for the 'data' event to consume chunks
-    readable.on('data', (chunk) => this._stream_chunk(readable, chunk, total_size))
+    readable.on('data', (chunk) => this._stream_chunk(readable, chunk, totalSize))
 
     // Bind listeners to end request on stream closure if no total size was specified and thus we delivered with chunked transfer
-    if (total_size === undefined) {
-      const end_request = () => this.send()
-      readable.once('end', end_request)
+    if (totalSize === undefined) {
+      const endRequest = () => this.send()
+      readable.once('end', endRequest)
     }
   }
 
@@ -589,9 +525,9 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   jsonp (body, name) {
-    const query_parameters = this.#wrapped_request.query_parameters
-    const method_name = query_parameters.callback || name
-    return this.type('js').send(`${method_name}(${JSON.stringify(body)})`)
+    const queryParameters = this.#wrapped_request.query_parameters
+    const methodName = queryParameters.callback || name
+    return this.type('js').send(`${methodName}(${JSON.stringify(body)})`)
   }
 
   /**
@@ -609,18 +545,18 @@ class Response extends Writable {
      * @private
      * Sends file content with appropriate content-type header based on file extension from LiveFile.
      *
-     * @param {LiveFile} live_file
+     * @param {LiveFile} liveFile
      * @param {function(Object):void} callback
      */
-  async _send_file (live_file, callback) {
+  async _send_file (liveFile, callback) {
     // Wait for LiveFile to be ready before serving
-    if (!live_file.is_ready) await live_file.ready()
+    if (!liveFile.is_ready) await liveFile.ready()
 
     // Write appropriate extension type if one has not been written yet
-    if (!this.#type_written) this.type(live_file.extension)
+    if (!this.#type_written) this.type(liveFile.extension)
 
     // Send response with file buffer as body
-    this.send(live_file.buffer)
+    this.send(liveFile.buffer)
 
     // Execute callback with cache pool, so user can expire as they wish.
     if (callback) setImmediate(() => callback(FilePool))
@@ -660,14 +596,14 @@ class Response extends Writable {
      */
   attachment (path, name) {
     // Attach a blank content-disposition header when no filename is defined
-    if (path == undefined) return this.header('Content-Disposition', 'attachment')
+    if (path === undefined) return this.header('Content-Disposition', 'attachment')
 
     // Parses path in to file name and extension to write appropriate attachment headers
     const chunks = path.split('/')
-    const final_name = name || chunks[chunks.length - 1]
-    const name_chunks = final_name.split('.')
-    const extension = name_chunks[name_chunks.length - 1]
-    return this.header('Content-Disposition', `attachment; filename="${final_name}"`).type(extension)
+    const finalName = name || chunks[chunks.length - 1]
+    const nameChunks = finalName.split('.')
+    const extension = nameChunks[nameChunks.length - 1]
+    return this.header('Content-Disposition', `attachment; filename="${finalName}"`).type(extension)
   }
 
   /**
@@ -691,7 +627,7 @@ class Response extends Writable {
     if (error instanceof Error) return this.#master_context.handlers.on_error(this.#wrapped_request, this, error)
 
     // If error is not an instance of Error, throw a warning error
-    throw new Error('HyperExpress: Response.throw() expects an instance of an Error.')
+    throw new Error('Response.throw() expects an instance of an Error.')
   }
 
   /* Response Getters */
@@ -705,7 +641,7 @@ class Response extends Writable {
   }
 
   /**
-     * Returns the HyperExpress.Server instance this Response object originated from.
+     * Returns the Server instance this Response object originated from.
      *
      * @returns {Server}
      */
@@ -779,9 +715,7 @@ class Response extends Writable {
      */
   _throw_unsupported (name) {
     this.throw(
-      new Error(
-                `HyperExpress: One of your middlewares or logic tried to call Response.${name} which is unsupported with HyperExpress.`
-      )
+      new Error(`One of your middlewares or logic tried to call Response.${name} which is unsupported.`)
     )
   }
 
@@ -933,7 +867,7 @@ class Response extends Writable {
   get (name) {
     if (this.#headers) {
       const values = this.#headers[name]
-      if (values) return values.length == 0 ? values[0] : values
+      if (values) return values.length === 0 ? values[0] : values
     }
   }
 
@@ -943,7 +877,7 @@ class Response extends Writable {
      * @returns {String}
      */
   links (links) {
-    if (typeof links !== 'object' || links == null) { this.throw(new Error('HyperExpress: Response.links(links) -> links must be an Object')) }
+    if (typeof links !== 'object' || links == null) { this.throw(new Error('Response.links(links) -> links must be an Object')) }
 
     // Build chunks of links and combine into header spec
     const chunks = []
@@ -979,10 +913,10 @@ class Response extends Writable {
 
   /**
      * ExpressJS: Alias of Response.status()
-     * @param {Number} status_code
+     * @param {Number} statusCode
      */
-  sendStatus (status_code) {
-    return this.status(status_code)
+  sendStatus (statusCode) {
+    return this.status(statusCode)
   }
 
   /**

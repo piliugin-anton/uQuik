@@ -45,7 +45,7 @@ const arrayBufferToString = (arrayBuffer, encoding = 'utf8') => {
   return Buffer.from(arrayBuffer).toString(encoding)
 }
 
-const asyncAwait = (delay) => {
+const asyncWait = (delay) => {
   return new Promise((resolve) => setTimeout((res) => res(), delay, resolve))
 }
 
@@ -81,5 +81,5 @@ module.exports.isServer = isServer
 module.exports.wrapObject = wrapObject
 module.exports.parsePathParameters = parsePathParameters
 module.exports.arrayBufferToString = arrayBufferToString
-module.exports.asyncAwait = asyncAwait
+module.exports.asyncWait = asyncWait
 module.exports.mergeRelativePaths = mergeRelativePaths

@@ -16,11 +16,11 @@ const isIP = require('net').isIP
 
 class Request extends stream.Readable {
   locals = {}
-  #master_context
+  #masterContext
   #stream_ended = false
   #stream_raw_chunks = false
-  #raw_request = null
-  #raw_response = null
+  #rawRequest = null
+  #rawResponse = null
   #method
   #url
   #path
@@ -36,18 +36,18 @@ class Request extends stream.Readable {
   #body_json
   #body_urlencoded
 
-  constructor (stream_options, raw_request, raw_response, path_parameters_key, master_context) {
+  constructor (streamOptions, rawRequest, rawResponse, pathParametersKey, masterContext) {
     // Initialize the request readable stream for body consumption
-    super(stream_options)
+    super(streamOptions)
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
-    this.#raw_request = raw_request
-    this.#raw_response = raw_response
-    this.#master_context = master_context
+    this.#rawRequest = rawRequest
+    this.#rawResponse = rawResponse
+    this.#masterContext = masterContext
 
     // Execute request operators for pre-parsing common access data
     this._request_information()
-    this._path_parameters(path_parameters_key)
+    this._path_parameters(pathParametersKey)
   }
 
   /**
@@ -58,8 +58,8 @@ class Request extends stream.Readable {
      */
   _request_information () {
     // Retrieve raw uWS request & response objects
-    const request = this.#raw_request
-    const response = this.#raw_response
+    const request = this.#rawRequest
+    const response = this.#rawResponse
 
     // Perform request pre-parsing for common access data
     // This is required as uWS.Request is forbidden for access after initial execution
@@ -69,7 +69,7 @@ class Request extends stream.Readable {
     this.#url = this.#path + (this.#query ? '?' + this.#query : '')
     this.#remote_ip = response.getRemoteAddressAsText()
     this.#remote_proxy_ip = response.getProxiedRemoteAddressAsText()
-    this.#raw_request.forEach((key, value) => (this.#headers[key] = value))
+    this.#rawRequest.forEach((key, value) => (this.#headers[key] = value))
   }
 
   /**
@@ -77,10 +77,10 @@ class Request extends stream.Readable {
      * @private
      * @param {Array} parameters_key [[key, index], ...]
      */
-  _path_parameters (parameters_key) {
-    if (parameters_key.length > 0) {
-      parameters_key.forEach(
-        (keySet) => (this.#path_parameters[keySet[0]] = this.#raw_request.getParameter(keySet[1]))
+  _path_parameters (parametersKey) {
+    if (parametersKey.length > 0) {
+      parametersKey.forEach(
+        (keySet) => (this.#path_parameters[keySet[0]] = this.#rawRequest.getParameter(keySet[1]))
       )
     }
   }
@@ -94,7 +94,7 @@ class Request extends stream.Readable {
   pause () {
     // Ensure request is not already paused before pausing
     if (!super.isPaused()) {
-      this.#raw_response.pause()
+      this.#rawResponse.pause()
       return super.pause()
     }
     return this
@@ -107,7 +107,7 @@ class Request extends stream.Readable {
   resume () {
     // Ensure request is paused before resuming
     if (super.isPaused()) {
-      this.#raw_response.resume()
+      this.#rawResponse.resume()
       return super.resume()
     }
     return this
@@ -142,13 +142,13 @@ class Request extends stream.Readable {
   /**
      * Securely unsigns a value with provided secret and returns its original value upon successful verification.
      *
-     * @param {String} signed_value
+     * @param {String} signedValue
      * @param {String} secret
      * @returns {String=} String OR undefined
      */
-  unsign (signed_value, secret) {
-    const unsigned_value = signature.unsign(signed_value, secret)
-    if (unsigned_value !== false) return unsigned_value
+  unsign (signedValue, secret) {
+    const unsignedValue = signature.unsign(signedValue, secret)
+    if (unsignedValue !== false) return unsignedValue
   }
 
   /**
@@ -162,7 +162,7 @@ class Request extends stream.Readable {
 
     // Bind a uWS.Response.onData() handler which will handle incoming chunks and pipe them to the readable stream
     const stream = this
-    this.#raw_response.onData((array_buffer, is_last) => {
+    this.#rawResponse.onData((arrayBuffer, isLast) => {
       // Do not process chunk if the readable stream is no longer active
       if (stream.#stream_ended || stream.readableEnded || stream.readableAborted) return
 
@@ -170,14 +170,14 @@ class Request extends stream.Readable {
       // Provide raw chunks if specified and we have something consuming stream already
       // This will prevent unneccessary duplication of buffers
       let buffer
-      const raw_listeners = stream.listenerCount('data')
-      if (raw_listeners > 0 && stream.#stream_raw_chunks) {
+      const rawListeners = stream.listenerCount('data')
+      if (rawListeners > 0 && stream.#stream_raw_chunks) {
         // Store a direct Buffer reference as this will be immediately consumed
-        buffer = Buffer.from(array_buffer)
+        buffer = Buffer.from(arrayBuffer)
       } else {
         // Store a copy of the array_buffer as we have no immediate consumer yet
         // If we do not copy, this chunk will be lost in stream queue as it will be deallocated by uWebsockets
-        buffer = Buffer.concat([Buffer.from(array_buffer)])
+        buffer = Buffer.concat([Buffer.from(arrayBuffer)])
       }
 
       // Push the incoming chunk into readable stream for consumption
@@ -185,7 +185,7 @@ class Request extends stream.Readable {
       if (!stream.push(buffer)) stream.pause()
 
       // Push a null chunk signaling an EOF to the stream to end it if this chunk is last
-      if (is_last) stream.push(null)
+      if (isLast) stream.push(null)
     })
   }
 
@@ -208,10 +208,10 @@ class Request extends stream.Readable {
      * Initiates body buffer download process by consuming the request readable stream.
      *
      * @private
-     * @param {Number} content_length
+     * @param {Number} contentLength
      * @returns {Promise}
      */
-  _download_buffer (content_length) {
+  _download_buffer (contentLength) {
     // Return pending buffer promise if in flight
     if (this.#buffer_promise) return this.#buffer_promise
 
@@ -231,10 +231,10 @@ class Request extends stream.Readable {
       reference.#buffer_resolve = resolve
 
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
-      const use_fast_buffers = reference.#master_context.options.fast_buffers
+      const useFastBuffers = reference.#masterContext.options.fast_buffers
       const body = {
         cursor: 0,
-        buffer: Buffer[use_fast_buffers ? 'allocUnsafe' : 'alloc'](content_length)
+        buffer: Buffer[useFastBuffers ? 'allocUnsafe' : 'alloc'](contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -280,14 +280,14 @@ class Request extends stream.Readable {
     if (this.#body_buffer) return Promise.resolve(this.#body_buffer)
 
     // Resolve empty if invalid content-length header detected
-    const content_length = +this.#headers['content-length']
-    if (isNaN(content_length) || content_length < 1) {
+    const contentLength = +this.#headers['content-length']
+    if (isNaN(contentLength) || contentLength < 1) {
       this.#body_buffer = Buffer.from('')
       return Promise.resolve(this.#body_buffer)
     }
 
     // Initiate buffer download
-    return this._download_buffer(content_length)
+    return this._download_buffer(contentLength)
   }
 
   /**
@@ -309,19 +309,19 @@ class Request extends stream.Readable {
      *
      * @private
      * @param {String} string
-     * @param {Any} default_value
+     * @param {Any} defaultValue
      * @returns {Any}
      */
-  _parse_json (string, default_value) {
+  _parse_json (string, defaultValue) {
     // Unsafely parse JSON as we do not have a default_value
-    if (default_value == undefined) return JSON.parse(string)
+    if (defaultValue === undefined) return JSON.parse(string)
 
     // Safely parse JSON as we have a default_value
     let json
     try {
       json = JSON.parse(string)
     } catch (error) {
-      return default_value
+      return defaultValue
     }
     return json
   }
@@ -330,16 +330,16 @@ class Request extends stream.Readable {
      * Downloads and parses the request body as a JSON object.
      * Passing default_value as undefined will lead to the function throwing an exception if invalid JSON is received.
      *
-     * @param {Any} default_value Default: {}
+     * @param {Any} defaultValue Default: {}
      * @returns {Promise}
      */
-  async json (default_value = {}) {
+  async json (defaultValue = {}) {
     // Return from cache if available
     if (this.#body_json) return this.#body_json
 
     // Retrieve body as text, safely parse json, cache and resolve
     const text = this.#body_text || (await this.text())
-    this.#body_json = this._parse_json(text, default_value)
+    this.#body_json = this._parse_json(text, defaultValue)
     return this.#body_json
   }
 
@@ -428,14 +428,14 @@ class Request extends stream.Readable {
     options.headers = this.#headers
 
     // Ensure the provided handler is a function type
-    if (typeof handler !== 'function') { throw new Error('HyperExpress: Request.multipart(handler) -> handler must be a Function.') }
+    if (typeof handler !== 'function') { throw new Error('Request.multipart(handler) -> handler must be a Function.') }
 
     // Resolve instantly if we have no readable body stream
     if (this.readableEnded) return Promise.resolve()
 
     // Resolve instantly if we do not have a valid multipart content type header
-    const content_type = this.headers['content-type']
-    if (!/^(multipart\/.+);(.*)$/i.test(content_type)) return Promise.resolve()
+    const contentType = this.headers['content-type']
+    if (!/^(multipart\/.+);(.*)$/i.test(contentType)) return Promise.resolve()
 
     // Return a promise which will be resolved after all incoming multipart data has been processed
     const reference = this
@@ -447,18 +447,21 @@ class Request extends stream.Readable {
       uploader.on('error', reject)
 
       // Bind limit event handlers to reject as error code constants
+      // eslint-disable-next-line prefer-promise-reject-errors
       uploader.on('partsLimit', () => reject('PARTS_LIMIT_REACHED'))
+      // eslint-disable-next-line prefer-promise-reject-errors
       uploader.on('filesLimit', () => reject('FILES_LIMIT_REACHED'))
+      // eslint-disable-next-line prefer-promise-reject-errors
       uploader.on('fieldsLimit', () => reject('FIELDS_LIMIT_REACHED'))
 
       // Bind a 'field' event handler to process each incoming field
-      uploader.on('field', (field_name, value, info) =>
-        this._on_multipart_field(handler, field_name, value, info)
+      uploader.on('field', (fieldName, value, info) =>
+        this._on_multipart_field(handler, fieldName, value, info)
       )
 
       // Bind a 'file' event handler to process each incoming file
-      uploader.on('file', (field_name, stream, info) =>
-        this._on_multipart_field(handler, field_name, stream, info)
+      uploader.on('file', (fieldName, stream, info) =>
+        this._on_multipart_field(handler, fieldName, stream, info)
       )
 
       // Bind a 'finish' event handler to resolve the upload promise
@@ -483,15 +486,15 @@ class Request extends stream.Readable {
      * Note! Utilizing any of uWS.Request's methods after initial synchronous call will throw a forbidden access error.
      */
   get raw () {
-    return this.#raw_request
+    return this.#rawRequest
   }
 
   /**
-     * Returns the HyperExpress.Server instance this Request object originated from.
+     * Returns the Server instance this Request object originated from.
      * @returns {Server}
      */
   get app () {
-    return this.#master_context
+    return this.#masterContext
   }
 
   /**
@@ -687,13 +690,13 @@ class Request extends stream.Readable {
   param (name, defaultValue) {
     // Parse three dataset candidates
     const body = this.body
-    const path_parameters = this.path_parameters
-    const query_parameters = this.query_parameters
+    const pathParameters = this.path_parameters
+    const queryParameters = this.query_parameters
 
     // First check path parameters, body, and finally query_parameters
-    if (path_parameters[name] != null && path_parameters.hasOwnProperty(name)) return path_parameters[name]
+    if (pathParameters[name] != null && Object.prototype.hasOwnProperty.call(pathParameters, name)) return pathParameters[name]
     if (body[name] != null) return body[name]
-    if (query_parameters[name] != null) return query_parameters[name]
+    if (queryParameters[name] != null) return queryParameters[name]
 
     return defaultValue
   }
@@ -765,12 +768,12 @@ class Request extends stream.Readable {
      */
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
-    const trust_proxy = this.#master_context.options.trust_proxy
-    const x_forwarded_proto = this.get('X-Forwarded-Proto')
-    if (trust_proxy && x_forwarded_proto) { return x_forwarded_proto.indexOf(',') > -1 ? x_forwarded_proto.split(',')[0] : x_forwarded_proto }
+    const trustProxy = this.#masterContext.options.trust_proxy
+    const xForwardedProto = this.get('X-Forwarded-Proto')
+    if (trustProxy && xForwardedProto) { return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto }
 
-    // Use HyperExpress/uWS initially defined protocol
-    return this.#master_context.is_ssl ? 'https' : 'http'
+    // Use uWS initially defined protocol
+    return this.#masterContext.is_ssl ? 'https' : 'http'
   }
 
   /**
@@ -786,22 +789,22 @@ class Request extends stream.Readable {
      * @returns {Array}
      */
   get ips () {
-    const client_ip = this.ip
-    const proxy_ip = this.proxy_ip
-    const trust_proxy = this.#master_context.trust_proxy
-    const x_forwarded_for = this.get('X-Forwarded-For')
-    if (trust_proxy && x_forwarded_for) return x_forwarded_for.split(',')
-    return [client_ip, proxy_ip]
+    const clientIP = this.ip
+    const proxyIP = this.proxy_ip
+    const trustProxy = this.#masterContext.trust_proxy
+    const xForwardedFor = this.get('X-Forwarded-For')
+    if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
+    return [clientIP, proxyIP]
   }
 
   /**
      * ExpressJS: Parse the "Host" header field to a hostname.
      */
   get hostname () {
-    const trust_proxy = this.#master_context.trust_proxy
+    const trustProxy = this.#masterContext.trust_proxy
     let host = this.get('X-Forwarded-Host')
 
-    if (!host || !trust_proxy) {
+    if (!host || !trustProxy) {
       host = this.get('Host')
     } else if (host.indexOf(',') > -1) {
       // Note: X-Forwarded-Host is normally only ever a

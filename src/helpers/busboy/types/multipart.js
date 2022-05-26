@@ -2,7 +2,7 @@
 
 const { Readable, Writable } = require('stream')
 
-const StreamSearch = require('streamsearch')
+const StreamSearch = require('../../streamsearch')
 
 const {
   basename,

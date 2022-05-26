@@ -1,8 +1,4 @@
 // eslint-disable-next-line no-unused-vars
-const Request = require('../Request.js') // lgtm [js/unused-local-variable]
-// eslint-disable-next-line no-unused-vars
-const Response = require('../Response.js') // lgtm [js/unused-local-variable]
-// eslint-disable-next-line no-unused-vars
 const Stream = require('stream') // lgtm [js/unused-local-variable]
 const { mergeRelativePaths } = require('./utils')
 
