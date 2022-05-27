@@ -54,6 +54,7 @@ const StaticFiles = (options = {}) => {
         res.status(200)
           .header('Content-Type', mimeType)
           .header('Last-Modified', stats.mtime.toUTCString())
+        res.vary('Accept-Encoding')
 
         const fileReadableStream = fs.createReadStream(file)
         fileReadableStream.once('end', () => {
@@ -65,8 +66,6 @@ const StaticFiles = (options = {}) => {
         let compression = null
         // Compression candidate?
         if (compressible(mimeType) && stats.size >= opts.compressionThreshold) {
-          res.vary('Accept-Encoding')
-
           const accept = accepts(req)
           let method = accept.encoding(['gzip', 'deflate', 'identity'])
 
