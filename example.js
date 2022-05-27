@@ -4,6 +4,10 @@ const StaticFiles = require('./src/middleware/StaticFiles')
 // eslint-disable-next-line new-cap
 const uQuik = new Server()
 
+uQuik.set_error_handler((request, response, error) => {
+  console.log(error)
+})
+
 uQuik.use(StaticFiles())
 
 uQuik.all('/*', () => {})

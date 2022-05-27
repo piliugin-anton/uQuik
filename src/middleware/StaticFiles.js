@@ -6,10 +6,12 @@ const mimeTypes = require('../helpers/mime-types')
 const accepts = require('../helpers/accepts')
 const compressible = require('../helpers/compressible')
 
-const resolveFile = (file, success, error, indexFile = '') => {
-  fs.promises.stat(file, {
-    bigint: false
-  }).then((stats) => {
+const resolveFile = async (file, success, error, indexFile = '') => {
+  try {
+    const stats = await fs.promises.stat(file, {
+      bigint: false
+    })
+
     if (stats.isDirectory()) {
       resolveFile(path.join(file, indexFile), success, error)
     } else if (stats.isFile()) {
@@ -17,10 +19,12 @@ const resolveFile = (file, success, error, indexFile = '') => {
     } else {
       error(file)
     }
-  }).catch((ex) => error(file))
+  } catch (ex) {
+    error(file)
+  }
 }
 
-const handle404 = (res) => res.status(404).send()
+const handle404 = (res, file) => res.status(404).send(`File ${file} not found`)
 
 const StaticFiles = (options = {}) => {
   const opts = {
@@ -48,19 +52,21 @@ const StaticFiles = (options = {}) => {
             .header('Content-Type', mimeType)
             .header('Content-Length', stats.size.toString())
             .header('Last-Modified', stats.mtime.toUTCString())
+            .vary('Accept-Encoding')
             .send(undefined, undefined, true)
         }
 
         res.status(200)
           .header('Content-Type', mimeType)
           .header('Last-Modified', stats.mtime.toUTCString())
-        res.vary('Accept-Encoding')
+          .vary('Accept-Encoding')
 
         const fileReadableStream = fs.createReadStream(file)
         fileReadableStream.once('end', () => {
           fileReadableStream.close()
           fileReadableStream.destroy()
         })
+        fileReadableStream.once('error', () => fileReadableStream.destroy())
 
         // Compression
         let compression = null
@@ -86,15 +92,19 @@ const StaticFiles = (options = {}) => {
           zlibStream.once('end', () => {
             zlibStream.close()
             zlibStream.destroy()
+            // res.send(undefined, undefined, true)
+          })
+          zlibStream.once('error', () => {
+            zlibStream.destroy()
           })
           res.stream(zlibStream)
+          fileReadableStream.once('error', () => zlibStream.destroy())
           fileReadableStream.pipe(zlibStream)
-          fileReadableStream.once('end', () => fileReadableStream.unpipe(zlibStream))
         } else {
           res.stream(fileReadableStream, stats.size)
         }
       },
-      (file) => handle404(res),
+      (file) => handle404(res, file),
       opts.indexFile
     )
   }
