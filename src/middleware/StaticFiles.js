@@ -90,15 +90,15 @@ const StaticFiles = (options = {}) => {
           res.header('Content-Encoding', compression)
           const zlibStream = zlib.createGzip()
           zlibStream.once('end', () => {
-            zlibStream.close()
             zlibStream.destroy()
             // res.send(undefined, undefined, true)
           })
-          zlibStream.once('error', () => {
+          zlibStream.once('error', () => zlibStream.destroy())
+          res.stream(zlibStream)
+          fileReadableStream.once('error', () => {
+            fileReadableStream.unpipe(zlibStream)
             zlibStream.destroy()
           })
-          res.stream(zlibStream)
-          fileReadableStream.once('error', () => zlibStream.destroy())
           fileReadableStream.pipe(zlibStream)
         } else {
           res.stream(fileReadableStream, stats.size)
