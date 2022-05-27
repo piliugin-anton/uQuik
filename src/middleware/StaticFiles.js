@@ -20,6 +20,8 @@ const resolveFile = (file, success, error, indexFile = '') => {
   }).catch((ex) => error(file))
 }
 
+const handle404 = (res) => res.status(404).send()
+
 const StaticFiles = (options = {}) => {
   const opts = {
     root: path.resolve('www'),
@@ -36,53 +38,66 @@ const StaticFiles = (options = {}) => {
 
     const filePath = req.path === '/' ? path.join(opts.root, opts.indexFile) : path.normalize(path.join(opts.root, req.path))
 
-    resolveFile(filePath, (file, stats) => {
-      const mimeType = mimeTypes.lookup(path.extname(file))
+    resolveFile(
+      filePath,
+      (file, stats) => {
+        const mimeType = mimeTypes.lookup(path.extname(file))
 
-      if (req.method === 'HEAD') {
-        return res.status(200).header('Content-Type', mimeType).header('Content-Length', stats.size.toString()).send(undefined, undefined, true)
-      }
-
-      res.status(200).header('Content-Type', mimeType)
-
-      const fileReadableStream = fs.createReadStream(file)
-      fileReadableStream.once('end', () => {
-        fileReadableStream.close()
-      })
-
-      // Compression
-      let compression = null
-      // Compression candidate?
-      if (compressible(mimeType) && stats.size >= opts.compressionThreshold) {
-        res.vary('Accept-Encoding')
-
-        const accept = accepts(req)
-        let method = accept.encoding(['gzip', 'deflate', 'identity'])
-
-        // we really don't prefer deflate
-        if (method === 'deflate' && accept.encoding(['gzip'])) {
-          method = accept.encoding(['gzip', 'identity'])
+        if (req.method === 'HEAD') {
+          return res.status(200)
+            .header('Content-Type', mimeType)
+            .header('Content-Length', stats.size.toString())
+            .header('Last-Modified', stats.mtime.toUTCString())
+            .send(undefined, undefined, true)
         }
 
-        // compression possible
-        if (method && method !== 'identity') {
-          compression = method
-        }
-      }
+        res.status(200)
+          .header('Content-Type', mimeType)
+          .header('Last-Modified', stats.mtime.toUTCString())
 
-      if (compression) {
-        res.header('Content-Encoding', compression)
-        const zlibStream = zlib.createGzip()
-        zlibStream.once('end', () => zlibStream.close())
-        res.stream(zlibStream)
-        fileReadableStream.pipe(zlibStream)
+        const fileReadableStream = fs.createReadStream(file)
         fileReadableStream.once('end', () => {
-          fileReadableStream.unpipe(zlibStream)
+          fileReadableStream.close()
+          fileReadableStream.destroy()
         })
-      } else {
-        res.stream(fileReadableStream, stats.size)
-      }
-    }, (file) => res.status(404).send(), opts.indexFile)
+
+        // Compression
+        let compression = null
+        // Compression candidate?
+        if (compressible(mimeType) && stats.size >= opts.compressionThreshold) {
+          res.vary('Accept-Encoding')
+
+          const accept = accepts(req)
+          let method = accept.encoding(['gzip', 'deflate', 'identity'])
+
+          // we really don't prefer deflate
+          if (method === 'deflate' && accept.encoding(['gzip'])) {
+            method = accept.encoding(['gzip', 'identity'])
+          }
+
+          // compression possible
+          if (method && method !== 'identity') {
+            compression = method
+          }
+        }
+
+        if (compression) {
+          res.header('Content-Encoding', compression)
+          const zlibStream = zlib.createGzip()
+          zlibStream.once('end', () => {
+            zlibStream.close()
+            zlibStream.destroy()
+          })
+          res.stream(zlibStream)
+          fileReadableStream.pipe(zlibStream)
+          fileReadableStream.once('end', () => fileReadableStream.unpipe(zlibStream))
+        } else {
+          res.stream(fileReadableStream, stats.size)
+        }
+      },
+      (file) => handle404(res),
+      opts.indexFile
+    )
   }
 }
 
