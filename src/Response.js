@@ -136,7 +136,7 @@ class Response extends Writable {
     const mimeHeader = mimeTypes.lookup(mimeType) || 'text/plain'
     if (!this.#completed) {
       this.#type_written = true
-      this.header('content-type', mimeHeader)
+      this.header('Content-Type', mimeHeader)
     }
     return this
   }
@@ -257,7 +257,9 @@ class Response extends Writable {
     this._resume_if_paused()
 
     // Write the appropriate status code to the response along with mapped status code message
-    if (this.#status_code) { this.#raw_response.writeStatus(this.#status_code + ' ' + statusCodes[this.#status_code]) }
+    if (this.#status_code) {
+      this.#raw_response.writeStatus(this.#status_code + ' ' + statusCodes[this.#status_code])
+    }
 
     // Iterate through all headers and write them to uWS
     if (this.#headers) {
@@ -347,7 +349,7 @@ class Response extends Writable {
      * @param {Boolean=} closeConnection
      * @returns {Boolean} 'false' signifies that the body was not sent due to built up backpressure or closed connection.
      */
-  send (body, closeConnection) {
+  send (body, closeConnection, withoutBody) {
     // Ensure response connection is still active
     if (!this.#completed) {
       // Initiate response to write status code and headers
@@ -357,7 +359,7 @@ class Response extends Writable {
       this.#wrapped_request._stop_streaming()
 
       // Mark request as completed and end request using uWS.Response.end()
-      const sent = this.#raw_response.end(body, closeConnection)
+      const sent = !withoutBody ? this.#raw_response.end(body, closeConnection) : this.#raw_response.endWithoutBody()
 
       // Emit the 'finish' event to signify that the response has been sent without streaming
       if (!this.#streaming) this.emit('finish', this.#wrapped_request, this)
@@ -566,6 +568,7 @@ class Response extends Writable {
      * @param {String} path
      * @param {function(Object):void=} callback Executed after file has been served with the parameter being the cache pool.
      */
+
   file (path, callback) {
     // Send file from local cache pool if available
     if (FilePool[path]) return this._send_file(FilePool[path], callback)

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "debug": "node --inspect example.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "benchmark": "autocannon -c 10 -d 30 -p 4 http://127.0.0.1:5000"
   },
   "dependencies": {
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0"

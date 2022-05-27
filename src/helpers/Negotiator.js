@@ -1,6 +1,6 @@
 class Negotiator {
-  constructor (headers) {
-    this.headers = headers
+  constructor (request) {
+    this.headers = request.headers
   }
 
   get simpleMediaTypeRegExp () {

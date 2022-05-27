@@ -191,9 +191,7 @@ class Server extends Router {
     options: {},
     patch: {},
     put: {},
-    trace: {},
-    upgrade: {},
-    ws: {}
+    trace: {}
   }
 
   /**
@@ -286,12 +284,10 @@ class Server extends Router {
     this.#middlewares[pattern].push(object)
 
     // Inject middleware into all routes that match its execution pattern if it is non global
-    const match = pattern.endsWith('/') ? pattern.substr(0, pattern.length - 1) : pattern
     if (object.priority !== 0) {
-      Object.keys(this.#routes).forEach((method) => {
-      // Ignore ws routes as they are WebsocketRoute components
-        if (method === 'ws') return
+      const match = pattern.endsWith('/') ? pattern.substr(0, pattern.length - 1) : pattern
 
+      Object.keys(this.#routes).forEach((method) => {
         // Match middleware pattern against all routes with this method
         const routes = reference.#routes[method]
         Object.keys(routes).forEach((pattern) => {
@@ -424,6 +420,7 @@ class Server extends Router {
       if (output instanceof Promise) output.catch(next)
     } catch (error) {
       // If route handler throws an error, trigger error handler
+      console.log(error)
       return next(error)
     }
   }
