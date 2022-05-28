@@ -10,7 +10,8 @@ uQuik.set_error_handler((request, response, error) => {
 
 uQuik.use(StaticFiles())
 
-uQuik.all('/*', () => {})
+uQuik.get('/*', () => {})
+uQuik.head('/*', () => {})
 
 /* uQuik.get('/', (req, res) => {
   res.send('hello world')

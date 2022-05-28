@@ -1,93 +1,33 @@
 const bench = require('nanobench')
-const qsParse = require('./src/helpers/qs.parse')
 
-const randomCharset = () => {
-  const charsets = [
-    'utf-8',
-    'iso-8859-1',
-    'windows-1251',
-    'windows-1252'
-  ]
+const loopCount = 100000
 
-  return charsets[Math.floor(Math.random() * charsets.length)]
-}
-
-const randomEncoding = () => {
-  const encodings = [
-    'gzip',
-    'compress',
-    'deflate',
-    'br',
-    'identity'
-  ]
-
-  return encodings[Math.floor(Math.random() * encodings.length)]
-}
-
-const randomLanguage = () => {
-  const languages = [
-    'ru-RU',
-    'fr-CH',
-    'en-US',
-    'de-CH'
-  ]
-
-  return languages[Math.floor(Math.random() * languages.length)]
-}
-
-const randomMedia = () => {
-  const medias = [
-    'text/html',
-    'application/xhtml+xml',
-    'application/xml',
-    'text/html',
-    'application/json',
-    'text/plain'
-  ]
-
-  return medias[Math.floor(Math.random() * medias.length)]
-}
-
-const randomQuality = () => {
-  return Math.random().toFixed(1)
-}
-
-const randomAcceptHeader = (what = 'charset') => {
-  const array = []
-  while (array.length < 3) {
-    let random
-    if (what === 'charset') {
-      random = randomCharset()
-    } else if (what === 'encoding') {
-      random = randomEncoding()
-    } else if (what === 'language') {
-      random = randomLanguage()
-    } else if (what === 'media') {
-      random = randomMedia()
-    }
-
-    let string
-    if (array.length === 0) {
-      string = random
-    } else if (array.length < 2) {
-      string = random + ';q=' + randomQuality()
-    } else {
-      string = '*;q=0.1'
-    }
-
-    if (array.indexOf(string) === -1) {
-      array.push(string)
-    }
+const generateString = (length = 3) => {
+  let result = ''
+  const characters = '0123456789'
+  const charactersLength = characters.length
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() *
+charactersLength))
   }
-
-  return array.join(', ')
+  return result
 }
 
-bench('Negotiator default', (b) => {
+bench('Number', (b) => {
   b.start()
 
-  for (let i = 0; i < 1; i++) {
-    console.log(qsParse('test=1234&asd=fgf'))
+  for (let i = 0; i < loopCount; i++) {
+    Number(generateString())
+  }
+
+  b.end()
+})
+
+bench('parseInt', (b) => {
+  b.start()
+
+  for (let i = 0; i < loopCount; i++) {
+    parseInt(generateString())
   }
 
   b.end()

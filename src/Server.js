@@ -141,7 +141,7 @@ class Server extends Router {
      * @param {RouteErrorHandler} handler
      */
   set_error_handler (handler) {
-    if (typeof handler !== 'function') throw new Error(': handler must be a function')
+    if (typeof handler !== 'function') throw new Error('handler must be a function')
     this.#handlers.on_error = handler
   }
 
@@ -157,7 +157,7 @@ class Server extends Router {
      * @param {RouteHandler} handler
      */
   set_not_found_handler (handler) {
-    if (typeof handler !== 'function') throw new Error(': handler must be a function')
+    if (typeof handler !== 'function') throw new Error('handler must be a function')
 
     // Store not_found handler and bind it as a catchall route
     if (this.#handlers.on_not_found === null) {
@@ -173,7 +173,7 @@ class Server extends Router {
     }
 
     // Do not allow user to re-register not found handler
-    throw new Error(': A Not Found handler has already been registered.')
+    throw new Error('A Not Found handler has already been registered.')
   }
 
   /* Server Routes & Middlewares Logic */
