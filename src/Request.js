@@ -6,7 +6,7 @@ const qsParse = require('./helpers/qs.parse')
 const stream = require('stream')
 const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
-const { arrayBufferToString } = require('./utils')
+const { arrayBufferToString, getIP } = require('./utils')
 
 // ExpressJS compatibility packages
 const accepts = require('./helpers/accepts')
@@ -68,8 +68,8 @@ class Request extends stream.Readable {
     this.#path = this.#rawRequest.getUrl()
     this.#query = this.#rawRequest.getQuery()
     this.#url = this.#path + (this.#query ? '?' + this.#query : '')
-    this.#remote_ip = this.#rawResponse.getRemoteAddressAsText()
-    this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddressAsText()
+    this.#remote_ip = getIP(this.#rawResponse.getRemoteAddress())
+    this.#remote_proxy_ip = getIP(this.#rawResponse.getProxiedRemoteAddress())
 
     // Parse headers into a key-value object
     this.#rawRequest.forEach((key, value) => (this.#headers[key] = value))

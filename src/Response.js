@@ -6,6 +6,7 @@ const statusCodes = require('./statusCodes.json')
 const mimeTypes = require('./helpers/mime-types')
 const { Readable } = require('stream')
 const EventEmitter = require('eventemitter3')
+const { fastArrayJoin } = require('./utils')
 
 const SSEventStream = require('./SSEventStream')
 const LiveFile = require('./LiveFile')
@@ -820,7 +821,7 @@ class Response extends EventEmitter {
   getHeaders () {
     const headers = {}
     Object.keys(this.#headers).forEach((key) => {
-      headers[key] = this.#headers[key].join(',')
+      headers[key] = fastArrayJoin(this.#headers[key], ',')
     })
     return headers
   }
@@ -908,7 +909,7 @@ class Response extends EventEmitter {
       const url = links[rel]
       chunks.push(`<${url}>; rel="${rel}"`)
     })
-    return chunks.join(', ')
+    return fastArrayJoin(chunks, ', ')
   }
 
   /**

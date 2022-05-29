@@ -9,7 +9,9 @@
     "uws": "node benchmark/uWebSockets.js",
     "hyper": "node benchmark/Hyper-Express.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "benchmark": "wrk -t12 -c400 -d30s http://127.0.0.1:5000",
+    "benchmark": "wrk -t4 -c2500 -d30s http://127.0.0.1:5000",
+    "benchmark-uws": "wrk -t4 -c2500 -d30s http://127.0.0.1:5001",
+    "benchmark-hyper": "wrk -t4 -c2500 -d30s http://127.0.0.1:5002",
     "benchmark-cannon": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5000",
     "benchmark-cannon-uws": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5001",
     "benchmark-cannon-hyper": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5002"

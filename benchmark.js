@@ -1,33 +1,30 @@
 const bench = require('nanobench')
+const { getIP } = require('./src/utils')
 
-const loopCount = 100000
+const loopCount = 200000
 
-const generateString = (length = 3) => {
-  let result = ''
-  const characters = '0123456789'
-  const charactersLength = characters.length
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() *
-charactersLength))
+const generateIP = () => {
+  let uint8Array
+  if (Math.random() > 0.5) {
+    uint8Array = new Uint8Array(16)
+    for (let i = 0; i < 16; i++) {
+      uint8Array[i] = Math.floor(Math.random() * 255)
+    }
+  } else {
+    uint8Array = new Uint8Array(4)
+    for (let i = 0; i < 4; i++) {
+      uint8Array[i] = Math.floor(Math.random() * 255)
+    }
   }
-  return result
+
+  return uint8Array.buffer
 }
 
-bench('Number', (b) => {
+bench('getIP', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; i++) {
-    Number(generateString())
-  }
-
-  b.end()
-})
-
-bench('parseInt', (b) => {
-  b.start()
-
-  for (let i = 0; i < loopCount; i++) {
-    parseInt(generateString())
+    getIP(generateIP())
   }
 
   b.end()
