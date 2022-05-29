@@ -254,29 +254,25 @@ class Server extends Router {
      * @param {Object} record
      */
   _create_middleware (record) {
-    // Destructure record from Router
-    const reference = this
-    const { pattern, middleware } = record
-
     // Initialize middlewares array for specified pattern
-    if (this.#middlewares[pattern] === undefined) this.#middlewares[pattern] = []
+    if (this.#middlewares[record.pattern] === undefined) this.#middlewares[record.pattern] = []
 
     // Create a middleware object with an appropriate priority
     const object = {
-      priority: pattern === '/' ? 0 : 1, // 0 priority are global middlewares
-      middleware
+      priority: record.pattern === '/' ? 0 : 1, // 0 priority are global middlewares
+      middleware: record.middleware
     }
 
     // Store middleware object in its pattern branch
-    this.#middlewares[pattern].push(object)
+    this.#middlewares[record.pattern].push(object)
 
     // Inject middleware into all routes that match its execution pattern if it is non global
     if (object.priority !== 0) {
-      const match = pattern.endsWith('/') ? pattern.substr(0, pattern.length - 1) : pattern
+      const match = record.pattern.endsWith('/') ? record.pattern.substr(0, record.pattern.length - 1) : record.pattern
 
       Object.keys(this.#routes).forEach((method) => {
         // Match middleware pattern against all routes with this method
-        const routes = reference.#routes[method]
+        const routes = this.#routes[method]
         Object.keys(routes).forEach((pattern) => {
         // If route's pattern starts with middleware pattern, then use middleware
           if (pattern.startsWith(match)) routes[pattern].use(object)
