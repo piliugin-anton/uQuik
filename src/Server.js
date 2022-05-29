@@ -17,8 +17,7 @@ class Server extends Router {
     fast_abort: false,
     trust_proxy: false,
     unsafe_buffers: false,
-    max_body_length: 250 * 1000,
-    streaming: {}
+    max_body_length: 250 * 1000
   }
 
   /**
@@ -33,9 +32,6 @@ class Server extends Router {
      * @param {Boolean} options.trust_proxy Specifies whether to trust incoming request data from intermediate proxy(s)
      * @param {Number} options.max_body_length Maximum body content length allowed in bytes. For Reference: 1kb = 1000 bytes and 1mb = 1000kb.
      * @param {Boolean} options.auto_close Whether to automatically close the server instance when the process exits. Default: true
-     * @param {Object} options.streaming Global content streaming options.
-     * @param {Stream.ReadableOptions} options.streaming.readable Global content streaming options for Readable streams.
-     * @param {Stream.WritableOptions} options.streaming.writable Global content streaming options for Writable streams.
      */
   constructor (options = {}) {
     // Only accept object as a parameter type for options
