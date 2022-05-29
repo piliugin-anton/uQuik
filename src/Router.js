@@ -104,7 +104,6 @@ class Router {
      * @param {Router} router
      */
   _register_router (pattern, router) {
-    const reference = this
     router._subscribe((event, object) => {
       // Destructure records from router
       const { routes, middlewares } = object
@@ -112,7 +111,7 @@ class Router {
         case 'records':
           // Register routes from router locally with adjusted pattern
           routes.forEach((record) =>
-            reference._register_route(
+            this._register_route(
               record.method,
               mergeRelativePaths(pattern, record.pattern),
               record.options,
@@ -122,11 +121,11 @@ class Router {
 
           // Register middlewares from router locally with adjusted pattern
           return middlewares.forEach((record) =>
-            reference._register_middleware(mergeRelativePaths(pattern, record.pattern), record.middleware)
+            this._register_middleware(mergeRelativePaths(pattern, record.pattern), record.middleware)
           )
         case 'route':
           // Register route from router locally with adjusted pattern
-          return reference._register_route(
+          return this._register_route(
             object.method,
             mergeRelativePaths(pattern, object.pattern),
             object.options,
@@ -134,7 +133,7 @@ class Router {
           )
         case 'middleware':
           // Register middleware from router locally with adjusted pattern
-          return reference._register_middleware(
+          return this._register_middleware(
             mergeRelativePaths(pattern, object.patch),
             object.middleware
           )

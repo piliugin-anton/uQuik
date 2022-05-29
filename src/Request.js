@@ -15,7 +15,6 @@ const typeIs = require('./helpers/type-is')
 const isIP = require('net').isIP
 
 class Request extends stream.Readable {
-  locals = {}
   #stream_ended = false
   #stream_raw_chunks = false
   #rawRequest = null
@@ -766,7 +765,9 @@ class Request extends stream.Readable {
     // Resolves x-forwarded-proto header if trust proxy is enabled
     const trustProxy = this.#options.trust_proxy
     const xForwardedProto = this.get('X-Forwarded-Proto')
-    if (trustProxy && xForwardedProto) { return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto }
+    if (trustProxy && xForwardedProto) {
+      return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto
+    }
 
     // Use uWS initially defined protocol
     return this.#options.is_ssl ? 'https' : 'http'

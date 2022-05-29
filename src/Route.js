@@ -6,7 +6,6 @@ class Route {
   #pattern
   #handler
   #options
-  #streaming
   #path_parameters_key
 
   /**

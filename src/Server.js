@@ -31,11 +31,6 @@ class Server extends Router {
   }
 
   /**
-     * This object can be used to store properties/references local to this Server instance.
-     */
-  locals = {}
-
-  /**
      * @param {Object} options Server Options
      * @param {String} options.cert_file_name Path to SSL certificate file.
      * @param {String} options.key_file_name Path to SSL private key file to be used for SSL/TLS.
