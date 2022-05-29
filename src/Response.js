@@ -266,7 +266,7 @@ class Response extends EventEmitter {
 
     // Write the appropriate status code to the response along with mapped status code message
     if (this.#status_code) {
-      this.#raw_response.writeStatus(this.#status_code + ' ' + statusCodes[this.#status_code])
+      this.#raw_response.writeStatus(statusCodes[this.#status_code])
     }
 
     // Iterate through all headers and write them to uWS

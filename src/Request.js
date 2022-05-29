@@ -6,7 +6,7 @@ const qsParse = require('./helpers/qs.parse')
 const stream = require('stream')
 const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
-const { arrayBufferToString, getIP } = require('./utils')
+const { getIP } = require('./utils')
 
 // ExpressJS compatibility packages
 const accepts = require('./helpers/accepts')
@@ -68,8 +68,10 @@ class Request extends stream.Readable {
     this.#path = this.#rawRequest.getUrl()
     this.#query = this.#rawRequest.getQuery()
     this.#url = this.#path + (this.#query ? '?' + this.#query : '')
-    this.#remote_ip = getIP(this.#rawResponse.getRemoteAddress())
-    this.#remote_proxy_ip = getIP(this.#rawResponse.getProxiedRemoteAddress())
+    // this.#remote_ip = this.#rawResponse.getRemoteAddressAsText()
+    // this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddressAsText()
+    this.#remote_ip = this.#rawResponse.getRemoteAddress()
+    this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddress()
 
     // Parse headers into a key-value object
     this.#rawRequest.forEach((key, value) => (this.#headers[key] = value))
@@ -579,7 +581,7 @@ class Request extends stream.Readable {
      */
   get ip () {
     // Convert Remote IP to string on first access
-    if (typeof this.#remote_ip !== 'string') this.#remote_ip = arrayBufferToString(this.#remote_ip)
+    if (typeof this.#remote_ip !== 'string') this.#remote_ip = getIP(this.#remote_ip)
 
     return this.#remote_ip
   }
@@ -590,9 +592,7 @@ class Request extends stream.Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.#remote_proxy_ip !== 'string') {
-      this.#remote_proxy_ip = arrayBufferToString(this.#remote_proxy_ip)
-    }
+    if (typeof this.#remote_proxy_ip !== 'string') this.#remote_proxy_ip = getIP(this.#remote_proxy_ip)
 
     return this.#remote_proxy_ip
   }
