@@ -279,7 +279,7 @@ class Request extends stream.Readable {
     if (this.#body_buffer) return Promise.resolve(this.#body_buffer)
 
     // Resolve empty if invalid content-length header detected
-    const contentLength = +this.#headers['content-length']
+    const contentLength = Number(this.#headers['content-length'])
     if (isNaN(contentLength) || contentLength < 1) {
       this.#body_buffer = Buffer.from('')
       return Promise.resolve(this.#body_buffer)

@@ -176,7 +176,7 @@ const defaults = {
 
 const interpretNumericEntities = function (str) {
   return str.replace(/&#(\d+);/g, function ($0, numberStr) {
-    return String.fromCharCode(parseInt(numberStr, 10))
+    return String.fromCharCode(Number(numberStr))
   })
 }
 
@@ -274,7 +274,7 @@ const parseObject = function (chain, val, options, valuesParsed) {
     } else {
       obj = options.plainObjects ? Object.create(null) : {}
       const cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root
-      const index = parseInt(cleanRoot, 10)
+      const index = Number(cleanRoot)
       if (!options.parseArrays && cleanRoot === '') {
         obj = { 0: leaf }
       } else if (

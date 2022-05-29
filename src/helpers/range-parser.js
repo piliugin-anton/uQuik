@@ -36,8 +36,8 @@ const rangeParser = (size, str, options) => {
   // parse all ranges
   for (let i = 0; i < arr.length; i++) {
     const range = arr[i].split('-')
-    let start = parseInt(range[0], 10)
-    let end = parseInt(range[1], 10)
+    let start = Number(range[0])
+    let end = Number(range[1])
 
     // -nnn
     if (isNaN(start)) {
