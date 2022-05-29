@@ -28,10 +28,9 @@ class Response extends EventEmitter {
   #cookies
   #sse
 
-  constructor (streamOptions = {}, wrappedRequest, rawResponse, masterContext) {
+  constructor (wrappedRequest, rawResponse, masterContext) {
     // Initialize the writable stream for this response
     super()
-    // super(streamOptions)
 
     // Store the provided parameter properties for later use
     this.#wrapped_request = wrappedRequest
@@ -40,9 +39,6 @@ class Response extends EventEmitter {
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
-
-    // Bind a finish/close handler which will end the response once writable has closed
-    // super.once('finish', () => (this.#streaming ? this.send() : undefined))
   }
 
   _final (callback) {

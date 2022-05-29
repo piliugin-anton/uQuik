@@ -39,9 +39,9 @@ class Request extends stream.Readable {
   #buffer_resolve
   #multipart_promise
 
-  constructor (streamOptions, rawRequest, rawResponse, pathParametersKey, opts) {
+  constructor (rawRequest, rawResponse, pathParametersKey, opts) {
     // Initialize the request readable stream for body consumption
-    super(streamOptions)
+    super()
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
     this.#rawRequest = rawRequest

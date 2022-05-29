@@ -202,7 +202,6 @@ class Server extends Router {
      */
   _create_route (record) {
     // Destructure record into route options
-    const reference = this
     const { method, pattern, options, handler } = record
 
     // Do not allow route creation once it is locked after a not found handler has been bound
@@ -227,7 +226,7 @@ class Server extends Router {
       if (match === '/') return
 
       // Store middleware if its execution pattern matches our route pattern
-      if (pattern.startsWith(match)) { reference.#middlewares[match].forEach((object) => middlewares.push(object)) }
+      if (pattern.startsWith(match)) { this.#middlewares[match].forEach((object) => middlewares.push(object)) }
     })
 
     // Map all user specified route specific middlewares with a priority of 2
@@ -305,7 +304,7 @@ class Server extends Router {
      */
   _parse_content_length (wrappedRequest) {
     // Ensure we have some content-length value which specifies incoming bytes
-    const contentLength = +wrappedRequest.headers['content-length']
+    const contentLength = Number(wrappedRequest.headers['content-length'])
     return !isNaN(contentLength) ? contentLength : undefined
   }
 
@@ -321,7 +320,6 @@ class Server extends Router {
   _handle_uws_request (route, request, response) {
     // Wrap uWS.Request -> Request
     const wrappedRequest = new Request(
-      route.streaming.readable,
       request,
       response,
       route.path_parameters_key,
@@ -329,7 +327,7 @@ class Server extends Router {
     )
 
     // Wrap uWS.Response -> Response
-    const wrappedResponse = new Response(route.streaming.writable, wrappedRequest, response, route.app)
+    const wrappedResponse = new Response(wrappedRequest, response, route.app)
 
     // Determine the incoming content length if present
     const contentLength = this._parse_content_length(wrappedRequest)

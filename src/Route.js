@@ -22,7 +22,6 @@ class Route {
     this.#pattern = pattern
     this.#handler = handler
     this.#options = options
-    this.#streaming = options.streaming || app._options.streaming || {}
     this.#path_parameters_key = parsePathParameters(pattern)
   }
 
@@ -62,10 +61,6 @@ class Route {
 
   get middlewares () {
     return this.#options.middlewares
-  }
-
-  get streaming () {
-    return this.#streaming
   }
 
   get path_parameters_key () {
