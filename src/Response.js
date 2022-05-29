@@ -381,7 +381,6 @@ class Response extends EventEmitter {
       if (!this.#completed) {
         // Mark request as completed if we were able to send response properly
         this.#completed = true
-
         // Emit the 'close' event to signify that the response has been completed
         this.emit('close', this.#wrapped_request, this)
       }

@@ -30,6 +30,22 @@ class Server extends Router {
     }
   }
 
+  #middlewares = {
+    '/': [] // This will contain global middlewares
+  }
+
+  #routes = {
+    any: {},
+    get: {},
+    post: {},
+    del: {},
+    head: {},
+    options: {},
+    patch: {},
+    put: {},
+    trace: {}
+  }
+
   /**
      * @param {Object} options Server Options
      * @param {String} options.cert_file_name Path to SSL certificate file.
@@ -164,24 +180,6 @@ class Server extends Router {
 
     // Do not allow user to re-register not found handler
     throw new Error('A Not Found handler has already been registered.')
-  }
-
-  /* Server Routes & Middlewares Logic */
-
-  #middlewares = {
-    '/': [] // This will contain global middlewares
-  }
-
-  #routes = {
-    any: {},
-    get: {},
-    post: {},
-    del: {},
-    head: {},
-    options: {},
-    patch: {},
-    put: {},
-    trace: {}
   }
 
   /**
