@@ -8,14 +8,12 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
-uQuik.use(StaticFiles())
+// uQuik.use(StaticFiles())
 
-uQuik.get('/*', () => {})
-uQuik.head('/*', () => {})
+// uQuik.get('/*', () => {})
+// uQuik.head('/*', () => {})
 
-/* uQuik.get('/', (req, res) => {
-  res.send('hello world')
-}) */
+uQuik.get('/', (req, res) => res.send('hello world'))
 
 uQuik.listen(5000, '127.0.0.1')
   .then((socket) => console.log('[Example] Server started'))

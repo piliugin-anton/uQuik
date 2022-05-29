@@ -3,7 +3,7 @@ const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const qsParse = require('./helpers/qs.parse')
-const stream = require('stream')
+const Readable = require('readable-stream')
 const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
 const { getIP } = require('./utils')
@@ -14,7 +14,7 @@ const parseRange = require('./helpers/range-parser')
 const typeIs = require('./helpers/type-is')
 const isIP = require('net').isIP
 
-class Request extends stream.Readable {
+class Request extends Readable {
   #stream_ended = false
   #stream_raw_chunks = false
   #rawRequest = null

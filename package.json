@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "npm": "^8.11.0",
+    "readable-stream": "^3.6.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#binaries"
   },
   "keywords": [

@@ -1,18 +1,17 @@
-const { Readable } = require('stream')
+const { Readable, Writable } = require('stream')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const statusCodes = require('./statusCodes.json')
 const mimeTypes = require('./helpers/mime-types')
-const EventEmitter = require('./helpers/eventemitter3')
 const { fastArrayJoin } = require('./utils')
 
 const SSEventStream = require('./SSEventStream')
 const LiveFile = require('./LiveFile')
 const FilePool = {}
 
-class Response extends EventEmitter {
+class Response extends Writable {
   locals = {}
   #streaming = false
   #initiated = false
@@ -39,12 +38,9 @@ class Response extends EventEmitter {
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
-  }
 
-  _final (callback) {
-    if (this.#streaming) this.send()
-
-    if (callback) callback()
+    // Bind a finish/close handler which will end the response once writable has closed
+    super.once('finish', () => (this.#streaming ? this.send() : undefined))
   }
 
   /**
