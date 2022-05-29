@@ -64,8 +64,7 @@ const StaticFiles = (options = {}) => {
 
       // Compression
       let compression = null
-      // Compression candidate?
-      if (compressible(mimeType) && stats.size >= opts.compressionThreshold) {
+      if (opts.compress && compressible(mimeType) && stats.size >= opts.compressionThreshold) {
         const accept = accepts(req)
         let method = accept.encoding(['gzip', 'deflate', 'identity'])
 
