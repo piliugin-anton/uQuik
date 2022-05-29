@@ -2,3 +2,5 @@ node_modules/*
 
 # Exception
 !node_modules/uWebSockets.js
+
+benchmark/node_modules

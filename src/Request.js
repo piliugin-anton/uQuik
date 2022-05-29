@@ -163,17 +163,16 @@ class Request extends stream.Readable {
     this._read = () => this.resume()
 
     // Bind a uWS.Response.onData() handler which will handle incoming chunks and pipe them to the readable stream
-    const stream = this
     this.#rawResponse.onData((arrayBuffer, isLast) => {
       // Do not process chunk if the readable stream is no longer active
-      if (stream.#stream_ended || stream.readableEnded || stream.readableAborted) return
+      if (this.#stream_ended || this.readableEnded || this.readableAborted) return
 
       // Convert the ArrayBuffer to a Buffer reference
       // Provide raw chunks if specified and we have something consuming stream already
       // This will prevent unneccessary duplication of buffers
       let buffer
-      const rawListeners = stream.listenerCount('data')
-      if (rawListeners > 0 && stream.#stream_raw_chunks) {
+      const rawListeners = this.listenerCount('data')
+      if (rawListeners > 0 && this.#stream_raw_chunks) {
         // Store a direct Buffer reference as this will be immediately consumed
         buffer = Buffer.from(arrayBuffer)
       } else {
@@ -184,10 +183,10 @@ class Request extends stream.Readable {
 
       // Push the incoming chunk into readable stream for consumption
       // Pause the uWS request if our stream is backed up
-      if (!stream.push(buffer)) stream.pause()
+      if (!this.push(buffer)) this.pause()
 
       // Push a null chunk signaling an EOF to the stream to end it if this chunk is last
-      if (isLast) stream.push(null)
+      if (isLast) this.push(null)
     })
   }
 
@@ -224,21 +223,20 @@ class Request extends stream.Readable {
     this.#stream_raw_chunks = true
 
     // Initiate a buffer promise with chunk retrieval process
-    const reference = this
     this.#buffer_promise = new Promise((resolve) => {
       // Store promise resolve method to allow closure from _abort_buffer() method
-      reference.#buffer_resolve = resolve
+      this.#buffer_resolve = resolve
 
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
         cursor: 0,
-        buffer: Buffer[reference.#options.fast_buffers ? 'allocUnsafe' : 'alloc'](contentLength)
+        buffer: Buffer[this.#options.fast_buffers ? 'allocUnsafe' : 'alloc'](contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
-      if (reference.readableLength > 0) {
+      if (this.readableLength > 0) {
         // Copy the buffered chunk from stream into our body buffer
-        const chunk = reference.read(reference.readableLength)
+        const chunk = this.read(this.readableLength)
         chunk.copy(body.buffer, body.cursor, 0, chunk.byteLength)
 
         // Increment the cursor by the byteLength to remember our write position
@@ -246,10 +244,10 @@ class Request extends stream.Readable {
       }
 
       // Resolve our body buffer if we have no more future chunks to read
-      if (reference.readableEnded) return resolve(body.buffer)
+      if (this.readableEnded) return resolve(body.buffer)
 
       // Begin consuming future chunks from the readable request stream
-      reference.on('data', (chunk) => {
+      this.on('data', (chunk) => {
         // Copy the temporary chunk from uWS into our body buffer
         chunk.copy(body.buffer, body.cursor, 0, chunk.byteLength)
 
@@ -258,7 +256,7 @@ class Request extends stream.Readable {
       })
 
       // Resolve the body buffer once the readable stream has finished
-      reference.once('end', () => resolve(body.buffer))
+      this.once('end', () => resolve(body.buffer))
 
       // We must directly resume the readable stream to make it begin accepting data
       super.resume()
@@ -439,7 +437,6 @@ class Request extends stream.Readable {
     if (!/^(multipart\/.+);(.*)$/i.test(contentType)) return Promise.resolve()
 
     // Return a promise which will be resolved after all incoming multipart data has been processed
-    const reference = this
     return new Promise((resolve, reject) => {
       // Create a Busboy instance which will perform
       const uploader = busboy(options)
@@ -468,15 +465,15 @@ class Request extends stream.Readable {
       // Bind a 'finish' event handler to resolve the upload promise
       uploader.on('close', () => {
         // Wait for any pending multipart handler promise to resolve before moving forward
-        if (reference.#multipart_promise) {
-          reference.#multipart_promise.then(resolve)
+        if (this.#multipart_promise) {
+          this.#multipart_promise.then(resolve)
         } else {
           resolve()
         }
       })
 
       // Pipe the readable request stream into the busboy uploader
-      reference.pipe(uploader)
+      this.pipe(uploader)
     })
   }
 
@@ -824,11 +821,10 @@ class Request extends stream.Readable {
      * @returns {Array}
      */
   get subdomains () {
-    const hostname = this.hostname
-    if (!hostname) return []
+    if (!this.hostname) return []
 
     const offset = 2
-    const subdomains = !isIP(hostname) ? hostname.split('.').reverse() : [hostname]
+    const subdomains = !isIP(this.hostname) ? this.hostname.split('.').reverse() : [this.hostname]
     return subdomains.slice(offset)
   }
 

@@ -4,13 +4,14 @@ const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const statusCodes = require('./statusCodes.json')
 const mimeTypes = require('./helpers/mime-types')
-const { Readable, Writable } = require('stream')
+const { Readable } = require('stream')
+const EventEmitter = require('eventemitter3')
 
 const SSEventStream = require('./SSEventStream')
 const LiveFile = require('./LiveFile')
 const FilePool = {}
 
-class Response extends Writable {
+class Response extends EventEmitter {
   locals = {}
   #streaming = false
   #initiated = false
@@ -28,7 +29,8 @@ class Response extends Writable {
 
   constructor (streamOptions = {}, wrappedRequest, rawResponse, masterContext) {
     // Initialize the writable stream for this response
-    super(streamOptions)
+    super()
+    // super(streamOptions)
 
     // Store the provided parameter properties for later use
     this.#wrapped_request = wrappedRequest
@@ -39,7 +41,13 @@ class Response extends Writable {
     this._bind_abort_handler()
 
     // Bind a finish/close handler which will end the response once writable has closed
-    super.once('finish', () => (this.#streaming ? this.send() : undefined))
+    // super.once('finish', () => (this.#streaming ? this.send() : undefined))
+  }
+
+  _final (callback) {
+    if (this.#streaming) this.send()
+
+    if (callback) callback()
   }
 
   /**
@@ -48,12 +56,11 @@ class Response extends Writable {
      * This method binds an abort handler which will update completed field to lock appropriate operations in Response
      */
   _bind_abort_handler () {
-    const reference = this
     this.#raw_response.onAborted(() => {
-      reference.#completed = true
-      reference.#wrapped_request._stop_streaming()
-      reference.emit('abort', this.#wrapped_request, this)
-      reference.emit('close', this.#wrapped_request, this)
+      this.#completed = true
+      this.#wrapped_request._stop_streaming()
+      this.emit('abort', this.#wrapped_request, this)
+      this.emit('close', this.#wrapped_request, this)
     })
   }
 
@@ -329,7 +336,6 @@ class Response extends Writable {
      */
   _writev (chunks, callback) {
     // Serve the first chunk in the array
-    const reference = this
     this._write(chunks[0], null, (error) => {
       // Pass the error to the callback if one was provided
       if (error) return callback(error)
@@ -337,7 +343,7 @@ class Response extends Writable {
       // Determine if we have more chunks after the first chunk we just served
       if (chunks.length > 1) {
         // Recursively serve the remaining chunks
-        reference._writev(chunks.slice(1), callback)
+        this._writev(chunks.slice(1), callback)
       } else {
         // Trigger the callback as all chunks have been served
         callback()
@@ -456,7 +462,7 @@ class Response extends Writable {
         // Pause the readable stream to prevent any further data from being read
         stream.pause()
 
-        // Bind a drain handler which gets called with a byte offset that can be used to try a failed chunk write
+        // Bind a drain handler which will resume the once the backpressure is cleared
         this.drain(() => {
           // Resume the stream if it is paused
           if (stream.isPaused()) stream.resume()
@@ -943,10 +949,9 @@ class Response extends Writable {
      */
   set (field, value) {
     if (typeof field === 'object') {
-      const reference = this
       Object.keys(field).forEach((name) => {
         const value = field[name]
-        reference.header(field, value)
+        this.header(field, value)
       })
     } else {
       this.header(field, value)
