@@ -1,11 +1,11 @@
+const { Readable } = require('stream')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const statusCodes = require('./statusCodes.json')
 const mimeTypes = require('./helpers/mime-types')
-const { Readable } = require('stream')
-const EventEmitter = require('eventemitter3')
+const EventEmitter = require('./helpers/eventemitter3')
 const { fastArrayJoin } = require('./utils')
 
 const SSEventStream = require('./SSEventStream')
