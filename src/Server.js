@@ -240,7 +240,8 @@ class Server extends Router {
     options.middlewares = middlewares.concat(options.middlewares)
 
     // Create a Route object to contain route information through handling process
-    const route = new Route({
+    // Store route in routes object for structural tracking
+    this.#routes[method][pattern] = new Route({
       app: this,
       method,
       pattern,
@@ -249,13 +250,10 @@ class Server extends Router {
     })
 
     // Mark route as temporary if specified from options
-    if (options._temporary === true) route._temporary = true
-
-    // Store route in routes object for structural tracking
-    this.#routes[method][pattern] = route
+    if (options._temporary === true) this.#routes[method][pattern]._temporary = true
 
     // Bind uWS.method() route which passes incoming request/respone to our handler
-    return this.#uws_instance[method](pattern, (response, request) => this._handle_uws_request(route, request, response))
+    return this.#uws_instance[method](pattern, (response, request) => this._handle_uws_request(this.#routes[method][pattern], request, response))
   }
 
   /**
