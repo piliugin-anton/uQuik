@@ -39,11 +39,13 @@ const StaticFiles = (options = {}) => {
       readable: null,
       writable: null
     }
-    res.on('abort', () => destroy(dataTransfer))
+    res.once('abort', () => destroy(dataTransfer))
     // res.on('error', () => destroy(streams))
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      return res.status(405).header('Allow', 'GET, HEAD').vary('Accept-Encoding').send()
+      return res.atomic(() => {
+        res.status(405).header('Allow', 'GET, HEAD').vary('Accept-Encoding').send()
+      })
     }
 
     try {
@@ -51,12 +53,14 @@ const StaticFiles = (options = {}) => {
       const mimeType = mimeTypes.lookup(path.extname(file))
 
       if (req.method === 'HEAD') {
-        return res.status(200)
-          .header('Content-Type', mimeType)
-          .header('Content-Length', stats.size.toString())
-          .header('Last-Modified', stats.mtime.toUTCString())
-          .vary('Accept-Encoding')
-          .send(undefined, undefined, true)
+        return res.atomic(() => {
+          res.status(200)
+            .header('Content-Type', mimeType)
+            .header('Content-Length', stats.size.toString())
+            .header('Last-Modified', stats.mtime.toUTCString())
+            .vary('Accept-Encoding')
+            .send(undefined, undefined, true)
+        })
       }
 
       dataTransfer.readable = fs.createReadStream(file)
@@ -79,10 +83,12 @@ const StaticFiles = (options = {}) => {
         }
       }
 
-      res.status(200)
-        .header('Content-Type', mimeType)
-        .header('Last-Modified', stats.mtime.toUTCString())
-        .vary('Accept-Encoding')
+      res.atomic(() => {
+        res.status(200)
+          .header('Content-Type', mimeType)
+          .header('Last-Modified', stats.mtime.toUTCString())
+          .vary('Accept-Encoding')
+      })
 
       if (compression) {
         res.header('Content-Encoding', compression)
@@ -98,7 +104,6 @@ const StaticFiles = (options = {}) => {
         return res.stream(dataTransfer.readable, stats.size)
       }
     } catch (ex) {
-      console.log(ex)
       return !res.completed && res.status(404).send(`File not found: ${req.path}`)
     }
   }
