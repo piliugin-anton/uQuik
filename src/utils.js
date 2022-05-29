@@ -326,10 +326,6 @@ const parsePathParameters = (pattern) => {
   return results
 }
 
-const arrayBufferToString = (arrayBuffer, encoding = 'utf8') => {
-  return Buffer.from(arrayBuffer).toString(encoding)
-}
-
 const asyncWait = (delay) => {
   return new Promise((resolve) => setTimeout((res) => res(), delay, resolve))
 }
@@ -367,6 +363,5 @@ module.exports.getIP = getIP
 
 module.exports.wrapObject = wrapObject
 module.exports.parsePathParameters = parsePathParameters
-module.exports.arrayBufferToString = arrayBufferToString
 module.exports.asyncWait = asyncWait
 module.exports.mergeRelativePaths = mergeRelativePaths
