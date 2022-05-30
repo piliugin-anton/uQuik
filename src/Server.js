@@ -381,47 +381,34 @@ class Server extends Router {
     const hasGlobalMiddlewares = this._middlewares['/'].length !== 0
     const hasRouteMiddlewares = route.middlewares.length !== 0
 
-    const next =
-    hasGlobalMiddlewares || hasRouteMiddlewares
-      ? (err) => route.app._chain_middlewares(route, request, response, cursor + 1, err)
-      : undefined
+    let next
+    if (hasGlobalMiddlewares || hasRouteMiddlewares) {
+      next = (err) => route.app._chain_middlewares(route, request, response, cursor + 1, err)
 
-    // Execute global middlewares first as they take precedence over route specific middlewares
-    if (hasGlobalMiddlewares) {
+      // Execute global middlewares first as they take precedence over route specific middlewares
+      if (hasGlobalMiddlewares) {
       // Determine current global middleware and execute
-      const object = this._middlewares['/'][cursor]
-      if (object) {
+        if (this._middlewares['/'][cursor]) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-        response._track_middleware_cursor(cursor)
-        const output = object.middleware(request, response, next)
-        if (output instanceof Promise) output.then(next).catch(next)
-        return
+          response._track_middleware_cursor(cursor)
+          return Promise.resolve(this._middlewares['/'][cursor].middleware(request, response, next)).then(next).catch(next)
+        }
       }
-    }
 
-    // Execute route specific middlewares if they exist
-    if (hasRouteMiddlewares) {
+      // Execute route specific middlewares if they exist
+      if (hasRouteMiddlewares) {
       // Determine current route specific/method middleware and execute while accounting for global middlewares cursor offset
-      const object = route.middlewares[cursor - this._middlewares['/'].length]
-      if (object) {
+        const object = route.middlewares[cursor - this._middlewares['/'].length]
+        if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-        response._track_middleware_cursor(cursor)
-        const output = object.middleware(request, response, next)
-        if (output instanceof Promise) output.then(next).catch(next)
-        return
+          response._track_middleware_cursor(cursor)
+          return Promise.resolve(object.middleware(request, response, next)).then(next).catch(next)
+        }
       }
     }
 
     // Safely execute the user provided route handler
-    try {
-      // If route handler returns a Promise, bind a catch handler to trigger the error handler
-      const output = route.handler(request, response)
-      if (output instanceof Promise) output.catch(next)
-    } catch (error) {
-      // If route handler throws an error, trigger error handler
-      console.log(error)
-      return next(error)
-    }
+    return Promise.resolve(route.handler(request, response)).catch(next)
   }
 
   get routes () {

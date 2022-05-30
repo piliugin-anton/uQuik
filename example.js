@@ -8,12 +8,14 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
+uQuik.get('/', (req, res) => res.send('hello world'))
+
 // uQuik.use(StaticFiles())
 
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
-uQuik.any('/:test', {
+/* uQuik.any('/:test', {
   schema: {
     request: {
       properties: {
@@ -34,7 +36,7 @@ uQuik.any('/:test', {
   const query = req.query
   const params = req.params
   res.json(await req.json())
-})
+}) */
 
 uQuik.listen(5000, '127.0.0.1')
   .then((socket) => console.log('[Example] Server started'))
