@@ -13,7 +13,11 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
-uQuik.get('/:test', (req, res) => res.send(JSON.stringify(req.query)))
+uQuik.get('/:test', (req, res) => {
+  const test = req.query.getAll('test')
+  console.log(test)
+  res.send('hello world')
+})
 
 uQuik.listen(5000, '127.0.0.1')
   .then((socket) => console.log('[Example] Server started'))

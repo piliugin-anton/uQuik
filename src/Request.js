@@ -617,11 +617,11 @@ class Request extends Readable {
 
   /**
      * Returns query parameters from incoming request.
-     * @returns {Record<string, string>}
+     * @returns {URLSearchParams}
      */
   get query_parameters () {
     // Return from cache if already parsed once
-
+    console.log('query', this._query)
     if (!this._query_parameters) this._query_parameters = new URLSearchParams(this._query)
 
     return this._query_parameters
@@ -671,7 +671,8 @@ class Request extends Readable {
   }
 
   /**
-     * ExpressJS: Returns query parameters
+     * Returns query parameters
+     * @returns {URLSearchParams}
      */
   get query () {
     return this.query_parameters
@@ -733,7 +734,7 @@ class Request extends Readable {
     } else if (host.indexOf(',') > -1) {
       // Note: X-Forwarded-Host is normally only ever a
       //       single value, but this is to be safe.
-      host = host.substring(0, host.indexOf(',')).trimRight()
+      host = host.substring(0, host.indexOf(',')).trimEnd()
     }
 
     if (!host) return
