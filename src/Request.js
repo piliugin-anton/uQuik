@@ -15,37 +15,17 @@ const typeIs = require('./helpers/type-is')
 const isIP = require('net').isIP
 
 class Request extends Readable {
-  #stream_ended = false
-  #stream_raw_chunks = false
-  #rawRequest = null
-  #rawResponse = null
-  #method
-  #url
-  #path
-  #query
-  #remote_ip
-  #remote_proxy_ip
-  #cookies
-  #headers = {}
-  #path_parameters = {}
-  #query_parameters
-  #body_buffer
-  #body_text
-  #body_json
-  #body_urlencoded
-  #options
-  #buffer_promise
-  #buffer_resolve
-  #multipart_promise
-
   constructor (rawRequest, rawResponse, pathParametersKey, opts) {
     // Initialize the request readable stream for body consumption
     super()
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
-    this.#rawRequest = rawRequest
-    this.#rawResponse = rawResponse
-    this.#options = opts
+    this.rawRequest = rawRequest
+    this.rawResponse = rawResponse
+    this.options = opts
+
+    this.headers = {}
+    this.path_parameters = {}
 
     // Parse basic request information that will be made unavailable after this synchronous call from uWS.HttpRequest
     this._parse_request_information()
@@ -63,17 +43,17 @@ class Request extends Readable {
   _parse_request_information () {
     // Perform request pre-parsing for common access data
     // This is required as uWS.Request is forbidden for access after initial execution
-    this.#method = this.#rawRequest.getMethod().toUpperCase()
-    this.#path = this.#rawRequest.getUrl()
-    this.#query = this.#rawRequest.getQuery()
-    this.#url = this.#path + (this.#query ? '?' + this.#query : '')
-    // this.#remote_ip = this.#rawResponse.getRemoteAddressAsText()
-    // this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddressAsText()
-    this.#remote_ip = this.#rawResponse.getRemoteAddress()
-    this.#remote_proxy_ip = this.#rawResponse.getProxiedRemoteAddress()
+    this.method = this.rawRequest.getMethod().toUpperCase()
+    this.path = this.rawRequest.getUrl()
+    this._query = this.rawRequest.getQuery()
+    this.url = this.path + (this._query ? '?' + this._query : '')
+    // this.remote_ip = this.rawResponse.getRemoteAddressAsText()
+    // this.remote_proxy_ip = this.rawResponse.getProxiedRemoteAddressAsText()
+    this.remote_ip = this.rawResponse.getRemoteAddress()
+    this.remote_proxy_ip = this.rawResponse.getProxiedRemoteAddress()
 
     // Parse headers into a key-value object
-    this.#rawRequest.forEach((key, value) => (this.#headers[key] = value))
+    this.rawRequest.forEach((key, value) => (this.headers[key] = value))
   }
 
   /**
@@ -84,7 +64,7 @@ class Request extends Readable {
   _parse_path_parameters (parametersKey) {
     // Iterate over each expected path parameter key value pair and parse the value from uWS.HttpRequest.getParameter()
     parametersKey.forEach(
-      (keySet) => (this.#path_parameters[keySet[0]] = this.#rawRequest.getParameter(keySet[1]))
+      (keySet) => (this.path_parameters[keySet[0]] = this.rawRequest.getParameter(keySet[1]))
     )
   }
 
@@ -97,7 +77,7 @@ class Request extends Readable {
   pause () {
     // Ensure request is not already paused before pausing
     if (!super.isPaused()) {
-      this.#rawResponse.pause()
+      this.rawResponse.pause()
       return super.pause()
     }
     return this
@@ -110,7 +90,7 @@ class Request extends Readable {
   resume () {
     // Ensure request is paused before resuming
     if (super.isPaused()) {
-      this.#rawResponse.resume()
+      this.rawResponse.resume()
       return super.resume()
     }
     return this
@@ -164,16 +144,16 @@ class Request extends Readable {
     this._read = () => this.resume()
 
     // Bind a uWS.Response.onData() handler which will handle incoming chunks and pipe them to the readable stream
-    this.#rawResponse.onData((arrayBuffer, isLast) => {
+    this.rawResponse.onData((arrayBuffer, isLast) => {
       // Do not process chunk if the readable stream is no longer active
-      if (this.#stream_ended || this.readableEnded || this.readableAborted) return
+      if (this.stream_ended || this.readableEnded || this.readableAborted) return
 
       // Convert the ArrayBuffer to a Buffer reference
       // Provide raw chunks if specified and we have something consuming stream already
       // This will prevent unneccessary duplication of buffers
       let buffer
       const rawListeners = this.listenerCount('data')
-      if (rawListeners > 0 && this.#stream_raw_chunks) {
+      if (rawListeners > 0 && this.stream_raw_chunks) {
         // Store a direct Buffer reference as this will be immediately consumed
         buffer = Buffer.from(arrayBuffer)
       } else {
@@ -200,7 +180,7 @@ class Request extends Readable {
     if (!this.readableEnded) this.push(null)
 
     // Mark the stream as ended so all incoming chunks will be ignored from uWS.HttpResponse.onData() handler
-    this.#stream_ended = true
+    this.stream_ended = true
   }
 
   /**
@@ -212,26 +192,26 @@ class Request extends Readable {
      */
   _download_buffer (contentLength) {
     // Return pending buffer promise if in flight
-    if (this.#buffer_promise) return this.#buffer_promise
+    if (this.buffer_promise) return this.buffer_promise
 
     // Resolve an empty buffer instantly if we have no readable body stream
     if (this.readableEnded) {
-      this.#body_buffer = Buffer.from('')
-      return Promise.resolve(this.#body_buffer)
+      this.body_buffer = Buffer.from('')
+      return Promise.resolve(this.body_buffer)
     }
 
     // Mark this instance to provide raw buffers through readable stream
-    this.#stream_raw_chunks = true
+    this.stream_raw_chunks = true
 
     // Initiate a buffer promise with chunk retrieval process
-    this.#buffer_promise = new Promise((resolve) => {
+    this.buffer_promise = new Promise((resolve) => {
       // Store promise resolve method to allow closure from _abort_buffer() method
-      this.#buffer_resolve = resolve
+      this.buffer_resolve = resolve
 
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
         cursor: 0,
-        buffer: Buffer[this.#options.fast_buffers ? 'allocUnsafe' : 'alloc'](contentLength)
+        buffer: Buffer[this.options.fast_buffers ? 'allocUnsafe' : 'alloc'](contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -265,10 +245,10 @@ class Request extends Readable {
 
     // Bind a then handler for caching the downloaded buffer
 
-    // this.#buffer_promise.then((buffer) => (this.#body_buffer = buffer))
-    // return this.#buffer_promise
+    // this.buffer_promise.then((buffer) => (this.body_buffer = buffer))
+    // return this.buffer_promise
 
-    return this.#buffer_promise.then((buffer) => (this.#body_buffer = buffer))
+    return this.buffer_promise.then((buffer) => (this.body_buffer = buffer))
   }
 
   /**
@@ -277,13 +257,13 @@ class Request extends Readable {
      */
   buffer () {
     // Check cache and return if body has already been parsed
-    if (this.#body_buffer) return Promise.resolve(this.#body_buffer)
+    if (this.body_buffer) return Promise.resolve(this.body_buffer)
 
     // Resolve empty if invalid content-length header detected
-    const contentLength = Number(this.#headers['content-length'])
+    const contentLength = Number(this.headers['content-length'])
     if (isNaN(contentLength) || contentLength < 1) {
-      this.#body_buffer = Buffer.from('')
-      return Promise.resolve(this.#body_buffer)
+      this.body_buffer = Buffer.from('')
+      return Promise.resolve(this.body_buffer)
     }
 
     // Initiate buffer download
@@ -296,11 +276,11 @@ class Request extends Readable {
      */
   async text () {
     // Resolve from cache if available
-    if (this.#body_text) return this.#body_text
+    if (this.body_text) return this.body_text
 
     // Retrieve body buffer, convert to string, cache and resolve
-    this.#body_text = (this.#body_buffer || (await this.buffer())).toString()
-    return this.#body_text
+    this.body_text = (this.body_buffer || (await this.buffer())).toString()
+    return this.body_text
   }
 
   /**
@@ -335,12 +315,12 @@ class Request extends Readable {
      */
   async json (defaultValue = {}) {
     // Return from cache if available
-    if (this.#body_json) return this.#body_json
+    if (this.body_json) return this.body_json
 
     // Retrieve body as text, safely parse json, cache and resolve
-    const text = this.#body_text || (await this.text())
-    this.#body_json = this._parse_json(text, defaultValue)
-    return this.#body_json
+    const text = this.body_text || (await this.text())
+    this.body_json = this._parse_json(text, defaultValue)
+    return this.body_json
   }
 
   /**
@@ -349,13 +329,13 @@ class Request extends Readable {
      */
   async urlencoded () {
     // Return from cache if available
-    if (this.#body_urlencoded) return this.#body_urlencoded
+    if (this.body_urlencoded) return this.body_urlencoded
 
     // Retrieve text body, parse as a query string, cache and resolve
-    // this.#body_urlencoded = qsParse(this.#body_text || (await this.text()))
-    // return this.#body_urlencoded
+    // this.body_urlencoded = qsParse(this.body_text || (await this.text()))
+    // return this.body_urlencoded
 
-    return (this.#body_urlencoded = qsParse(this.#body_text || (await this.text())))
+    return (this.body_urlencoded = qsParse(this.body_text || (await this.text())))
   }
 
   /**
@@ -372,10 +352,10 @@ class Request extends Readable {
     const field = new MultipartField(name, value, info)
 
     // Wait for the previous multipart field handler promise to resolve
-    if (this.#multipart_promise instanceof Promise) {
+    if (this.multipart_promise instanceof Promise) {
       // We will keep the request paused so we do not receive more chunks
       this.pause()
-      await this.#multipart_promise
+      await this.multipart_promise
       this.resume()
     }
 
@@ -386,11 +366,11 @@ class Request extends Readable {
     // this promise can be used to pause the request when the next field is received but user is not ready yet
     if (output instanceof Promise) {
       // Store this promise locally so the next field can use it to wait
-      this.#multipart_promise = output
+      this.multipart_promise = output
 
       // Hold the current execution until the user handler promise resolves
-      await this.#multipart_promise
-      this.#multipart_promise = null
+      await this.multipart_promise
+      this.multipart_promise = null
     }
 
     // Flush this field's file stream if it has not been consumed by the user as stated in busboy docs
@@ -425,7 +405,7 @@ class Request extends Readable {
     }
 
     // Inject the request headers into the busboy options
-    options.headers = this.#headers
+    options.headers = this.headers
 
     // Ensure the provided handler is a function type
     if (typeof handler !== 'function') { throw new Error('Request.multipart(handler) -> handler must be a Function.') }
@@ -466,8 +446,8 @@ class Request extends Readable {
       // Bind a 'finish' event handler to resolve the upload promise
       uploader.on('close', () => {
         // Wait for any pending multipart handler promise to resolve before moving forward
-        if (this.#multipart_promise) {
-          this.#multipart_promise.then(resolve)
+        if (this.multipart_promise) {
+          this.multipart_promise.then(resolve)
         } else {
           resolve()
         }
@@ -476,124 +456,6 @@ class Request extends Readable {
       // Pipe the readable request stream into the busboy uploader
       this.pipe(uploader)
     })
-  }
-
-  /* Request Getters */
-
-  /**
-     * Returns underlying uWS.Request reference.
-     * Note! Utilizing any of uWS.Request's methods after initial synchronous call will throw a forbidden access error.
-     */
-  get raw () {
-    return this.#rawRequest
-  }
-
-  /**
-     * Returns whether this request is in a paused state and thus not consuming any body chunks.
-     * @returns {Boolean}
-     */
-  get paused () {
-    return this.isPaused()
-  }
-
-  /**
-     * Returns HTTP request method for incoming request in all uppercase.
-     * @returns {String}
-     */
-  get method () {
-    return this.#method
-  }
-
-  /**
-     * Returns full request url for incoming request (path + query).
-     * @returns {String}
-     */
-  get url () {
-    return this.#url
-  }
-
-  /**
-     * Returns path for incoming request.
-     * @returns {String}
-     */
-  get path () {
-    return this.#path
-  }
-
-  /**
-     * Returns query for incoming request without the '?'.
-     * @returns {String}
-     */
-  get path_query () {
-    return this.#query
-  }
-
-  /**
-     * Returns request headers from incoming request.
-     * @returns {Record<string, string>}
-     */
-  get headers () {
-    return this.#headers
-  }
-
-  /**
-     * Returns request cookies from incoming request.
-     * @returns {Record<string, string>}
-     */
-  get cookies () {
-    // Return from cache if already parsed once
-    if (this.#cookies) return this.#cookies
-
-    // Parse cookies from Cookie header and cache results
-    const header = this.#headers.cookie
-    this.#cookies = header ? cookie.parse(header) : {}
-    return this.#cookies
-  }
-
-  /**
-     * Returns path parameters from incoming request.
-     * @returns {Record<string, string>}
-     */
-  get path_parameters () {
-    return this.#path_parameters
-  }
-
-  /**
-     * Returns query parameters from incoming request.
-     * @returns {Record<string, string>}
-     */
-  get query_parameters () {
-    // Return from cache if already parsed once
-    if (this.#query_parameters) return this.#query_parameters
-
-    // Parse query using qsParse and cache results
-
-    // this.#query_parameters = qsParse(this.#query)
-    // return this.#query_parameters
-
-    return (this.#query_parameters = qsParse(this.#query))
-  }
-
-  /**
-     * Returns remote IP address in string format from incoming request.
-     * @returns {String}
-     */
-  get ip () {
-    // Convert Remote IP to string on first access
-    if (typeof this.#remote_ip !== 'string') this.#remote_ip = getIP(this.#remote_ip)
-
-    return this.#remote_ip
-  }
-
-  /**
-     * Returns remote proxy IP address in string format from incoming request.
-     * @returns {String}
-     */
-  get proxy_ip () {
-    // Convert Remote Proxy IP to string on first access
-    if (typeof this.#remote_proxy_ip !== 'string') this.#remote_proxy_ip = getIP(this.#remote_proxy_ip)
-
-    return this.#remote_proxy_ip
   }
 
   /* ExpressJS compatibility properties & methods */
@@ -723,10 +585,78 @@ class Request extends Readable {
   }
 
   /**
+     * Returns underlying uWS.Request reference.
+     * Note! Utilizing any of uWS.Request's methods after initial synchronous call will throw a forbidden access error.
+     */
+  get raw () {
+    return this.rawRequest
+  }
+
+  /**
+     * Returns whether this request is in a paused state and thus not consuming any body chunks.
+     * @returns {Boolean}
+     */
+  get paused () {
+    return this.isPaused()
+  }
+
+  /**
+     * Returns request cookies from incoming request.
+     * @returns {Record<string, string>}
+     */
+  get cookies () {
+    // Return from cache if already parsed once
+    if (this.cookies) return this.cookies
+
+    // Parse cookies from Cookie header and cache results
+    const header = this.headers.cookie
+    this.cookies = header ? cookie.parse(header) : {}
+    return this.cookies
+  }
+
+  /**
+     * Returns query parameters from incoming request.
+     * @returns {Record<string, string>}
+     */
+  get query_parameters () {
+    // Return from cache if already parsed once
+    if (this.query_parameters) return this.query_parameters
+
+    // Parse query using qsParse and cache results
+
+    // this.query_parameters = qsParse(this.query)
+    // return this.query_parameters
+
+    return (this.query_parameters = qsParse(this._query))
+  }
+
+  /**
+     * Returns remote IP address in string format from incoming request.
+     * @returns {String}
+     */
+  get ip () {
+    // Convert Remote IP to string on first access
+    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.remote_ip)
+
+    return this.remote_ip
+  }
+
+  /**
+     * Returns remote proxy IP address in string format from incoming request.
+     * @returns {String}
+     */
+  get proxy_ip () {
+    // Convert Remote Proxy IP to string on first access
+    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.remote_proxy_ip)
+
+    return this.remote_proxy_ip
+  }
+
+  /**
      * ExpressJS: Alias of Request.path
      */
   get baseUrl () {
-    return this.#path
+    return this.path
   }
 
   /**
@@ -763,14 +693,14 @@ class Request extends Readable {
      */
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
-    const trustProxy = this.#options.trust_proxy
+    const trustProxy = this.options.trust_proxy
     const xForwardedProto = this.get('X-Forwarded-Proto')
     if (trustProxy && xForwardedProto) {
       return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto
     }
 
     // Use uWS initially defined protocol
-    return this.#options.is_ssl ? 'https' : 'http'
+    return this.options.is_ssl ? 'https' : 'http'
   }
 
   /**
@@ -788,7 +718,7 @@ class Request extends Readable {
   get ips () {
     const clientIP = this.ip
     const proxyIP = this.proxy_ip
-    const trustProxy = this.#options.trust_proxy
+    const trustProxy = this.options.trust_proxy
     const xForwardedFor = this.get('X-Forwarded-For')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
     return [clientIP, proxyIP]
@@ -798,7 +728,7 @@ class Request extends Readable {
      * ExpressJS: Parse the "Host" header field to a hostname.
      */
   get hostname () {
-    const trustProxy = this.#options.trust_proxy
+    const trustProxy = this.options.trust_proxy
     let host = this.get('X-Forwarded-Host')
 
     if (!host || !trustProxy) {
