@@ -31,7 +31,7 @@ class Request extends Readable {
     this._parse_request_information()
 
     // Parse path parameters from request path if we have a path parameters parsing key
-    if (pathParametersKey.length) this._parse_path_parameters(pathParametersKey)
+    if (pathParametersKey.length !== 0) this._parse_path_parameters(pathParametersKey)
   }
 
   /**
