@@ -9,45 +9,6 @@ const Response = require('./Response')
 const { wrapObject } = require('./utils')
 
 class Server extends Router {
-  #uws_instance
-  #listen_socket
-  #options = {
-    is_ssl: false,
-    auto_close: true,
-    fast_abort: false,
-    trust_proxy: false,
-    unsafe_buffers: false,
-    max_body_length: 250 * 1000
-  }
-
-  #routes_locked = false
-  #handlers = {
-    on_not_found: null,
-    on_error: (request, response, error) => {
-      // Throw on default if user has not bound an error handler
-      response.status(500).send('Uncaught Exception Occured')
-      throw error
-    }
-  }
-
-  #middlewares = {
-    '/': [] // This will contain global middlewares
-  }
-
-  #routes = {
-    any: {},
-    get: {},
-    post: {},
-    del: {},
-    head: {},
-    options: {},
-    patch: {},
-    put: {},
-    trace: {}
-  }
-
-  #filesStats = {}
-
   /**
      * @param {Object} options Server Options
      * @param {String} options.cert_file_name Path to SSL certificate file.
@@ -72,18 +33,53 @@ class Server extends Router {
     // Initialize extended Router instance
     super()
 
+    this.options = {
+      is_ssl: false,
+      auto_close: true,
+      fast_abort: false,
+      trust_proxy: false,
+      unsafe_buffers: false,
+      max_body_length: 250 * 1000
+    }
+
+    this._routes_locked = false
+    this.handlers = {
+      on_not_found: null,
+      on_error: (request, response, error) => {
+        // Throw on default if user has not bound an error handler
+        response.status(500).send('Uncaught Exception Occured')
+        throw error
+      }
+    }
+
+    this._middlewares = {
+      '/': [] // This will contain global middlewares
+    }
+
+    this._routes = {
+      any: {},
+      get: {},
+      post: {},
+      del: {},
+      head: {},
+      options: {},
+      patch: {},
+      put: {},
+      trace: {}
+    }
+
     // Store options locally for access throughout processing
-    wrapObject(this.#options, options)
+    wrapObject(this.options, options)
 
     // Create underlying uWebsockets App or SSLApp to power
     // eslint-disable-next-line camelcase
     const { cert_file_name, key_file_name } = options
     // eslint-disable-next-line camelcase
-    this.#options.is_ssl = cert_file_name && key_file_name // cert and key are required for SSL
-    if (this.#options.is_ssl) {
-      this.#uws_instance = uWebSockets.SSLApp(options)
+    this.options.is_ssl = cert_file_name && key_file_name // cert and key are required for SSL
+    if (this.options.is_ssl) {
+      this.uws_instance = uWebSockets.SSLApp(options)
     } else {
-      this.#uws_instance = uWebSockets.App(options)
+      this.uws_instance = uWebSockets.App(options)
     }
   }
 
@@ -107,11 +103,11 @@ class Server extends Router {
      */
   listen (port, host = '0.0.0.0') {
     return new Promise((resolve, reject) =>
-      this.#uws_instance.listen(host, port, (listenSocket) => {
+      this.uws_instance.listen(host, port, (listenSocket) => {
         if (listenSocket) {
           // Store the listen socket for future closure & bind the auto close handler if enabled from constructor options
-          this.#listen_socket = listenSocket
-          if (this.#options.auto_close) this._bind_auto_close()
+          this.listen_socket = listenSocket
+          if (this.options.auto_close) this._bind_auto_close()
           resolve(listenSocket)
         } else {
           reject(new Error('No Socket Received From uWebsockets.js'))
@@ -128,11 +124,11 @@ class Server extends Router {
      */
   close (listenSocket) {
     // Fall back to self listen socket if none provided by user
-    const socket = listenSocket || this.#listen_socket
+    const socket = listenSocket || this.listen_socket
     if (socket) {
       // Close the listen socket from uWebsockets and nullify the reference
       uWebSockets.us_listen_socket_close(socket)
-      this.#listen_socket = null
+      this.listen_socket = null
       return true
     }
     return false
@@ -150,7 +146,7 @@ class Server extends Router {
      */
   set_error_handler (handler) {
     if (typeof handler !== 'function') throw new Error('handler must be a function')
-    this.#handlers.on_error = handler
+    this.handlers.on_error = handler
   }
 
   /**
@@ -168,12 +164,12 @@ class Server extends Router {
     if (typeof handler !== 'function') throw new Error('handler must be a function')
 
     // Store not_found handler and bind it as a catchall route
-    if (this.#handlers.on_not_found === null) {
-      this.#handlers.on_not_found = handler
+    if (this.handlers.on_not_found === null) {
+      this.handlers.on_not_found = handler
       return setTimeout(
         (reference) => {
-          reference.any('/*', (request, response) => reference.#handlers.on_not_found(request, response))
-          reference.#routes_locked = true
+          reference.any('/*', (request, response) => reference.handlers.on_not_found(request, response))
+          reference.routes_locked = true
         },
         0,
         this
@@ -192,12 +188,12 @@ class Server extends Router {
      */
   _create_route (record) {
     // Do not allow route creation once it is locked after a not found handler has been bound
-    if (this.#routes_locked === true) {
+    if (this._routes_locked === true) {
       throw new Error(`Routes/Routers must not be created or used after the set_not_found_handler() has been set due to uWebsockets.js's internal router not allowing for this to occur. [${record.method.toUpperCase()} ${record.pattern}]`)
     }
 
     // Do not allow duplicate routes for performance/stability reasons
-    if (this.#routes[record.method]?.[record.pattern]) {
+    if (this._routes[record.method]?.[record.pattern]) {
       throw new Error(`Failed to create route as duplicate routes are not allowed. Ensure that you do not have any routers or routes that try to handle requests at the same pattern. [${record.method.toUpperCase()} ${record.pattern}]`
       )
     }
@@ -208,12 +204,12 @@ class Server extends Router {
 
     // Parse middlewares that apply to this route based on execution pattern
     const middlewares = []
-    Object.keys(this.#middlewares).forEach((match) => {
+    Object.keys(this._middlewares).forEach((match) => {
       // Do not match with global middlewares as they are always executed separately
       if (match === '/') return
 
       // Store middleware if its execution pattern matches our route pattern
-      if (record.pattern.startsWith(match)) { this.#middlewares[match].forEach((object) => middlewares.push(object)) }
+      if (record.pattern.startsWith(match)) { this._middlewares[match].forEach((object) => middlewares.push(object)) }
     })
 
     // Map all user specified route specific middlewares with a priority of 2
@@ -227,7 +223,7 @@ class Server extends Router {
 
     // Create a Route object to contain route information through handling process
     // Store route in routes object for structural tracking
-    this.#routes[record.method][record.pattern] = new Route({
+    this._routes[record.method][record.pattern] = new Route({
       app: this,
       method: record.method,
       pattern: record.pattern,
@@ -236,10 +232,10 @@ class Server extends Router {
     })
 
     // Mark route as temporary if specified from options
-    if (record.options._temporary === true) this.#routes[record.method][record.pattern]._temporary = true
+    if (record.options._temporary === true) this._routes[record.method][record.pattern]._temporary = true
 
     // Bind uWS.method() route which passes incoming request/respone to our handler
-    return this.#uws_instance[record.method](record.pattern, (response, request) => this._handle_uws_request(this.#routes[record.method][record.pattern], request, response))
+    return this.uws_instance[record.method](record.pattern, (response, request) => this._handle_uws_request(this._routes[record.method][record.pattern], request, response))
   }
 
   /**
@@ -250,7 +246,7 @@ class Server extends Router {
      */
   _create_middleware (record) {
     // Initialize middlewares array for specified pattern
-    if (this.#middlewares[record.pattern] === undefined) this.#middlewares[record.pattern] = []
+    if (this._middlewares[record.pattern] === undefined) this._middlewares[record.pattern] = []
 
     // Create a middleware object with an appropriate priority
     const object = {
@@ -259,15 +255,15 @@ class Server extends Router {
     }
 
     // Store middleware object in its pattern branch
-    this.#middlewares[record.pattern].push(object)
+    this._middlewares[record.pattern].push(object)
 
     // Inject middleware into all routes that match its execution pattern if it is non global
     if (object.priority !== 0) {
       const match = record.pattern.endsWith('/') ? record.pattern.substr(0, record.pattern.length - 1) : record.pattern
 
-      Object.keys(this.#routes).forEach((method) => {
+      Object.keys(this._routes).forEach((method) => {
         // Match middleware pattern against all routes with this method
-        const routes = this.#routes[method]
+        const routes = this._routes[method]
         Object.keys(routes).forEach((pattern) => {
         // If route's pattern starts with middleware pattern, then use middleware
           if (pattern.startsWith(match)) routes[pattern].use(object)
@@ -357,7 +353,7 @@ class Server extends Router {
     if (error instanceof Error) return response.throw(error)
 
     // Determine next callback based on if either global or route middlewares exist
-    const hasGlobalMiddlewares = this.#middlewares['/'].length !== 0
+    const hasGlobalMiddlewares = this._middlewares['/'].length !== 0
     const hasRouteMiddlewares = route.middlewares.length !== 0
 
     const next =
@@ -368,7 +364,7 @@ class Server extends Router {
     // Execute global middlewares first as they take precedence over route specific middlewares
     if (hasGlobalMiddlewares) {
       // Determine current global middleware and execute
-      const object = this.#middlewares['/'][cursor]
+      const object = this._middlewares['/'][cursor]
       if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
         response._track_middleware_cursor(cursor)
@@ -381,7 +377,7 @@ class Server extends Router {
     // Execute route specific middlewares if they exist
     if (hasRouteMiddlewares) {
       // Determine current route specific/method middleware and execute while accounting for global middlewares cursor offset
-      const object = route.middlewares[cursor - this.#middlewares['/'].length]
+      const object = route.middlewares[cursor - this._middlewares['/'].length]
       if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
         response._track_middleware_cursor(cursor)
@@ -403,46 +399,12 @@ class Server extends Router {
     }
   }
 
-  /* Safe Server Getters */
-
-  /**
-     * Underlying uWS instance.
-     * @returns {uWebSockets.us_listen_socket}
-     */
-  get uws_instance () {
-    return this.#uws_instance
-  }
-
-  /**
-     * Server instance options.
-     * @returns {Object}
-     */
-  get _options () {
-    return this.#options
-  }
-
-  /**
-     * Server instance global handlers.
-     * @returns {Object}
-     */
-  get handlers () {
-    return this.#handlers
-  }
-
-  /**
-     * Server instance routes.
-     * @returns {Object}
-     */
   get routes () {
-    return this.#routes
+    return this._routes
   }
 
-  /**
-     * Server instance middlewares.
-     * @returns {Object}
-     */
   get middlewares () {
-    return this.#middlewares
+    return this._middlewares
   }
 }
 

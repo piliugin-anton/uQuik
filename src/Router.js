@@ -3,16 +3,14 @@ const Stream = require('stream') // lgtm [js/unused-local-variable]
 const { mergeRelativePaths } = require('./utils')
 
 class Router {
-  #is_app = false
-  #subscribers = []
-  #records = {
-    routes: [],
-    middlewares: []
-  }
-
   constructor () {
     // Determine if Router is extended thus a Server instance
-    this.#is_app = this.constructor.name === 'Server'
+    this.is_app = this.constructor.name === 'Server'
+    this.subscribers = []
+    this.records = {
+      routes: [],
+      middlewares: []
+    }
   }
 
   /**
@@ -64,13 +62,13 @@ class Router {
     }
 
     // Store record for future subscribers
-    this.#records.routes.push(record)
+    this.records.routes.push(record)
 
     // Create route if this is a Server extended Router instance (ROOT)
-    if (this.#is_app) return this._create_route(record)
+    if (this.is_app) return this._create_route(record)
 
     // Alert all subscribers of the new route that was created
-    this.#subscribers.forEach((subscriber) => subscriber('route', record))
+    this.subscribers.forEach((subscriber) => subscriber('route', record))
   }
 
   /**
@@ -87,13 +85,13 @@ class Router {
     }
 
     // Store record for future subscribers
-    this.#records.middlewares.push(record)
+    this.records.middlewares.push(record)
 
     // Create middleware if this is a Server extended Router instance (ROOT)
-    if (this.#is_app) return this._create_middleware(record)
+    if (this.is_app) return this._create_middleware(record)
 
     // Alert all subscribers of the new middleware that was created
-    this.#subscribers.forEach((subscriber) => subscriber('middleware', record))
+    this.subscribers.forEach((subscriber) => subscriber('middleware', record))
   }
 
   /**
@@ -151,10 +149,10 @@ class Router {
      */
   _subscribe (handler) {
     // Pipe all records on first subscription to synchronize
-    handler('records', this.#records)
+    handler('records', this.records)
 
     // Register subscriber handler for future updates
-    this.#subscribers.push(handler)
+    this.subscribers.push(handler)
   }
 
   /**
@@ -333,7 +331,7 @@ class Router {
      * @returns {Array}
      */
   get routes () {
-    return this.#records.routes
+    return this.records.routes
   }
 
   /**
@@ -341,7 +339,7 @@ class Router {
      * @returns {Array}
      */
   get middlewares () {
-    return this.#records.middlewares
+    return this.records.middlewares
   }
 }
 
