@@ -370,7 +370,7 @@ class Server extends Router {
      * @param {Response} response - Response Object
      * @param {Error} error - Error or Extended Error Object
      */
-  _chain_middlewares (route, request, response, cursor = 0, error) {
+  _chain_middlewares (route, request, response, cursor = 0, error = null) {
     // Break chain if response has been aborted
     if (response.aborted) return
 

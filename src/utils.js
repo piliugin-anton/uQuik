@@ -294,9 +294,10 @@ const isNumber = (v, integer = false) => {
 const isObject = (v) => v !== null && typeof v === 'object'
 const isArray = (v) => Array.isArray(v)
 const isFunction = (v) => typeof v === 'function'
+const isPromise = (v) => typeof v === 'object' && typeof v.then === 'function'
 
-const isRouter = (v) => isObject(v) && v.constructor.name === 'uQuikRouter'
-const isServer = (v) => isObject(v) && v.constructor.name === 'uQuikServer'
+const isRouter = (v) => isObject(v) && v.constructor.name === 'Router'
+const isServer = (v) => isObject(v) && v.constructor.name === 'Server'
 
 const wrapObject = (original, target) => {
   Object.keys(target).forEach((key) => {
@@ -355,6 +356,7 @@ module.exports.isString = isString
 module.exports.isObject = isObject
 module.exports.isArray = isArray
 module.exports.isFunction = isFunction
+module.exports.isPromise = isPromise
 
 module.exports.isRouter = isRouter
 module.exports.isServer = isServer

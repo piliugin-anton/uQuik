@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 const Stream = require('stream') // lgtm [js/unused-local-variable]
-const { mergeRelativePaths } = require('./utils')
+const { mergeRelativePaths, isServer, isFunction, isArray, isObject, isString, isRouter } = require('./utils')
 
 class Router {
   constructor () {
     // Determine if Router is extended thus a Server instance
-    this.is_app = this.constructor.name === 'Server'
+    this.is_app = isServer(this)
     this.subscribers = []
     this.records = {
       routes: [],
@@ -31,13 +31,13 @@ class Router {
     const callbacks = []
     for (let i = 2; i < arguments.length; i++) {
       const parameter = arguments[i]
-      if (typeof parameter === 'function') {
+      if (isFunction(parameter)) {
         // Scenario: Single function
         callbacks.push(parameter)
-      } else if (Array.isArray(parameter)) {
+      } else if (isArray(parameter)) {
         // Scenario: Array of functions
         callbacks.push(...parameter)
-      } else if (parameter && typeof parameter === 'object') {
+      } else if (isObject(parameter)) {
         // Scenario: Route options object
         options = parameter
       }
@@ -167,7 +167,7 @@ class Router {
      */
   use () {
     // Parse a pattern for this use call with a fallback to the local-global scope aka. '/' pattern
-    const pattern = arguments[0] && typeof arguments[0] === 'string' ? arguments[0] : '/'
+    const pattern = arguments[0] && isString(arguments[0]) ? arguments[0] : '/'
 
     // Validate that the pattern value does not contain any wildcard or path parameter prefixes which are not allowed
     if (pattern.indexOf('*') > -1 || pattern.indexOf(':') > -1) {
@@ -179,16 +179,16 @@ class Router {
     // Register each candidate individually depending on the type of candidate value
     for (let i = 0; i < arguments.length; i++) {
       const candidate = arguments[i]
-      if (typeof candidate === 'function') {
+      if (isFunction(candidate)) {
         // Scenario: Single function
         this._register_middleware(pattern, candidate)
-      } else if (Array.isArray(candidate)) {
+      } else if (isArray(candidate)) {
         // Scenario: Array of functions
         candidate.forEach((middleware) => this._register_middleware(pattern, middleware))
-      } else if (typeof candidate === 'object' && candidate.constructor.name === 'Router') {
+      } else if (isRouter(candidate)) {
         // Scenario: Router instance
         this._register_router(pattern, candidate)
-      } else if (candidate && typeof candidate === 'object' && typeof candidate.middleware === 'function') {
+      } else if (isObject(candidate) && isFunction(candidate.middleware)) {
         // Scenario: Inferred middleware
         this._register_middleware(pattern, candidate.middleware)
       }

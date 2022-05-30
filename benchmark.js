@@ -1,4 +1,4 @@
-const bench = require('nanobench')
+// const bench = require('nanobench')
 
 const loopCount = 200000
 
@@ -13,49 +13,58 @@ charactersLength))
   return result
 }
 
-const testObject = {
-  testProperty: ['123', '456']
-}
+Promise.resolve(() => new Promise((resolve, reject) => setTimeout(() => reject(new Error('sdfs')), 100))).then((msg) => console.log(msg)).catch((ex) => console.log(ex))
 
-bench('for', (b) => {
+/* bench('Object', (b) => {
   b.start()
 
-  for (let i = 0; i < loopCount; i++) {
-    let t
-    for (const name in testObject) {
-      for (const value of testObject[name]) {
-        t = name + value
-      }
-    }
+  const object = {}
+
+  for (let i = 0; i < loopCount; ++i) {
+    object[`key_${i}`] = 1
+  }
+
+  let result = 0
+
+  for (let i = 0; i < loopCount; ++i) {
+    result += object[`key_${i}`]
   }
 
   b.end()
 })
 
-bench('for in + regular for', (b) => {
+bench('Map', (b) => {
   b.start()
 
-  for (let i = 0; i < loopCount; i++) {
-    let t
-    for (const name in testObject) {
-      const length = testObject[name].length
-      for (let i = 0; i < length; i++) {
-        t = name + testObject[name][i]
-      }
-    }
+  const map = new Map()
+
+  for (let i = 0; i < loopCount; ++i) {
+    map.set(`key_${i}`, 1)
+  }
+
+  let result = 0
+
+  for (let i = 0; i < loopCount; ++i) {
+    result += map.get(`key_${i}`)
   }
 
   b.end()
 })
 
-bench('Object.keys()', (b) => {
+bench('Set', (b) => {
   b.start()
 
-  for (let i = 0; i < loopCount; i++) {
-    let t
-    Object.keys(testObject).forEach((name) =>
-      testObject[name].forEach((value) => (t = name + value)))
+  const set = new Set()
+
+  for (let i = 0; i < loopCount; ++i) {
+    set.add(`key_${i}`)
+  }
+
+  let result = 0
+
+  for (let i = 0; i < loopCount; ++i) {
+    result += set.has(`key_${i}`)
   }
 
   b.end()
-})
+}) */
