@@ -1,9 +1,8 @@
+const { Readable } = require('readable-stream')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
-const qsParse = require('./helpers/qs.parse')
-const { Readable } = require('readable-stream')
 const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
 const { getIP } = require('./utils')
@@ -337,10 +336,7 @@ class Request extends Readable {
     if (this.body_urlencoded) return this.body_urlencoded
 
     // Retrieve text body, parse as a query string, cache and resolve
-    // this.body_urlencoded = qsParse(this.body_text || (await this.text()))
-    // return this.body_urlencoded
-
-    return (this.body_urlencoded = qsParse(this.body_text || (await this.text())))
+    return (this.body_urlencoded = new URLSearchParams(this.body_text || (await this.text())))
   }
 
   /**
@@ -547,7 +543,7 @@ class Request extends Readable {
      * ExpressJS: Return the value of param `name` when present or `defaultValue`.
      * @param {String} name
      * @param {Any} default_value
-     * @returns {String}
+     * @returns {String|Array}
      */
   param (name, defaultValue) {
     // Parse three dataset candidates
