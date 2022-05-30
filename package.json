@@ -18,7 +18,7 @@
     "benchmark-cannon-uws": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5001",
     "benchmark-cannon-hyper": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5002",
     "benchmark-cannon-fastify": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5003",
-    "clinic-doctor": "clinic doctor -- node example.js",
+    "clinic-doctor": "clinic doctor --on-port -- node example.js",
     "clinic-bubbleprof": "clinic bubbleprof -- node example.js",
     "clinic-flame": "clinic flame -- node example.js"
   },

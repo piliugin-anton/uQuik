@@ -49,8 +49,6 @@ class Request extends Readable {
     this.url = this.path + (this._query ? '?' + this._query : '')
     // this.remote_ip = this.rawResponse.getRemoteAddressAsText()
     // this.remote_proxy_ip = this.rawResponse.getProxiedRemoteAddressAsText()
-    this.remote_ip = this.rawResponse.getRemoteAddress()
-    this.remote_proxy_ip = this.rawResponse.getProxiedRemoteAddress()
 
     // Parse headers into a key-value object
     this.rawRequest.forEach((key, value) => (this.headers[key] = value))
@@ -636,7 +634,7 @@ class Request extends Readable {
      */
   get ip () {
     // Convert Remote IP to string on first access
-    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.remote_ip)
+    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.rawResponse.getRemoteAddress())
 
     return this.remote_ip
   }
@@ -647,7 +645,7 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.remote_proxy_ip)
+    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.rawResponse.getProxiedRemoteAddress())
 
     return this.remote_proxy_ip
   }
