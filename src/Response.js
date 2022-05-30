@@ -12,21 +12,6 @@ const LiveFile = require('./LiveFile')
 const FilePool = {}
 
 class Response extends Writable {
-  locals = {}
-  streaming = false
-  initiated = false
-  completed = false
-  type_written = false
-  custom_content_length
-  wrapped_request
-  middleware_cursor
-  raw_response
-  master_context
-  status_code
-  headers
-  cookies
-  _sse
-
   constructor (wrappedRequest, rawResponse, masterContext) {
     // Initialize the writable stream for this response
     super()
