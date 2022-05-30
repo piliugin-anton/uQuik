@@ -551,14 +551,14 @@ class Request extends Readable {
      */
   param (name, defaultValue) {
     // Parse three dataset candidates
-    const body = this.body
-    const pathParameters = this.path_parameters
-    const queryParameters = this.query_parameters
 
     // First check path parameters, body, and finally query_parameters
-    if (pathParameters[name] != null && Object.prototype.hasOwnProperty.call(pathParameters, name)) return pathParameters[name]
-    if (body[name] != null) return body[name]
-    if (queryParameters[name] != null) return queryParameters[name]
+    if (this.path_parameters[name] !== null && Object.prototype.hasOwnProperty.call(this.path_parameters, name)) return this.path_parameters[name]
+    if (this.body[name] !== null) return this.body[name]
+    if (this.query_parameters.has(name)) {
+      const values = this.query_parameters.getAll(name)
+      return values.length === 1 ? values[0] : values
+    }
 
     return defaultValue
   }
@@ -625,14 +625,10 @@ class Request extends Readable {
      */
   get query_parameters () {
     // Return from cache if already parsed once
-    if (this.query_parameters) return this.query_parameters
 
-    // Parse query using qsParse and cache results
+    if (!this._query_parameters) this._query_parameters = new URLSearchParams(this._query)
 
-    // this.query_parameters = qsParse(this.query)
-    // return this.query_parameters
-
-    return (this.query_parameters = qsParse(this._query))
+    return this._query_parameters
   }
 
   /**
