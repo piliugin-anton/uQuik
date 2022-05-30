@@ -61,9 +61,16 @@ class Request extends Readable {
      */
   _parse_path_parameters (parametersKey) {
     // Iterate over each expected path parameter key value pair and parse the value from uWS.HttpRequest.getParameter()
-    parametersKey.forEach(
-      (keySet) => (this.path_parameters[keySet[0]] = this.rawRequest.getParameter(keySet[1]))
-    )
+    const paramsLength = parametersKey.length
+    for (let i = 0; i < paramsLength; i++) {
+      if (!this.path_parameters[parametersKey[i][0]]) {
+        this.path_parameters[parametersKey[i][0]] = this.rawRequest.getParameter(parametersKey[i][1])
+      } else if (typeof this.path_parameters[parametersKey[i][0]] === 'string') {
+        this.path_parameters[parametersKey[i][0]] = [this.path_parameters[parametersKey[i][0]], this.rawRequest.getParameter(parametersKey[i][1])]
+      } else if (Array.isArray(this.path_parameters[parametersKey[i][0]])) {
+        this.path_parameters[parametersKey[i][0]].push(this.rawRequest.getParameter(parametersKey[i][1]))
+      }
+    }
   }
 
   /* Request Methods/Operators */

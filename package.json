@@ -1,7 +1,7 @@
 {
   "name": "uquik",
   "version": "1.0.0",
-  "description": "uQuik server",
+  "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
     "debug": "node --inspect example.js",
@@ -9,15 +9,16 @@
     "example": "node example.js",
     "uws": "node benchmark/uWebSockets.js",
     "hyper": "node benchmark/Hyper-Express.js",
+    "fastify": "node benchmark/fastify.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "benchmark": "wrk -t4 -c2500 -d60s http://127.0.0.1:5000",
-    "benchmark-uws": "wrk -t4 -c2500 -d60s http://127.0.0.1:5001",
-    "benchmark-hyper": "wrk -t4 -c2500 -d60s http://127.0.0.1:5002",
-    "benchmark-fastify": "wrk -t4 -c2500 -d60s http://127.0.0.1:5003",
-    "benchmark-cannon": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5000",
-    "benchmark-cannon-uws": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5001",
-    "benchmark-cannon-hyper": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5002",
-    "benchmark-cannon-fastify": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5003",
+    "wrk": "wrk -t4 -c2500 -d60s http://127.0.0.1:5000/test?param0=test",
+    "wrk-uws": "wrk -t4 -c2500 -d60s http://127.0.0.1:5001/test?param0=test",
+    "wrk-hyper": "wrk -t4 -c2500 -d60s http://127.0.0.1:5002/test?param0=test",
+    "wrk-fastify": "wrk -t4 -c2500 -d60s http://127.0.0.1:5003/test?param0=test",
+    "autocannon": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5000/test?param0=test",
+    "autocannon-uws": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5001/test?param0=test",
+    "autocannon-hyper": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5002/test?param0=test",
+    "autocannon-fastify": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5003/test?param0=test",
     "clinic-doctor": "clinic doctor --on-port -- node example.js",
     "clinic-bubbleprof": "clinic bubbleprof -- node example.js",
     "clinic-flame": "clinic flame -- node example.js"
@@ -32,7 +33,7 @@
     "uWebsockets.js"
   ],
   "author": "Anton Piliugin",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "eslint": "^8.16.0",
     "eslint-config-standard": "^17.0.0",
