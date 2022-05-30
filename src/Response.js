@@ -146,7 +146,10 @@ class Response extends Writable {
 
     // Call self for all specified values in values array
     if (Array.isArray(value)) {
-      value.forEach((item) => this.header(name, item))
+      const length = value.length
+      for (let i = 0; i < length; i++) {
+        this.header(name, value[i])
+      }
       return this
     }
 
@@ -252,9 +255,12 @@ class Response extends Writable {
 
     // Iterate through all headers and write them to uWS
     if (this.headers) {
-      Object.keys(this.headers).forEach((name) =>
-        this.headers[name].forEach((value) => this.raw_response.writeHeader(name, value))
-      )
+      for (const name in this.headers) {
+        const length = this.headers[name].length
+        for (let i = 0; i < length; i++) {
+          this.raw_response.writeHeader(name, this.headers[name][i])
+        }
+      }
     }
   }
 

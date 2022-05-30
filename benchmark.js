@@ -13,31 +13,48 @@ charactersLength))
   return result
 }
 
-bench('operator', (b) => {
+const testObject = {
+  testProperty: ['123', '456']
+}
+
+bench('for', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; i++) {
-    const num = +generateString()
+    let t
+    for (const name in testObject) {
+      for (const value of testObject[name]) {
+        t = name + value
+      }
+    }
   }
 
   b.end()
 })
 
-bench('parseInt', (b) => {
+bench('for in + regular for', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; i++) {
-    const num = parseInt(generateString(), 10)
+    let t
+    for (const name in testObject) {
+      const length = testObject[name].length
+      for (let i = 0; i < length; i++) {
+        t = name + testObject[name][i]
+      }
+    }
   }
 
   b.end()
 })
 
-bench('Number()', (b) => {
+bench('Object.keys()', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; i++) {
-    const num = Number(generateString())
+    let t
+    Object.keys(testObject).forEach((name) =>
+      testObject[name].forEach((value) => (t = name + value)))
   }
 
   b.end()
