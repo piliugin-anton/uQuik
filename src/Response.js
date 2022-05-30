@@ -1,4 +1,4 @@
-const { Writable, Readable } = require('stream')
+const { Readable, Writable } = require('readable-stream')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
