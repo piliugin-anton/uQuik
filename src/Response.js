@@ -12,7 +12,7 @@ const LiveFile = require('./LiveFile')
 const FilePool = {}
 
 class Response extends Writable {
-  constructor (wrappedRequest, rawResponse, masterContext) {
+  constructor (wrappedRequest, rawResponse, masterContext, opts) {
     // Initialize the writable stream for this response
     super()
 
@@ -20,6 +20,7 @@ class Response extends Writable {
     this.wrapped_request = wrappedRequest
     this.raw_response = rawResponse
     this.master_context = masterContext
+    this.options = opts
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
@@ -525,7 +526,16 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    return this.type('json').send(JSON.stringify(body))
+    if (typeof this.options.JSONSerializer === 'function') {
+      body = this.options.JSONSerializer(body)
+    } else {
+      try {
+        body = JSON.stringify(body)
+      } catch (ex) {
+        body = '{}'
+      }
+    }
+    return this.type('json').send(body)
   }
 
   /**

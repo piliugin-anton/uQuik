@@ -13,10 +13,27 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
-uQuik.get('/:test', (req, res) => {
-  const test = req.query.getAll('test')
-  console.log(test)
-  res.send('hello world')
+uQuik.any('/:test', {
+  schema: {
+    request: {
+      properties: {
+        test: {
+          type: 'boolean'
+        }
+      }
+    },
+    response: {
+      properties: {
+        test: {
+          type: 'boolean'
+        }
+      }
+    }
+  }
+}, async (req, res) => {
+  const query = req.query
+  const params = req.params
+  res.json(await req.json())
 })
 
 uQuik.listen(5000, '127.0.0.1')

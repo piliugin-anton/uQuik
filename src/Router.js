@@ -46,8 +46,7 @@ class Router {
     // Write the route handler and route options object with fallback to the default options
     const handler = callbacks.pop()
     options = options || {
-      middlewares: method === 'any' ? undefined : [],
-      streaming: {}
+      middlewares: method === 'any' ? undefined : []
     }
 
     // Concatenate any remaining callbacks to the route options middlewares property

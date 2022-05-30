@@ -12,6 +12,7 @@
     "fastify": "node benchmark/fastify.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrk": "wrk -t4 -c2500 -d60s http://127.0.0.1:5000/test?param0=test",
+    "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s http://127.0.0.1:5000/test?param0=test",
     "wrk-uws": "wrk -t4 -c2500 -d60s http://127.0.0.1:5001/test?param0=test",
     "wrk-hyper": "wrk -t4 -c2500 -d60s http://127.0.0.1:5002/test?param0=test",
     "wrk-fastify": "wrk -t4 -c2500 -d60s http://127.0.0.1:5003/test?param0=test",
@@ -24,6 +25,8 @@
     "clinic-flame": "clinic flame -- node example.js"
   },
   "dependencies": {
+    "ajv": "^8.11.0",
+    "fast-uri": "^2.0.0",
     "npm": "^8.11.0",
     "readable-stream": "^3.6.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#binaries"

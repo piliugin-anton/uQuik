@@ -289,7 +289,7 @@ class Request extends Readable {
 
   /**
      * Parses JSON from provided string.
-     * Resolves default_value or throws exception on failure.
+     * Resolves default_value
      *
      * @private
      * @param {String} string
@@ -297,17 +297,15 @@ class Request extends Readable {
      * @returns {Any}
      */
   _parse_json (string, defaultValue) {
-    // Unsafely parse JSON as we do not have a default_value
-    if (defaultValue === undefined) return JSON.parse(string)
-
-    // Safely parse JSON as we have a default_value
-    let json
-    try {
-      json = JSON.parse(string)
-    } catch (error) {
-      return defaultValue
+    if (typeof this.options.JSONParser === 'function') {
+      return this.options.JSONParser(string) || defaultValue
+    } else {
+      try {
+        return JSON.parse(string)
+      } catch (error) {
+        return defaultValue
+      }
     }
-    return json
   }
 
   /**

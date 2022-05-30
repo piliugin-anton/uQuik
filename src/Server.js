@@ -1,4 +1,6 @@
 const uWebSockets = require('uWebSockets.js')
+const AjvJTD = require('ajv/dist/jtd')
+const fastUri = require('fast-uri')
 const Route = require('./Route')
 const Router = require('./Router')
 // eslint-disable-next-line no-unused-vars
@@ -21,6 +23,7 @@ class Server extends Router {
      * @param {Boolean} options.trust_proxy Specifies whether to trust incoming request data from intermediate proxy(s)
      * @param {Number} options.max_body_length Maximum body content length allowed in bytes. For Reference: 1kb = 1000 bytes and 1mb = 1000kb.
      * @param {Boolean} options.auto_close Whether to automatically close the server instance when the process exits. Default: true
+     * @param {Object} options.ajv Ajv-JTD options
      */
   constructor (options = {}) {
     // Only accept object as a parameter type for options
@@ -39,7 +42,8 @@ class Server extends Router {
       fast_abort: false,
       trust_proxy: false,
       unsafe_buffers: false,
-      max_body_length: 250 * 1000
+      max_body_length: 250 * 1000,
+      ajv: {}
     }
 
     this._routes_locked = false
@@ -67,6 +71,17 @@ class Server extends Router {
       put: {},
       trace: {}
     }
+
+    this.ajv = new AjvJTD({
+      coerceTypes: 'array',
+      useDefaults: true,
+      removeAdditional: true,
+      uriResolver: fastUri,
+      // Explicitly set allErrors to `false`.
+      // When set to `true`, a DoS attack is possible.
+      allErrors: false,
+      ...options.ajv
+    })
 
     // Store options locally for access throughout processing
     wrapObject(this.options, options)
@@ -209,7 +224,7 @@ class Server extends Router {
       if (match === '/') return
 
       // Store middleware if its execution pattern matches our route pattern
-      if (record.pattern.startsWith(match)) { this._middlewares[match].forEach((object) => middlewares.push(object)) }
+      if (record.pattern.startsWith(match)) this._middlewares[match].forEach((object) => middlewares.push(object))
     })
 
     // Map all user specified route specific middlewares with a priority of 2
@@ -233,6 +248,13 @@ class Server extends Router {
 
     // Mark route as temporary if specified from options
     if (record.options._temporary === true) this._routes[record.method][record.pattern]._temporary = true
+
+    // JSON Schema validators
+    if (record.options.schema) {
+      console.log('record.options.schema.request', record.options.schema.request)
+      if (record.options.schema.request) this._routes[record.method][record.pattern].requestParser = this.ajv.compileParser(record.options.schema.request)
+      if (record.options.schema.response) this._routes[record.method][record.pattern].responseSerializer = this.ajv.compileSerializer(record.options.schema.response)
+    }
 
     // Bind uWS.method() route which passes incoming request/respone to our handler
     return this.uws_instance[record.method](record.pattern, (response, request) => this._handle_uws_request(this._routes[record.method][record.pattern], request, response))
@@ -302,17 +324,22 @@ class Server extends Router {
       request,
       response,
       route.path_parameters_key,
-      route.app._options
+      {
+        ...route.app._options,
+        JSONParser: route.requestParser
+      }
     )
 
     // Wrap uWS.Response -> Response
-    const wrappedResponse = new Response(wrappedRequest, response, route.app)
+    const wrappedResponse = new Response(wrappedRequest, response, route.app, {
+      JSONSerializer: route.responseSerializer
+    })
 
     // Determine the incoming content length if present
     const contentLength = this._parse_content_length(wrappedRequest)
     if (contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
-      const maxBodyLength = route.options.max_body_length || route.app._options.max_body_length
+      const maxBodyLength = route.options.max_body_length || route.app.options.max_body_length
       if (contentLength > maxBodyLength) {
         // Use fast abort scheme if specified in the server options
         if (route.app._options.fast_abort === true) return response.close()
