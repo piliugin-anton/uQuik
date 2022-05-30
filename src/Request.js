@@ -23,34 +23,10 @@ class Request extends Readable {
     this.rawResponse = rawResponse
     this.options = opts
 
-    this.headers = {}
     this.path_parameters = {}
-
-    // Parse basic request information that will be made unavailable after this synchronous call from uWS.HttpRequest
-    this._parse_request_information()
 
     // Parse path parameters from request path if we have a path parameters parsing key
     if (pathParametersKey.length !== 0) this._parse_path_parameters(pathParametersKey)
-  }
-
-  /**
-     * @private
-     * INTERNAL METHOD! This method is an internal method and should NOT be called manually.
-     * This method parses initial data from uWS.Request and uWS.Response to prevent forbidden
-     * stack memory access errors for asynchronous usage
-     */
-  _parse_request_information () {
-    // Perform request pre-parsing for common access data
-    // This is required as uWS.Request is forbidden for access after initial execution
-    this.method = this.rawRequest.getMethod().toUpperCase()
-    this.path = this.rawRequest.getUrl()
-    this._query = this.rawRequest.getQuery()
-    this.url = this.path + (this._query ? '?' + this._query : '')
-    // this.remote_ip = this.rawResponse.getRemoteAddressAsText()
-    // this.remote_proxy_ip = this.rawResponse.getProxiedRemoteAddressAsText()
-
-    // Parse headers into a key-value object
-    this.rawRequest.forEach((key, value) => (this.headers[key] = value))
   }
 
   /**
@@ -589,12 +565,36 @@ class Request extends Readable {
     return this.rawRequest
   }
 
+  get method () {
+    if (this._method) return this._method
+    return (this._method = this.rawRequest.getMethod().toUpperCase())
+  }
+
+  get path () {
+    if (this._path) return this._path
+
+    this._path = this.rawRequest.getUrl()
+  }
+
+  get url () {
+    if (this._url) return this._url
+    new URLSearchParams().toString()
+    return (this._url = this.path + (this.query ? '?' + this.query.toString() : ''))
+  }
+
   /**
      * Returns whether this request is in a paused state and thus not consuming any body chunks.
      * @returns {Boolean}
      */
   get paused () {
     return this.isPaused()
+  }
+
+  get headers () {
+    if (this._headers) return this._headers
+    this._headers = {}
+    this.rawRequest.forEach((key, value) => (this._headers[key] = value))
+    return this._headers
   }
 
   /**
@@ -606,8 +606,7 @@ class Request extends Readable {
     if (this._cookies) return this._cookies
 
     // Parse cookies from Cookie header and cache results
-    this._cookies = this.headers.cookie ? cookie.parse(this.headers.cookie) : {}
-    return this._cookies
+    return (this._cookies = this.headers.cookie ? cookie.parse(this.headers.cookie) : {})
   }
 
   /**
@@ -616,9 +615,9 @@ class Request extends Readable {
      */
   get query_parameters () {
     // Return from cache if already parsed once
-    if (!this._query_parameters) this._query_parameters = new URLSearchParams(this._query)
+    if (this._query_parameters) return this._query_parameters
 
-    return this._query_parameters
+    return (this._query_parameters = new URLSearchParams(this.rawRequest.getQuery()))
   }
 
   /**
@@ -638,7 +637,7 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.rawResponse.getProxiedRemoteAddress())
+    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.rawResponse.getRemoteProxiedAddress())
 
     return this.remote_proxy_ip
   }

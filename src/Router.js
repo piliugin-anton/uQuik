@@ -270,7 +270,7 @@ class Router {
      * @param {...(RouteOptions|MiddlewareHandler)} args
      */
   delete () {
-    return this._register_route('del', ...arguments)
+    return this._register_route('delete', ...arguments)
   }
 
   /**

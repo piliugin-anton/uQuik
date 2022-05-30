@@ -64,7 +64,7 @@ class Server extends Router {
       any: {},
       get: {},
       post: {},
-      del: {},
+      delete: {},
       head: {},
       options: {},
       patch: {},
@@ -375,7 +375,8 @@ class Server extends Router {
     if (response.aborted) return
 
     // Trigger error handler if an error was provided by a middleware
-    if (error instanceof Error) return response.throw(error)
+    // if (error instanceof Error) return response.throw(error)
+    if (error) return response.throw(error)
 
     // Determine next callback based on if either global or route middlewares exist
     const hasGlobalMiddlewares = this._middlewares['/'].length !== 0
