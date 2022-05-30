@@ -526,7 +526,7 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (typeof this.options.JSONSerializer === 'function') {
+    if (this.options.JSONSerializer) {
       body = this.options.JSONSerializer(body)
     } else {
       try {

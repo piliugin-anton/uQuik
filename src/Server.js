@@ -336,19 +336,17 @@ class Server extends Router {
     })
 
     // Determine the incoming content length if present
-    const contentLength = this._parse_content_length(wrappedRequest)
-    if (contentLength) {
+    wrappedRequest.contentLength = this._parse_content_length(wrappedRequest)
+    if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
       const maxBodyLength = route.options.max_body_length || route.app.options.max_body_length
-      if (contentLength > maxBodyLength) {
+      if (wrappedRequest.contentLength > maxBodyLength) {
         // Use fast abort scheme if specified in the server options
         if (route.app._options.fast_abort === true) return response.close()
 
         // For slow abort scheme, according to uWebsockets developer, we have to drain incoming data before aborting and closing request
         // Prematurely closing request with a 413 leads to an ECONNRESET in which we lose 413 status code from server
-        return response.onData((_, isLast) => {
-          if (isLast) wrappedResponse.status(413).send()
-        })
+        return response.onData((_, isLast) => isLast && wrappedResponse.status(413).send())
       }
 
       // Begin streaming the incoming body data

@@ -191,10 +191,9 @@ class Request extends Readable {
      * Initiates body buffer download process by consuming the request readable stream.
      *
      * @private
-     * @param {Number} contentLength
      * @returns {Promise}
      */
-  _download_buffer (contentLength) {
+  _download_buffer () {
     // Return pending buffer promise if in flight
     if (this.buffer_promise) return this.buffer_promise
 
@@ -215,7 +214,7 @@ class Request extends Readable {
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
         cursor: 0,
-        buffer: Buffer[this.options.fast_buffers ? 'allocUnsafe' : 'alloc'](contentLength)
+        buffer: Buffer[this.options.fast_buffers ? 'allocUnsafe' : 'alloc'](this.contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -264,14 +263,13 @@ class Request extends Readable {
     if (this.body_buffer) return Promise.resolve(this.body_buffer)
 
     // Resolve empty if invalid content-length header detected
-    const contentLength = Number(this.headers['content-length'])
-    if (isNaN(contentLength) || contentLength < 1) {
+    if (!this.contentLength || this.contentLength < 1) {
       this.body_buffer = Buffer.from('')
       return Promise.resolve(this.body_buffer)
     }
 
     // Initiate buffer download
-    return this._download_buffer(contentLength)
+    return this._download_buffer()
   }
 
   /**
@@ -297,12 +295,12 @@ class Request extends Readable {
      * @returns {Any}
      */
   _parse_json (string, defaultValue) {
-    if (typeof this.options.JSONParser === 'function') {
+    if (this.options.JSONParser) {
       return this.options.JSONParser(string) || defaultValue
     } else {
       try {
         return JSON.parse(string)
-      } catch (error) {
+      } catch (ex) {
         return defaultValue
       }
     }
