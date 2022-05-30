@@ -607,12 +607,11 @@ class Request extends Readable {
      */
   get cookies () {
     // Return from cache if already parsed once
-    if (this.cookies) return this.cookies
+    if (this._cookies) return this._cookies
 
     // Parse cookies from Cookie header and cache results
-    const header = this.headers.cookie
-    this.cookies = header ? cookie.parse(header) : {}
-    return this.cookies
+    this._cookies = this.headers.cookie ? cookie.parse(this.headers.cookie) : {}
+    return this._cookies
   }
 
   /**
@@ -621,7 +620,6 @@ class Request extends Readable {
      */
   get query_parameters () {
     // Return from cache if already parsed once
-    console.log('query', this._query)
     if (!this._query_parameters) this._query_parameters = new URLSearchParams(this._query)
 
     return this._query_parameters
