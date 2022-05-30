@@ -292,7 +292,6 @@ const isNumber = (v, integer = false) => {
   return isNumeric
 }
 const isObject = (v) => v !== null && typeof v === 'object'
-const isArray = (v) => Array.isArray(v)
 const isFunction = (v) => typeof v === 'function'
 const isPromise = (v) => typeof v === 'object' && typeof v.then === 'function'
 
@@ -354,7 +353,7 @@ const mergeRelativePaths = (basePath, newPath) => {
 module.exports.isNumber = isNumber
 module.exports.isString = isString
 module.exports.isObject = isObject
-module.exports.isArray = isArray
+module.exports.isArray = Array.isArray
 module.exports.isFunction = isFunction
 module.exports.isPromise = isPromise
 

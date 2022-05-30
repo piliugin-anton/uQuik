@@ -167,7 +167,7 @@ class Router {
      */
   use () {
     // Parse a pattern for this use call with a fallback to the local-global scope aka. '/' pattern
-    const pattern = arguments[0] && isString(arguments[0]) ? arguments[0] : '/'
+    const pattern = isString(arguments[0]) ? arguments[0] : '/'
 
     // Validate that the pattern value does not contain any wildcard or path parameter prefixes which are not allowed
     if (pattern.indexOf('*') > -1 || pattern.indexOf(':') > -1) {

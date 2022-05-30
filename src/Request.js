@@ -5,7 +5,7 @@ const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
-const { getIP } = require('./utils')
+const { getIP, isString, isArray, isFunction } = require('./utils')
 
 // ExpressJS compatibility packages
 const accepts = require('./helpers/accepts')
@@ -40,9 +40,9 @@ class Request extends Readable {
     for (let i = 0; i < paramsLength; i++) {
       if (!this.path_parameters[parametersKey[i][0]]) {
         this.path_parameters[parametersKey[i][0]] = this.rawRequest.getParameter(parametersKey[i][1])
-      } else if (typeof this.path_parameters[parametersKey[i][0]] === 'string') {
+      } else if (isString(this.path_parameters[parametersKey[i][0]])) {
         this.path_parameters[parametersKey[i][0]] = [this.path_parameters[parametersKey[i][0]], this.rawRequest.getParameter(parametersKey[i][1])]
-      } else if (Array.isArray(this.path_parameters[parametersKey[i][0]])) {
+      } else if (isArray(this.path_parameters[parametersKey[i][0]])) {
         this.path_parameters[parametersKey[i][0]].push(this.rawRequest.getParameter(parametersKey[i][1]))
       }
     }
@@ -372,7 +372,7 @@ class Request extends Readable {
      */
   multipart (options, handler) {
     // Migrate options to handler if no options object is provided by user
-    if (typeof options === 'function') {
+    if (isFunction(options === 'function')) {
       handler = options
       options = {}
     }
@@ -381,7 +381,7 @@ class Request extends Readable {
     options.headers = this.headers
 
     // Ensure the provided handler is a function type
-    if (typeof handler !== 'function') { throw new Error('Request.multipart(handler) -> handler must be a Function.') }
+    if (isFunction(handler)) throw new Error('Request.multipart(handler) -> handler must be a Function.')
 
     // Resolve instantly if we have no readable body stream
     if (this.readableEnded) return Promise.resolve()
@@ -626,7 +626,7 @@ class Request extends Readable {
      */
   get ip () {
     // Convert Remote IP to string on first access
-    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.rawResponse.getRemoteAddress())
+    if (isString(this.remote_ip)) this.remote_ip = getIP(this.rawResponse.getRemoteAddress())
 
     return this.remote_ip
   }
@@ -637,7 +637,7 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.rawResponse.getRemoteProxiedAddress())
+    if (isString(this.remote_proxy_ip)) this.remote_proxy_ip = getIP(this.rawResponse.getRemoteProxiedAddress())
 
     return this.remote_proxy_ip
   }
