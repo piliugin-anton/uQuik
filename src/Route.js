@@ -14,7 +14,7 @@ class Route {
     this.pattern = pattern
     this.handler = handler
     this.options = options
-    this.path_parameters_key = parsePathParameters(pattern)
+    this._path_parameters_key = parsePathParameters(pattern)
   }
 
   /**
@@ -36,7 +36,7 @@ class Route {
   }
 
   get path_parameters_key () {
-    return this.path_parameters_key
+    return this._path_parameters_key
   }
 }
 
