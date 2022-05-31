@@ -247,7 +247,7 @@ class Request extends Readable {
     }
 
     // Initiate buffer download
-    return this._download_buffer()
+    return setImmediate(() => this._download_buffer())
   }
 
   /**
@@ -419,7 +419,6 @@ class Request extends Readable {
 
       // Bind a 'close' event handler to resolve the upload promise
       uploader.on('close', () => {
-        console.log('upload finished!')
         // Wait for any pending multipart handler promise to resolve before moving forward
         if (this.multipart_promise) {
           this.multipart_promise.then(resolve)

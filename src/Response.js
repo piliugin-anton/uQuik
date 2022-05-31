@@ -250,9 +250,7 @@ class Response extends Writable {
     this._resume_if_paused()
 
     // Write the appropriate status code to the response along with mapped status code message
-    if (this.status_code) {
-      this.raw_response.writeStatus(statusCodes[this.status_code])
-    }
+    if (this.status_code) this.raw_response.writeStatus(statusCodes[this.status_code])
 
     // Iterate through all headers and write them to uWS
     if (this.headers) {
