@@ -400,6 +400,7 @@ class Request extends Readable {
       // Bind an 'error' event handler to emit errors
       uploader.on('error', reject)
 
+      // IMPORTANT!
       uploader.on('drain', () => this.resume())
 
       // Bind limit event handlers to reject as error code constants
