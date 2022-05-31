@@ -336,7 +336,7 @@ class Request extends Readable {
 
     // If the handler returns a Promise, store it locally
     // this promise can be used to pause the request when the next field is received but user is not ready yet
-    if (output instanceof Promise) {
+    if (typeof output === 'object' && typeof output.then === 'function') {
       // Store this promise locally so the next field can use it to wait
       this.multipart_promise = output
 
