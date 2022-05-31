@@ -50,8 +50,6 @@ uQuik.any('/:test', {
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   }
-
-  res.send('hello world')
 })
 
 uQuik.listen(5000, '127.0.0.1')

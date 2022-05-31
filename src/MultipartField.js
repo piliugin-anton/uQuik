@@ -4,21 +4,21 @@ const FileSystem = require('fs')
 class MultipartField {
   constructor (name, value, info) {
     // Store general information about this field
-    this.name = name
-    this.encoding = info.encoding
-    this.mime_type = info.mimeType
+    this._name = name
+    this._encoding = info.encoding
+    this._mime_type = info.mimeType
 
     // Determine if this field is a file or a normal field
     if (value instanceof Readable) {
       // Store this file's supplied name and data stream
-      this.file = {
+      this._file = {
         name: info.filename,
         stream: value
       }
     } else {
       // Store field value and truncation information
-      this.value = value
-      this.truncated = {
+      this._value = value
+      this._truncated = {
         name: info.nameTruncated,
         value: info.valueTruncated
       }
@@ -59,7 +59,7 @@ class MultipartField {
      * @returns {String}
      */
   get name () {
-    return this.name
+    return this._name
   }
 
   /**
@@ -67,7 +67,7 @@ class MultipartField {
      * @returns {String}
      */
   get encoding () {
-    return this.encoding
+    return this._encoding
   }
 
   /**
@@ -75,7 +75,7 @@ class MultipartField {
      * @returns {String}
      */
   get mime_type () {
-    return this.mime_type
+    return this._mime_type
   }
 
   /**
@@ -91,7 +91,7 @@ class MultipartField {
      * @returns {MultipartFile}
      */
   get file () {
-    return this.file
+    return this._file
   }
 
   /**
@@ -101,7 +101,7 @@ class MultipartField {
      * @returns {String}
      */
   get value () {
-    return this.value
+    return this._value
   }
 
   /**
@@ -117,7 +117,7 @@ class MultipartField {
      * @returns {Truncations}
      */
   get truncated () {
-    return this.truncated
+    return this._truncated
   }
 }
 
