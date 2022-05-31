@@ -1,5 +1,6 @@
 const { Server } = require('./')
 const StaticFiles = require('./src/middleware/StaticFiles')
+const path = require('path')
 
 // eslint-disable-next-line new-cap
 const uQuik = new Server()
@@ -38,7 +39,8 @@ uQuik.any('/:test', {
       // Ensure that this field is a file-type
       // You may also perform your own checks on the encoding and mime type as needed
       if (field.file) {
-        console.log('field', field)
+        console.log('field', field.file.name)
+        field.write(path.join(__dirname, 'test', field.file.name))
       }
     })
   } catch (error) {
@@ -47,9 +49,11 @@ uQuik.any('/:test', {
     if (error === 'FILES_LIMIT_REACHED') {
       return res.status(403).send('You sent too many files! Try again.')
     } else {
+      console.log(error)
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   }
+  // res.json(await req.json())
 })
 
 uQuik.listen(5000, '127.0.0.1')

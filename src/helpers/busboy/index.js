@@ -1,52 +1,80 @@
-'use strict'
+const { Writable } = require('readable-stream')
+const { inherits } = require('util')
 
-const { parseContentType } = require('./utils')
+const MultipartParser = require('./types/multipart')
+const UrlencodedParser = require('./types/urlencoded')
+const parseParams = require('./utils').parseParams
 
-function getInstance (cfg) {
-  const headers = cfg.headers
-  const conType = parseContentType(headers['content-type'])
-  if (!conType) { throw new Error('Malformed content type') }
+function Busboy (opts) {
+  if (!(this instanceof Busboy)) { return new Busboy(opts) }
 
-  for (const TYPE of TYPES) {
-    const matched = TYPE.detect(conType)
-    if (!matched) { continue }
+  if (typeof opts !== 'object') {
+    throw new TypeError('Busboy expected an options-Object.')
+  }
+  if (typeof opts.headers !== 'object') {
+    throw new TypeError('Busboy expected an options-Object with headers-attribute.')
+  }
+  if (typeof opts.headers['content-type'] !== 'string') {
+    throw new TypeError('Missing Content-Type-header.')
+  }
 
-    const instanceCfg = {
-      limits: cfg.limits,
-      headers,
-      conType,
-      highWaterMark: undefined,
-      fileHwm: undefined,
-      defCharset: undefined,
-      defParamCharset: undefined,
-      preservePath: false
+  const {
+    headers,
+    ...streamOptions
+  } = opts
+
+  this.opts = {
+    autoDestroy: false,
+    ...streamOptions
+  }
+  Writable.call(this, this.opts)
+
+  this._done = false
+  this._parser = this.getParserByHeaders(headers)
+  this._finished = false
+}
+inherits(Busboy, Writable)
+
+Busboy.prototype.emit = function (ev) {
+  if (ev === 'finish') {
+    if (!this._done) {
+      this._parser && this._parser.end()
+      return
+    } else if (this._finished) {
+      return
     }
-    if (cfg.highWaterMark) { instanceCfg.highWaterMark = cfg.highWaterMark }
-    if (cfg.fileHwm) { instanceCfg.fileHwm = cfg.fileHwm }
-    instanceCfg.defCharset = cfg.defCharset
-    instanceCfg.defParamCharset = cfg.defParamCharset
-    instanceCfg.preservePath = cfg.preservePath
-    return new TYPE(instanceCfg)
+    this._finished = true
   }
-
-  throw new Error(`Unsupported content type: ${headers['content-type']}`)
+  Writable.prototype.emit.apply(this, arguments)
 }
 
-// Note: types are explicitly listed here for easier bundling
-// See: https://github.com/mscdex/busboy/issues/121
-const TYPES = [
-  require('./types/multipart'),
-  require('./types/urlencoded')
-].filter(function (typemod) { return typeof typemod.detect === 'function' })
+Busboy.prototype.getParserByHeaders = function (headers) {
+  const parsed = parseParams(headers['content-type'])
 
-module.exports = (cfg) => {
-  if (typeof cfg !== 'object' || cfg === null) { cfg = {} }
-
-  if (typeof cfg.headers !== 'object' ||
-      cfg.headers === null ||
-      typeof cfg.headers['content-type'] !== 'string') {
-    throw new Error('Missing Content-Type')
+  const cfg = {
+    defCharset: this.opts.defCharset,
+    fileHwm: this.opts.fileHwm,
+    headers: headers,
+    highWaterMark: this.opts.highWaterMark,
+    isPartAFile: this.opts.isPartAFile,
+    limits: this.opts.limits,
+    parsedConType: parsed,
+    preservePath: this.opts.preservePath
   }
 
-  return getInstance(cfg)
+  if (MultipartParser.detect.test(parsed[0])) {
+    return new MultipartParser(this, cfg)
+  }
+  if (UrlencodedParser.detect.test(parsed[0])) {
+    return new UrlencodedParser(this, cfg)
+  }
+  throw new Error('Unsupported Content-Type.')
 }
+
+Busboy.prototype._write = function (chunk, encoding, cb) {
+  this._parser.write(chunk, cb)
+}
+
+module.exports = Busboy
+module.exports.default = Busboy
+module.exports.Busboy = Busboy

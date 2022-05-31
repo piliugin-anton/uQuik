@@ -408,17 +408,17 @@ class Request extends Readable {
       uploader.on('fieldsLimit', () => reject('FIELDS_LIMIT_REACHED'))
 
       // Bind a 'field' event handler to process each incoming field
-      uploader.on('field', (fieldName, value, info) =>
-        this._on_multipart_field(handler, fieldName, value, info)
+      uploader.on('field', (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) => console.log(fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype)
+        /* this._on_multipart_field(handler, fieldName, value, info) */
       )
 
       // Bind a 'file' event handler to process each incoming file
-      uploader.on('file', (fieldName, stream, info) =>
-        this._on_multipart_field(handler, fieldName, stream, info)
+      uploader.on('file', (fieldname, file, filename, encoding, mimetype) => console.log(fieldname, file, filename, encoding, mimetype)
+        /* this._on_multipart_field(handler, fieldName, stream, info) */
       )
 
       // Bind a 'finish' event handler to resolve the upload promise
-      uploader.on('close', () => {
+      uploader.on('finish', () => {
         // Wait for any pending multipart handler promise to resolve before moving forward
         if (this.multipart_promise) {
           this.multipart_promise.then(resolve)

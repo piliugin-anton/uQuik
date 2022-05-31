@@ -8,7 +8,7 @@ const Stream = require('stream') // lgtm [js/unused-local-variable]
 const Request = require('./Request')
 const Response = require('./Response')
 
-const { wrapObject, isPromise } = require('./utils')
+const { wrapObject } = require('./utils')
 
 class Server extends Router {
   /**
@@ -42,7 +42,7 @@ class Server extends Router {
       fast_abort: false,
       trust_proxy: false,
       unsafe_buffers: false,
-      max_body_length: 104857801/* 250 * 1000 * 1000 */,
+      max_body_length: 1153434002/* 250 * 1000 * 1000 */,
       ajv: {}
     }
 
@@ -394,7 +394,7 @@ class Server extends Router {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
           response._track_middleware_cursor(cursor)
           const output = this._middlewares['/'][cursor].middleware(request, response, next)
-          if (isPromise(output)) return output.then(next).catch(next)
+          if (typeof output === 'object' && typeof output.then === 'function') return output.then(next).catch(next)
         }
       }
 
@@ -406,7 +406,7 @@ class Server extends Router {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
           response._track_middleware_cursor(cursor)
           const output = object.middleware(request, response, next)
-          if (isPromise(output)) return output.then(next).catch(next)
+          if (typeof output === 'object' && typeof output.then === 'function') return output.then(next).catch(next)
         }
       }
     }
@@ -416,7 +416,7 @@ class Server extends Router {
     try {
       // If route handler returns a Promise, bind a catch handler to trigger the error handler
       const output = route.handler(request, response, response.upgrade_socket)
-      if (isPromise(output)) output.catch(next)
+      if (typeof output === 'object' && typeof output.then === 'function') output.catch(next)
     } catch (error) {
       // If route handler throws an error, trigger error handler
       next(error)
