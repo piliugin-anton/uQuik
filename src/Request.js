@@ -324,7 +324,7 @@ class Request extends Readable {
     const field = new MultipartField(name, value, info)
 
     // Wait for the previous multipart field handler promise to resolve
-    if (this.multipart_promise instanceof Promise) {
+    if (typeof this.multipart_promise === 'object' && typeof this.multipart_promise.then === 'function') {
       // We will keep the request paused so we do not receive more chunks
       this.pause()
       await this.multipart_promise
