@@ -11,7 +11,6 @@
     "hyper": "node benchmark/Hyper-Express.js",
     "fastify": "node benchmark/fastify.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "0x": "0x example.js",
     "wrk": "wrk -t4 -c2500 -d60s http://127.0.0.1:5000",
     "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s http://127.0.0.1:5000/test?param0=test",
     "wrk-uws": "wrk -t4 -c2500 -d60s http://127.0.0.1:5001/test?param0=test",

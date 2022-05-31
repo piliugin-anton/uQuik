@@ -82,7 +82,7 @@ class Response extends Writable {
      * @param {Function} handler
      */
   atomic (handler) {
-    if (typeof handler !== 'function') { this.throw(new Error('atomic(handler) -> handler must be a Javascript function')) }
+    if (typeof handler !== 'function') this.throw(new Error('atomic(handler) -> handler must be a Javascript function'))
 
     this._resume_if_paused()
     return this.raw_response.cork(handler)
