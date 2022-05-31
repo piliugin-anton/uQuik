@@ -40,7 +40,9 @@ uQuik.any('/:test', {
       // You may also perform your own checks on the encoding and mime type as needed
       if (field.file) {
         console.log('field', field.file.name)
-        field.write(path.join(__dirname, 'test', field.file.name))
+        field.write(path.join(__dirname, 'test', field.file.name)).then(() => {
+          res.send('ok')
+        }).catch((err) => console.log('Error while writing file', err))
       }
     })
   } catch (error) {

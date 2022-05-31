@@ -30,7 +30,7 @@
     "fast-uri": "^2.0.0",
     "npm": "^8.11.0",
     "readable-stream": "^3.6.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#binaries"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0"
   },
   "keywords": [
     "uQuik",
@@ -39,7 +39,6 @@
   "author": "Anton Piliugin",
   "license": "MIT",
   "devDependencies": {
-    "0x": "^5.2.1",
     "eslint": "^8.16.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",

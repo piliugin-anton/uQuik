@@ -251,7 +251,6 @@ class Server extends Router {
 
     // JSON Schema validators
     if (record.options.schema) {
-      console.log('record.options.schema.request', record.options.schema.request)
       if (record.options.schema.request) this._routes[record.method][record.pattern].requestParser = this.ajv.compileParser(record.options.schema.request)
       if (record.options.schema.response) this._routes[record.method][record.pattern].responseSerializer = this.ajv.compileSerializer(record.options.schema.response)
     }

@@ -1,9 +1,10 @@
-const { Readable } = require('readable-stream')
+// eslint-disable-next-line no-unused-vars
+const { Readable, Writable, WritableOptions } = require('readable-stream')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
-const { Busboy } = require('./helpers/busboy')
+const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
 const { getIP } = require('./utils')
 
@@ -80,8 +81,8 @@ class Request extends Readable {
   /**
      * Pipes the request body stream data to the provided destination stream with the provided set of options.
      *
-     * @param {stream.Writable} destination
-     * @param {stream.WritableOptions} options
+     * @param {Writable} destination
+     * @param {WritableOptions} options
      * @returns {Request}
      */
   pipe (destination, options) {
@@ -394,10 +395,12 @@ class Request extends Readable {
     // Return a promise which will be resolved after all incoming multipart data has been processed
     return new Promise((resolve, reject) => {
       // Create a Busboy instance which will perform
-      const uploader = new Busboy(options)
+      const uploader = busboy(options)
 
-      // Bind a 'error' event handler to emit errors
+      // Bind an 'error' event handler to emit errors
       uploader.on('error', reject)
+
+      uploader.on('drain', () => this.resume())
 
       // Bind limit event handlers to reject as error code constants
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -408,22 +411,14 @@ class Request extends Readable {
       uploader.on('fieldsLimit', () => reject('FIELDS_LIMIT_REACHED'))
 
       // Bind a 'field' event handler to process each incoming field
-      uploader.on('field', (fieldName, value, fieldnameTruncated, valTruncated, encoding, mimetype) => this._on_multipart_field(handler, fieldName, value, {
-        encoding,
-        mimetype,
-        fieldNameTruncated: fieldnameTruncated,
-        valueTruncated: valTruncated
-      }))
+      uploader.on('field', (name, value, info) => this._on_multipart_field(handler, name, value, info))
 
       // Bind a 'file' event handler to process each incoming file
-      uploader.on('file', (fieldName, file, filename, encoding, mimetype) => this._on_multipart_field(handler, fieldName, file, {
-        filename,
-        encoding,
-        mimetype
-      }))
+      uploader.on('file', (name, file, info) => this._on_multipart_field(handler, name, file, info))
 
-      // Bind a 'finish' event handler to resolve the upload promise
-      uploader.on('finish', () => {
+      // Bind a 'close' event handler to resolve the upload promise
+      uploader.on('close', () => {
+        console.log('upload finished!')
         // Wait for any pending multipart handler promise to resolve before moving forward
         if (this.multipart_promise) {
           this.multipart_promise.then(resolve)

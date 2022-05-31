@@ -19,7 +19,7 @@ class MultipartField {
       // Store field value and truncation information
       this._value = value
       this._truncated = {
-        name: info.fieldNameTruncated,
+        name: info.nameTruncated,
         value: info.valueTruncated
       }
     }
