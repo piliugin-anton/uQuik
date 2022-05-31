@@ -3,7 +3,7 @@ const { Readable } = require('readable-stream')
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
-const busboy = require('./helpers/busboy')
+const { Busboy } = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
 const { getIP } = require('./utils')
 
@@ -394,7 +394,7 @@ class Request extends Readable {
     // Return a promise which will be resolved after all incoming multipart data has been processed
     return new Promise((resolve, reject) => {
       // Create a Busboy instance which will perform
-      const uploader = busboy(options)
+      const uploader = new Busboy(options)
 
       // Bind a 'error' event handler to emit errors
       uploader.on('error', reject)
@@ -408,14 +408,19 @@ class Request extends Readable {
       uploader.on('fieldsLimit', () => reject('FIELDS_LIMIT_REACHED'))
 
       // Bind a 'field' event handler to process each incoming field
-      uploader.on('field', (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) => console.log(fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype)
-        /* this._on_multipart_field(handler, fieldName, value, info) */
-      )
+      uploader.on('field', (fieldName, value, fieldnameTruncated, valTruncated, encoding, mimetype) => this._on_multipart_field(handler, fieldName, value, {
+        encoding,
+        mimetype,
+        fieldNameTruncated: fieldnameTruncated,
+        valueTruncated: valTruncated
+      }))
 
       // Bind a 'file' event handler to process each incoming file
-      uploader.on('file', (fieldname, file, filename, encoding, mimetype) => console.log(fieldname, file, filename, encoding, mimetype)
-        /* this._on_multipart_field(handler, fieldName, stream, info) */
-      )
+      uploader.on('file', (fieldName, file, filename, encoding, mimetype) => this._on_multipart_field(handler, fieldName, file, {
+        filename,
+        encoding,
+        mimetype
+      }))
 
       // Bind a 'finish' event handler to resolve the upload promise
       uploader.on('finish', () => {

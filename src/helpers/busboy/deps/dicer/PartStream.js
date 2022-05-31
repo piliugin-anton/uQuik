@@ -1,10 +1,10 @@
 const inherits = require('util').inherits
-const ReadableStream = require('stream').Readable
+const { Readable } = require('readable-stream')
 
 function PartStream (opts) {
-  ReadableStream.call(this, opts)
+  Readable.call(this, opts)
 }
-inherits(PartStream, ReadableStream)
+inherits(PartStream, Readable)
 
 PartStream.prototype._read = function (n) {}
 

@@ -5,7 +5,7 @@
 /// <reference types="node" />
 
 import * as http from 'http';
-import { Readable, Writable } from 'stream';
+import { Readable, Writable } from 'readable-stream';
 
 export const Busboy: BusboyConstructor;
 export default Busboy

@@ -1,8 +1,8 @@
 const EventEmitter = require('events').EventEmitter
 const inherits = require('util').inherits
-const getLimit = require('../../../utils').getLimit
+const getLimit = require('../../utils').getLimit
 
-const StreamSearch = require('../../streamsearch/sbmh')
+const StreamSearch = require('../streamsearch/sbmh')
 
 const B_DCRLF = Buffer.from('\r\n\r\n')
 const RE_CRLF = /\r\n/g
