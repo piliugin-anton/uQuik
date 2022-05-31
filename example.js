@@ -8,14 +8,14 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
-uQuik.get('/', (req, res) => res.send('hello world'))
+// uQuik.get('/', (req, res) => res.send('hello world'))
 
 // uQuik.use(StaticFiles())
 
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
-/* uQuik.any('/:test', {
+uQuik.any('/:test', {
   schema: {
     request: {
       properties: {
@@ -33,10 +33,26 @@ uQuik.get('/', (req, res) => res.send('hello world'))
     }
   }
 }, async (req, res) => {
-  const query = req.query
-  const params = req.params
-  res.json(await req.json())
-}) */
+  try {
+    await req.multipart(async (field) => {
+      // Ensure that this field is a file-type
+      // You may also perform your own checks on the encoding and mime type as needed
+      if (field.file) {
+        console.log('field', field)
+      }
+    })
+  } catch (error) {
+    // The multipart parser may throw a string constant as an error
+    // Be sure to handle these as stated in the documentation
+    if (error === 'FILES_LIMIT_REACHED') {
+      return res.status(403).send('You sent too many files! Try again.')
+    } else {
+      return res.status(500).send('Oops! An uncaught error occured on our end.')
+    }
+  }
+
+  res.send('hello world')
+})
 
 uQuik.listen(5000, '127.0.0.1')
   .then((socket) => console.log('[Example] Server started'))

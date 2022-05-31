@@ -8,7 +8,7 @@ const Stream = require('stream') // lgtm [js/unused-local-variable]
 const Request = require('./Request')
 const Response = require('./Response')
 
-const { wrapObject } = require('./utils')
+const { wrapObject, isPromise } = require('./utils')
 
 class Server extends Router {
   /**
@@ -393,7 +393,8 @@ class Server extends Router {
         if (this._middlewares['/'][cursor]) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
           response._track_middleware_cursor(cursor)
-          return Promise.resolve(this._middlewares['/'][cursor].middleware(request, response, next)).then(next).catch(next)
+          const output = this._middlewares['/'][cursor].middleware(request, response, next)
+          if (isPromise(output)) return output.then(next).catch(next)
         }
       }
 
@@ -404,13 +405,22 @@ class Server extends Router {
         if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
           response._track_middleware_cursor(cursor)
-          return Promise.resolve(object.middleware(request, response, next)).then(next).catch(next)
+          const output = object.middleware(request, response, next)
+          if (isPromise(output)) return output.then(next).catch(next)
         }
       }
     }
 
     // Safely execute the user provided route handler
-    return Promise.resolve(route.handler(request, response)).catch(next)
+    // Safely execute the user provided route handler
+    try {
+      // If route handler returns a Promise, bind a catch handler to trigger the error handler
+      const output = route.handler(request, response, response.upgrade_socket)
+      if (isPromise(output)) output.catch(next)
+    } catch (error) {
+      // If route handler throws an error, trigger error handler
+      next(error)
+    }
   }
 
   get routes () {
