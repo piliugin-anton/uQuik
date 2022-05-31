@@ -380,7 +380,7 @@ class Request extends Readable {
     options.headers = this.headers
 
     // Ensure the provided handler is a function type
-    if (typeof handler !== 'function') { throw new Error('Request.multipart(handler) -> handler must be a Function.') }
+    if (typeof handler !== 'function') throw new Error('Request.multipart(handler) -> handler must be a Function.')
 
     // Resolve instantly if we have no readable body stream
     if (this.readableEnded) return Promise.resolve()
