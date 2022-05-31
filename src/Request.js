@@ -226,9 +226,6 @@ class Request extends Readable {
 
     // Bind a then handler for caching the downloaded buffer
 
-    // this.buffer_promise.then((buffer) => (this.body_buffer = buffer))
-    // return this.buffer_promise
-
     return this.buffer_promise.then((buffer) => (this.body_buffer = buffer))
   }
 
@@ -392,6 +389,7 @@ class Request extends Readable {
     const contentType = this.headers['content-type']
     if (!/^(multipart\/.+);(.*)$/i.test(contentType)) return Promise.resolve()
 
+    console.time('multipart')
     // Return a promise which will be resolved after all incoming multipart data has been processed
     return new Promise((resolve, reject) => {
       // Create a Busboy instance which will perform
@@ -419,6 +417,7 @@ class Request extends Readable {
 
       // Bind a 'close' event handler to resolve the upload promise
       uploader.on('close', () => {
+        console.timeEnd('multipart')
         // Wait for any pending multipart handler promise to resolve before moving forward
         if (this.multipart_promise) {
           this.multipart_promise.then(resolve)
@@ -428,7 +427,12 @@ class Request extends Readable {
       })
 
       // Pipe the readable request stream into the busboy uploader
-      this.pipe(uploader)
+      try {
+        this.pipe(uploader)
+      } catch (ex) {
+        // eslint-disable-next-line prefer-promise-reject-errors
+        reject('INTERNAL_ERROR')
+      }
     })
   }
 
