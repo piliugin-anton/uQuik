@@ -411,9 +411,7 @@ class Server extends Router {
     }
 
     // Safely execute the user provided route handler
-    // Safely execute the user provided route handler
     try {
-      // If route handler returns a Promise, bind a catch handler to trigger the error handler
       const output = route.handler(request, response, response.upgrade_socket)
       if (typeof output === 'object' && typeof output.then === 'function') output.catch(next)
     } catch (error) {
