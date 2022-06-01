@@ -339,6 +339,7 @@ class Server extends Router {
     if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
       const maxBodyLength = route.options.max_body_length || route.app.options.max_body_length
+      // Is bad request?
       const isBadRequest = method !== 'post' && method !== 'put' && method !== 'patch'
       if (wrappedRequest.contentLength > maxBodyLength || isBadRequest) {
         // Use fast abort scheme if specified in the server options
