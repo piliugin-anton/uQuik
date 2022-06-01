@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 const { Readable, Writable } = require('readable-stream')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server.js') // lgtm [js/unused-local-variable]
