@@ -692,7 +692,7 @@ class Request extends Readable {
     const trustProxy = this.appOptions.trust_proxy
     const xForwardedProto = this.get('X-Forwarded-Proto')
     if (trustProxy && xForwardedProto) {
-      return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto
+      return xForwardedProto.indexOf(',') !== -1 ? xForwardedProto.split(',')[0] : xForwardedProto
     }
 
     // Use uWS initially defined protocol
@@ -729,7 +729,7 @@ class Request extends Readable {
 
     if (!host || !trustProxy) {
       host = this.get('Host')
-    } else if (host.indexOf(',') > -1) {
+    } else if (host.indexOf(',') !== -1) {
       // Note: X-Forwarded-Host is normally only ever a
       //       single value, but this is to be safe.
       host = host.substring(0, host.indexOf(',')).trimEnd()
