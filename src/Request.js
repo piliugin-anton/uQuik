@@ -584,8 +584,8 @@ class Request extends Readable {
 
   get url () {
     if (this._url) return this._url
-    new URLSearchParams().toString()
-    return (this._url = this.path + (this.query ? '?' + this.query.toString() : ''))
+
+    return (this._url = this.path + (this.query_parameters ? '?' + this.query_parameters.toString() : ''))
   }
 
   get accept () {
