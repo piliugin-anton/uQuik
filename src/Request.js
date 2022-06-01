@@ -579,7 +579,7 @@ class Request extends Readable {
   get path () {
     if (this._path) return this._path
 
-    this._path = this.rawRequest.getUrl()
+    return (this._path = this.rawRequest.getUrl())
   }
 
   get url () {
