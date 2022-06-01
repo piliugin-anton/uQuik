@@ -318,11 +318,15 @@ class Server extends Router {
      * @param {Response} response
      */
   async _handle_uws_request (route, request, response) {
+    // Request method
+    const method = request.getMethod()
+
     // Wrap uWS.Request -> Request
     const wrappedRequest = new Request(
       request,
       response,
-      route
+      route,
+      method
     )
 
     // Wrap uWS.Response -> Response
@@ -330,9 +334,6 @@ class Server extends Router {
 
     // Determine the incoming content length if present
     wrappedRequest.contentLength = this._parse_content_length(wrappedRequest)
-
-    // Request method
-    const method = request.getMethod()
 
     // Checking if we need to get request body
     if ((method === 'post' || method === 'put' || method === 'patch') && wrappedRequest.contentLength) {
