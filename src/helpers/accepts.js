@@ -30,7 +30,7 @@ module.exports = Accepts
  */
 
 function Accepts (req) {
-  if (!(this instanceof Accepts)) {
+  if (typeof this !== 'object' && typeof this.types !== 'function') {
     return new Accepts(req)
   }
 

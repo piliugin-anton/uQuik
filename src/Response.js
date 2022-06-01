@@ -12,7 +12,7 @@ const LiveFile = require('./LiveFile')
 const FilePool = {}
 
 class Response extends Writable {
-  constructor (wrappedRequest, rawResponse, masterContext, opts) {
+  constructor (wrappedRequest, rawResponse, masterContext, appOptions, routeOptions) {
     // Initialize the writable stream for this response
     super()
 
@@ -20,7 +20,8 @@ class Response extends Writable {
     this.wrapped_request = wrappedRequest
     this.raw_response = rawResponse
     this.master_context = masterContext
-    this.options = opts
+    this.appOptions = appOptions
+    this.routeOptions = routeOptions
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
@@ -466,7 +467,7 @@ class Response extends Writable {
      */
   stream (readable, totalSize) {
     // Ensure readable is an instance of a stream.Readable
-    if (!(readable instanceof Readable)) {
+    if (typeof readable !== 'object' && typeof readable.destroy !== 'function') {
       this.throw(
         new Error('Response.stream(readable, totalSize) -> readable must be a Readable stream.')
       )
@@ -524,8 +525,8 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (this.options.JSONSerializer) {
-      body = this.options.JSONSerializer(body)
+    if (this.routeOptions.JSONSerializer) {
+      body = this.routeOptions.JSONSerializer(body)
     } else {
       try {
         body = JSON.stringify(body)
@@ -646,7 +647,7 @@ class Response extends Writable {
      */
   throw (error) {
     // Ensure error is an instance of Error
-    if (error instanceof Error) return this.master_context.handlers.on_error(this.wrapped_request, this, error)
+    if (typeof error === 'object' && typeof error.message === 'string') return this.master_context.handlers.on_error(this.wrapped_request, this, error)
 
     // If error is not an instance of Error, throw a warning error
     throw new Error('Response.throw() expects an instance of an Error.')
@@ -660,15 +661,6 @@ class Response extends Writable {
      */
   get raw () {
     return this.raw_response
-  }
-
-  /**
-     * Returns the Server instance this Response object originated from.
-     *
-     * @returns {Server}
-     */
-  get app () {
-    return this.master_context
   }
 
   /**

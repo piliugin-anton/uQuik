@@ -15,14 +15,14 @@ const typeIs = require('./helpers/type-is')
 const isIP = require('net').isIP
 
 class Request extends Readable {
-  constructor (rawRequest, rawResponse, pathParametersKey, opts) {
+  constructor (rawRequest, rawResponse, pathParametersKey, appOptions, routeOptions) {
     // Initialize the request readable stream for body consumption
     super()
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
     this.rawRequest = rawRequest
     this.rawResponse = rawResponse
-    this.options = opts
+    this.appOptions = appOptions
 
     this.path_parameters = {}
 
@@ -192,7 +192,7 @@ class Request extends Readable {
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
         cursor: 0,
-        buffer: Buffer[this.options.fast_buffers ? 'allocUnsafe' : 'alloc'](this.contentLength)
+        buffer: Buffer[this.appOptions.fast_buffers ? 'allocUnsafe' : 'alloc'](this.contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -270,8 +270,8 @@ class Request extends Readable {
      * @returns {Any}
      */
   _parse_json (string, defaultValue) {
-    if (this.options.JSONParser) {
-      return this.options.JSONParser(string) || defaultValue
+    if (this.routeOptions.JSONParser) {
+      return this.routeOptions.JSONParser(string) || defaultValue
     } else {
       try {
         return JSON.parse(string)
@@ -687,14 +687,14 @@ class Request extends Readable {
      */
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
-    const trustProxy = this.options.trust_proxy
+    const trustProxy = this.appOptions.trust_proxy
     const xForwardedProto = this.get('X-Forwarded-Proto')
     if (trustProxy && xForwardedProto) {
       return xForwardedProto.indexOf(',') > -1 ? xForwardedProto.split(',')[0] : xForwardedProto
     }
 
     // Use uWS initially defined protocol
-    return this.options.is_ssl ? 'https' : 'http'
+    return this.appOptions.is_ssl ? 'https' : 'http'
   }
 
   /**
@@ -712,7 +712,7 @@ class Request extends Readable {
   get ips () {
     const clientIP = this.ip
     const proxyIP = this.proxy_ip
-    const trustProxy = this.options.trust_proxy
+    const trustProxy = this.appOptions.trust_proxy
     const xForwardedFor = this.get('X-Forwarded-For')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
     return [clientIP, proxyIP]
@@ -722,7 +722,7 @@ class Request extends Readable {
      * ExpressJS: Parse the "Host" header field to a hostname.
      */
   get hostname () {
-    const trustProxy = this.options.trust_proxy
+    const trustProxy = this.appOptions.trust_proxy
     let host = this.get('X-Forwarded-Host')
 
     if (!host || !trustProxy) {

@@ -323,16 +323,12 @@ class Server extends Router {
       request,
       response,
       route.path_parameters_key,
-      {
-        ...route.app._options,
-        JSONParser: route.requestParser
-      }
+      route.app.options,
+      route.options
     )
 
     // Wrap uWS.Response -> Response
-    const wrappedResponse = new Response(wrappedRequest, response, route.app, {
-      JSONSerializer: route.responseSerializer
-    })
+    const wrappedResponse = new Response(wrappedRequest, response, route.app, route.options)
 
     // Determine the incoming content length if present
     wrappedRequest.contentLength = this._parse_content_length(wrappedRequest)
@@ -374,7 +370,6 @@ class Server extends Router {
     if (response.aborted) return
 
     // Trigger error handler if an error was provided by a middleware
-    // if (error instanceof Error) return response.throw(error)
     if (error) return response.throw(error)
 
     // Determine next callback based on if either global or route middlewares exist

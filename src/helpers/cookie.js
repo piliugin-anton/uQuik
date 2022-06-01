@@ -16,13 +16,6 @@ exports.parse = parse
 exports.serialize = serialize
 
 /**
- * Module variables.
- * @private
- */
-
-const __toString = Object.prototype.toString
-
-/**
  * RegExp to match field-content in RFC 7230 sec 3.2
  *
  * field-content = field-vchar [ 1*( SP / HTAB ) field-vchar ]
@@ -250,8 +243,7 @@ function encode (val) {
  */
 
 function isDate (val) {
-  return __toString.call(val) === '[object Date]' ||
-    val instanceof Date
+  return typeof val === 'object' && typeof val.toUTCString === 'function'
 }
 
 /**

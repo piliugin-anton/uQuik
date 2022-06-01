@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 const { Readable } = require('readable-stream')
 const FileSystem = require('fs')
 
@@ -9,7 +10,7 @@ class MultipartField {
     this._mime_type = info.mimeType
 
     // Determine if this field is a file or a normal field
-    if (value instanceof Readable) {
+    if (typeof value === 'object' && typeof value.destroy === 'function') {
       // Store this file's supplied name and data stream
       this._file = {
         name: info.filename,
@@ -81,7 +82,7 @@ class MultipartField {
   /**
      * @typedef {Object} MultipartFile
      * @property {String=} name If supplied, this file's name as supplied by sender.
-     * @property {stream.Readable} stream Readable stream to consume this file's data.
+     * @property {Readable} stream Readable stream to consume this file's data.
      */
 
   /**

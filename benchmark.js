@@ -1,4 +1,4 @@
-// const bench = require('nanobench')
+const bench = require('nanobench')
 
 const loopCount = 200000
 
@@ -13,58 +13,49 @@ charactersLength))
   return result
 }
 
-Promise.resolve(() => new Promise((resolve, reject) => setTimeout(() => reject(new Error('sdfs')), 100))).then((msg) => console.log(msg)).catch((ex) => console.log(ex))
+const obj = {
+  test: 123,
+  test2: {
+    test: 12312,
+    test2: true,
+    test3: {
+      test: 0
+    }
+  },
+  test3: true
+}
 
-/* bench('Object', (b) => {
+const promise = new Promise((resolve) => setTimeout(() => resolve(), 0))
+console.log(Object.prototype.toString.call(promise))
+
+bench('instaceof', (b) => {
   b.start()
-
-  const object = {}
-
   for (let i = 0; i < loopCount; ++i) {
-    object[`key_${i}`] = 1
-  }
-
-  let result = 0
-
-  for (let i = 0; i < loopCount; ++i) {
-    result += object[`key_${i}`]
+    let isPromise
+    if (promise instanceof Promise) isPromise = 1
   }
 
   b.end()
 })
 
-bench('Map', (b) => {
+bench('toString()', (b) => {
   b.start()
 
-  const map = new Map()
-
   for (let i = 0; i < loopCount; ++i) {
-    map.set(`key_${i}`, 1)
-  }
-
-  let result = 0
-
-  for (let i = 0; i < loopCount; ++i) {
-    result += map.get(`key_${i}`)
+    let isPromise
+    if (Object.prototype.toString.call(promise) === '[object Promise]') isPromise = 1
   }
 
   b.end()
 })
 
-bench('Set', (b) => {
+bench('2x typeof', (b) => {
   b.start()
 
-  const set = new Set()
-
   for (let i = 0; i < loopCount; ++i) {
-    set.add(`key_${i}`)
-  }
-
-  let result = 0
-
-  for (let i = 0; i < loopCount; ++i) {
-    result += set.has(`key_${i}`)
+    let isPromise
+    if (typeof promise === 'object' && typeof promise.then === 'function') isPromise = 1
   }
 
   b.end()
-}) */
+})
