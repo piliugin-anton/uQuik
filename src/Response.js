@@ -531,10 +531,11 @@ class Response extends Writable {
     } else {
       try {
         body = JSON.stringify(body)
-      } catch (ex) {
-        body = '{}'
-      }
+      } catch (ex) {}
     }
+
+    if (!body) body = '{}'
+
     return this.type('json').send(body)
   }
 
@@ -751,7 +752,9 @@ class Response extends Writable {
      * @param {Object} headers
      */
   writeHeaders (headers) {
-    Object.keys(headers).forEach((name) => this.header(name, headers[name]))
+    for (const name in headers) {
+      this.header(name, headers[name])
+    }
   }
 
   /**
@@ -768,7 +771,10 @@ class Response extends Writable {
      * @param {Array} values
      */
   writeHeaderValues (name, values) {
-    values.forEach((value) => this.header(name, value))
+    const length = values.length
+    for (let i = 0; i < length; i++) {
+      this.header(name, values[i])
+    }
   }
 
   /**
@@ -786,9 +792,9 @@ class Response extends Writable {
      */
   getHeaders () {
     const headers = {}
-    Object.keys(this.headers).forEach((key) => {
-      headers[key] = fastArrayJoin(this.headers[key], ',')
-    })
+    for (const name in this.headers) {
+      headers[name] = fastArrayJoin(this.headers[name], ',')
+    }
     return headers
   }
 
@@ -871,10 +877,10 @@ class Response extends Writable {
 
     // Build chunks of links and combine into header spec
     const chunks = []
-    Object.keys(links).forEach((rel) => {
-      const url = links[rel]
-      chunks.push(`<${url}>; rel="${rel}"`)
-    })
+    for (const rel in links) {
+      chunks.push(`<${links[rel]}>; rel="${rel}"`)
+    }
+
     return fastArrayJoin(chunks, ', ')
   }
 
@@ -916,10 +922,9 @@ class Response extends Writable {
      */
   set (field, value) {
     if (typeof field === 'object') {
-      Object.keys(field).forEach((name) => {
-        const value = field[name]
-        this.header(field, value)
-      })
+      for (const name in field) {
+        this.header(field, field[name])
+      }
     } else {
       this.header(field, value)
     }
