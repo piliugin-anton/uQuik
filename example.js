@@ -17,7 +17,7 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.head('/*', () => {})
 
 uQuik.any('/', {
-  /* schema: {
+  schema: {
     request: {
       properties: {
         test: {
@@ -32,7 +32,7 @@ uQuik.any('/', {
         }
       }
     }
-  } */
+  }
 }, async (req, res) => {
   /* try {
     await req.multipart(async (field) => {

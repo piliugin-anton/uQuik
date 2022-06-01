@@ -270,7 +270,7 @@ class Request extends Readable {
      * @param {Any} defaultValue
      * @returns {Any}
      */
-  _parse_json (string, defaultValue) {
+  async _parse_json (string, defaultValue) {
     if (this.routeOptions.JSONParser) {
       return this.routeOptions.JSONParser(string) || defaultValue
     } else {
@@ -295,7 +295,7 @@ class Request extends Readable {
 
     // Retrieve body as text, safely parse json, cache and resolve
     const text = this.body_text || (await this.text())
-    this.body_json = this._parse_json(text, defaultValue)
+    this.body_json = await this._parse_json(text, defaultValue)
     return this.body_json
   }
 
