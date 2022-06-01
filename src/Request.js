@@ -172,7 +172,7 @@ class Request extends Readable {
      * @private
      * @returns {Promise}
      */
-  _download_buffer () {
+  async _download_buffer () {
     // Return pending buffer promise if in flight
     if (this.buffer_promise) return this.buffer_promise
 
@@ -234,7 +234,7 @@ class Request extends Readable {
      * Downloads and returns request body as a Buffer.
      * @returns {Promise<Buffer>}
      */
-  buffer () {
+  async buffer () {
     // Check cache and return if body has already been parsed
     if (this.body_buffer) return Promise.resolve(this.body_buffer)
 
@@ -245,7 +245,7 @@ class Request extends Readable {
     }
 
     // Initiate buffer download
-    return setImmediate(() => this._download_buffer())
+    return this._download_buffer()
   }
 
   /**
