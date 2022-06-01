@@ -473,8 +473,7 @@ class Request extends Readable {
      * @returns {String|Array|Boolean}
      */
   accepts () {
-    const instance = accepts(this)
-    return instance.types.apply(instance, arguments)
+    return this.accept.types(arguments)
   }
 
   /**
@@ -483,8 +482,7 @@ class Request extends Readable {
      * @returns {String|Array}
      */
   acceptsEncodings () {
-    const instance = accepts(this)
-    return instance.encodings.apply(instance, arguments)
+    return this.accept.encodings(arguments)
   }
 
   /**
@@ -493,8 +491,7 @@ class Request extends Readable {
      * @returns {String|Array}
      */
   acceptsCharsets () {
-    const instance = accepts(this)
-    return instance.charsets.apply(instance, arguments)
+    return this.accept.charsets(arguments)
   }
 
   /**
@@ -503,8 +500,7 @@ class Request extends Readable {
      * @returns {String|Array}
      */
   acceptsLanguages () {
-    const instance = accepts(this)
-    return instance.languages.apply(instance, arguments)
+    return this.accept.languages(arguments)
   }
 
   /**
@@ -590,6 +586,12 @@ class Request extends Readable {
     if (this._url) return this._url
     new URLSearchParams().toString()
     return (this._url = this.path + (this.query ? '?' + this.query.toString() : ''))
+  }
+
+  get accept () {
+    if (this._accept) return this._accept
+
+    return (this._accept = accepts(this))
   }
 
   /**
