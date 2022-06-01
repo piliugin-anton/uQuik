@@ -15,7 +15,7 @@ const typeIs = require('./helpers/type-is')
 const isIP = require('net').isIP
 
 class Request extends Readable {
-  constructor (rawRequest, rawResponse, route) {
+  constructor (rawRequest, rawResponse, route, method) {
     // Initialize the request readable stream for body consumption
     super()
 
@@ -24,6 +24,8 @@ class Request extends Readable {
     this.rawResponse = rawResponse
     this.appOptions = route.app.options
     this.routeOptions = route.options
+
+    this.__method = method
 
     this.path_parameters = {}
     this.headers = {}
@@ -574,7 +576,8 @@ class Request extends Readable {
 
   get method () {
     if (this._method) return this._method
-    return (this._method = this.rawRequest.getMethod().toUpperCase())
+
+    return (this._method = this.__method.toUpperCase())
   }
 
   get path () {
