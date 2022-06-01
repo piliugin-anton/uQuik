@@ -336,16 +336,17 @@ class Server extends Router {
     wrappedRequest.contentLength = this._parse_content_length(wrappedRequest)
 
     // Checking if we need to get request body
-    if ((method === 'post' || method === 'put' || method === 'patch') && wrappedRequest.contentLength) {
+    if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
       const maxBodyLength = route.options.max_body_length || route.app.options.max_body_length
-      if (wrappedRequest.contentLength > maxBodyLength) {
+      const isBadRequest = method !== 'post' && method !== 'put' && method !== 'patch'
+      if (wrappedRequest.contentLength > maxBodyLength || isBadRequest) {
         // Use fast abort scheme if specified in the server options
         if (this.options.fast_abort === true) return response.close()
 
         // For slow abort scheme, according to uWebsockets developer, we have to drain incoming data before aborting and closing request
         // Prematurely closing request with a 413 leads to an ECONNRESET in which we lose 413 status code from server
-        return response.onData((_, isLast) => isLast && wrappedResponse.status(413).send())
+        return response.onData((_, isLast) => isLast && wrappedResponse.status(isBadRequest ? 400 : 413).send())
       }
 
       // Begin streaming the incoming body data
