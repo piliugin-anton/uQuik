@@ -346,7 +346,7 @@ class Server extends Router {
         if (this.options.fast_abort === true) return response.close()
 
         // For slow abort scheme, according to uWebsockets developer, we have to drain incoming data before aborting and closing request
-        // Prematurely closing request with a 413 leads to an ECONNRESET in which we lose 413 status code from server
+        // Prematurely closing request with a 4xx leads to an ECONNRESET in which we lose 4xx status code from server
         return response.onData((_, isLast) => isLast && wrappedResponse.status(isBadRequest ? 400 : 413).send())
       }
 
