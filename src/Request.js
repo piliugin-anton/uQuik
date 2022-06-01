@@ -596,9 +596,9 @@ class Request extends Readable {
 
   get headers () {
     if (this._headers) return this._headers
-    this._headers = {}
-    this.rawRequest.forEach((key, value) => (this._headers[key] = value))
-    return this._headers
+    const headers = {}
+    this.rawRequest.forEach((key, value) => (headers[key] = value))
+    return (this._headers = headers)
   }
 
   /**
