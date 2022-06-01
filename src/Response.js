@@ -12,16 +12,16 @@ const LiveFile = require('./LiveFile')
 const FilePool = {}
 
 class Response extends Writable {
-  constructor (wrappedRequest, rawResponse, masterContext, appOptions, routeOptions) {
+  constructor (wrappedRequest, rawResponse, route) {
     // Initialize the writable stream for this response
     super()
 
     // Store the provided parameter properties for later use
     this.wrapped_request = wrappedRequest
     this.raw_response = rawResponse
-    this.master_context = masterContext
-    this.appOptions = appOptions
-    this.routeOptions = routeOptions
+    this.master_context = route.app
+    this.appOptions = route.app.options
+    this.routeOptions = route.options
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()

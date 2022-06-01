@@ -15,19 +15,20 @@ const typeIs = require('./helpers/type-is')
 const isIP = require('net').isIP
 
 class Request extends Readable {
-  constructor (rawRequest, rawResponse, pathParametersKey, appOptions, routeOptions) {
+  constructor (rawRequest, rawResponse, route) {
     // Initialize the request readable stream for body consumption
     super()
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
     this.rawRequest = rawRequest
     this.rawResponse = rawResponse
-    this.appOptions = appOptions
+    this.appOptions = route.app.options
+    this.routeOptions = route.options
 
     this.path_parameters = {}
 
     // Parse path parameters from request path if we have a path parameters parsing key
-    if (pathParametersKey.length !== 0) this._parse_path_parameters(pathParametersKey)
+    if (route.path_parameters_key.length !== 0) this._parse_path_parameters(route.path_parameters_key)
   }
 
   /**

@@ -322,13 +322,11 @@ class Server extends Router {
     const wrappedRequest = new Request(
       request,
       response,
-      route.path_parameters_key,
-      route.app.options,
-      route.options
+      route
     )
 
     // Wrap uWS.Response -> Response
-    const wrappedResponse = new Response(wrappedRequest, response, route.app, route.options)
+    const wrappedResponse = new Response(wrappedRequest, response, route)
 
     // Determine the incoming content length if present
     wrappedRequest.contentLength = this._parse_content_length(wrappedRequest)
