@@ -17,7 +17,7 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.head('/*', () => {})
 
 uQuik.any('/', {
-  schema: {
+  /* schema: {
     request: {
       properties: {
         test: {
@@ -32,8 +32,8 @@ uQuik.any('/', {
         }
       }
     }
-  }
-}, async (req, res) => {
+  } */
+}, (req, res) => {
   /* try {
     await req.multipart(async (field) => {
       // Ensure that this field is a file-type
@@ -55,7 +55,7 @@ uQuik.any('/', {
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   } */
-  res.json(await req.json())
+  res.send('hello world')
 })
 
 uQuik.listen(5000, '127.0.0.1')
