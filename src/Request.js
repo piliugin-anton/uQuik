@@ -26,6 +26,9 @@ class Request extends Readable {
     this.routeOptions = route.options
 
     this.path_parameters = {}
+    this.headers = {}
+
+    this.rawRequest.forEach((key, value) => (this.headers[key] = value))
 
     // Parse path parameters from request path if we have a path parameters parsing key
     if (route.path_parameters_key.length !== 0) this._parse_path_parameters(route.path_parameters_key)
@@ -592,13 +595,6 @@ class Request extends Readable {
      */
   get paused () {
     return this.isPaused()
-  }
-
-  get headers () {
-    if (this._headers) return this._headers
-    const headers = {}
-    this.rawRequest.forEach((key, value) => (headers[key] = value))
-    return (this._headers = headers)
   }
 
   /**
