@@ -1,4 +1,0 @@
-PID 22717 received SIGSEGV for address: 0x1d253680000
-/home/anton/Documents/uQuik/node_modules/segfault-handler/build/Release/segfault-handler.node(+0x370d)[0x7f2e13de070d]
-/lib/x86_64-linux-gnu/libc.so.6(+0x42520)[0x7f2e138b9520]
-[0x3e595640cd64]

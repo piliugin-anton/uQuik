@@ -141,13 +141,12 @@ class Request extends Readable {
       // Provide raw chunks if specified and we have something consuming stream already
       // This will prevent unneccessary duplication of buffers
       let buffer
-      const rawListeners = this.listenerCount('data')
-      if (rawListeners > 0 && this.stream_raw_chunks) {
+      if (this.listenerCount('data') > 0 && this.stream_raw_chunks) {
         // Store a direct Buffer reference as this will be immediately consumed
         buffer = Buffer.from(arrayBuffer)
       } else {
         // Store a copy of the array_buffer as we have no immediate consumer yet
-        // If we do not copy, this chunk will be lost in stream queue as it will be deallocated by uWebsockets
+        // If we do not copy, this chunk will be lost in stream queue as it will be deallocated by uWebSockets
         buffer = Buffer.concat([Buffer.from(arrayBuffer)])
       }
 
@@ -178,15 +177,12 @@ class Request extends Readable {
      * @private
      * @returns {Promise}
      */
-  _download_buffer () {
+  async _download_buffer () {
     // Return pending buffer promise if in flight
     if (this.buffer_promise) return this.buffer_promise
 
     // Resolve an empty buffer instantly if we have no readable body stream
-    if (this.readableEnded) {
-      this.body_buffer = Buffer.from('')
-      return Promise.resolve(this.body_buffer)
-    }
+    if (this.readableEnded) return (this.body_buffer = Buffer.from(''))
 
     // Mark this instance to provide raw buffers through readable stream
     this.stream_raw_chunks = true
@@ -233,7 +229,7 @@ class Request extends Readable {
 
     // Bind a then handler for caching the downloaded buffer
 
-    return this.buffer_promise.then((buffer) => (this.body_buffer = buffer))
+    return await (this.body_buffer = this.buffer_promise)
   }
 
   /**
@@ -242,13 +238,10 @@ class Request extends Readable {
      */
   async buffer () {
     // Check cache and return if body has already been parsed
-    if (this.body_buffer) return Promise.resolve(this.body_buffer)
+    if (this.body_buffer) return this.body_buffer
 
     // Resolve empty if invalid content-length header detected
-    if (!this.contentLength || this.contentLength < 1) {
-      this.body_buffer = Buffer.from('')
-      return Promise.resolve(this.body_buffer)
-    }
+    if (!this.contentLength || this.contentLength < 1) return (this.body_buffer = Buffer.from(''))
 
     // Initiate buffer download
     return await this._download_buffer()
@@ -301,8 +294,7 @@ class Request extends Readable {
 
     // Retrieve body as text, safely parse json, cache and resolve
     const text = this.body_text || (await this.text())
-    this.body_json = this._parse_json(text, defaultValue)
-    return this.body_json
+    return (this.body_json = this._parse_json(text, defaultValue))
   }
 
   /**
