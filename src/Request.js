@@ -30,8 +30,15 @@ class Request extends Readable {
 
     this.rawRequest.forEach((key, value) => (this.headers[key] = value))
 
+    this._parse_content_length()
+
     // Parse path parameters from request path if we have a path parameters parsing key
     if (route.path_parameters_key.length !== 0) this._parse_path_parameters(route.path_parameters_key)
+  }
+
+  _parse_content_length () {
+    const length = Number(this.headers['content-length'])
+    this.contentLength = Number.isNaN(length) ? null : length
   }
 
   /**

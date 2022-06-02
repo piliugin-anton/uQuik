@@ -295,19 +295,6 @@ class Server extends Router {
   /* uWS -> Server Request/Response Handling Logic */
 
   /**
-     * This method attempts to parse a valid content-length number value from header if present.
-     *
-     * @private
-     * @param {Request} wrappedRequest
-     * @returns {Number=}
-     */
-  _parse_content_length (wrappedRequest) {
-    // Ensure we have some content-length value which specifies incoming bytes
-    const contentLength = Number(wrappedRequest.headers['content-length'])
-    return !Number.isNaN(contentLength) ? contentLength : undefined
-  }
-
-  /**
      * This method is used to handle incoming uWebsockets response/request objects
      * by wrapping/translating them into  compatible request/response objects.
      *
@@ -331,13 +318,10 @@ class Server extends Router {
     // Wrap uWS.Response -> Response
     const wrappedResponse = new Response(wrappedRequest, response, route)
 
-    // Determine the incoming content length if present
-    wrappedRequest.contentLength = this._parse_content_length(wrappedRequest)
-
     // Checking if we need to get request body
     if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
-      const maxBodyLength = route.options.max_body_length || route.app.options.max_body_length
+      const maxBodyLength = route.options.max_body_length || this.options.max_body_length
       // Is bad request?
       const isBadRequest = method !== 'post' && method !== 'put' && method !== 'patch'
       if (wrappedRequest.contentLength > maxBodyLength || isBadRequest) {
