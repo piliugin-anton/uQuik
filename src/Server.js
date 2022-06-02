@@ -63,7 +63,7 @@ class Server extends Router {
 
     this._middlewares = new Map()
     // This will contain global middlewares
-    this._middlewares.set('/', [])
+    this._middlewares.set('/', new Map())
 
     this._routes = new Map()
     this._routes.set('any', new Map())
@@ -215,24 +215,21 @@ class Server extends Router {
 
     // Process and combine middlewares for routes that support middlewares
     // Initialize route-specific middlewares if they do not exist
-    if (!Array.isArray(record.options.middlewares)) record.options.middlewares = []
+    if (!(record.options.middlewares instanceof Map)) record.options.middlewares = new Map()
 
     // Parse middlewares that apply to this route based on execution pattern
     const middlewares = []
     this._middlewares.forEach((middleware, pattern) => {
-      if (record.pattern.startsWith(pattern)) middleware.forEach((object) => middlewares.push(object))
+      if (pattern !== '/' && record.pattern.startsWith(pattern)) middleware.forEach((object) => middlewares.push(object))
     })
-    // Map all user specified route specific middlewares with a priority of 2
-    record.options.middlewares = record.options.middlewares.map((middleware) => ({
+
+    // Map all user specified route specific middlewares with a priority of 2 + combine matched middlewares with route middlewares
+    record.options.middlewares.forEach((middleware) => middlewares.push({
       priority: 2,
       middleware
     }))
 
-    // Combine matched middlewares with route middlewares
-    record.options.middlewares = middlewares.concat(record.options.middlewares)
-
-    // Create a Route object to contain route information through handling process
-    // Store route in routes object for structural tracking
+    record.options.middlewares = new Map([...middlewares.map((middleware, index) => [index, middleware])])
 
     const route = new Route({
       app: this,
@@ -265,7 +262,7 @@ class Server extends Router {
      */
   _create_middleware (record) {
     // Initialize middlewares array for specified pattern
-    if (this._middlewares.get(record.pattern) === undefined) this._middlewares.set(record.pattern, [])
+    if (this._middlewares.get(record.pattern) === undefined) this._middlewares.set(record.pattern, new Map())
 
     // Create a middleware object with an appropriate priority
     const object = {
@@ -274,7 +271,7 @@ class Server extends Router {
     }
 
     // Store middleware object in its pattern branch
-    this._middlewares.get(record.pattern).push(object)
+    this._middlewares.get(record.pattern).set(this._middlewares.get(record.pattern).size, object)
 
     // Inject middleware into all routes that match its execution pattern if it is non global
     if (object.priority !== 0) {
@@ -358,9 +355,9 @@ class Server extends Router {
     if (error) return response.throw(error)
 
     // Determine next callback based on if either global or route middlewares exist
-    const globalMiddlewaresLength = this._middlewares.get('/').length
-    const hasGlobalMiddlewares = globalMiddlewaresLength !== 0
-    const hasRouteMiddlewares = route.middlewares.length !== 0
+    const globalMiddlewaresSize = this._middlewares.get('/').size
+    const hasGlobalMiddlewares = globalMiddlewaresSize !== 0
+    const hasRouteMiddlewares = route.options.middlewares.size !== 0
 
     let next
     if (hasGlobalMiddlewares || hasRouteMiddlewares) {
@@ -369,23 +366,25 @@ class Server extends Router {
       // Execute global middlewares first as they take precedence over route specific middlewares
       if (hasGlobalMiddlewares) {
       // Determine current global middleware and execute
-        if (this._middlewares['/'][cursor]) {
+        if (this._middlewares.get('/').get(cursor)) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
           response._track_middleware_cursor(cursor)
-          const output = this._middlewares.get('/')[cursor].middleware(request, response, next)
-          if (typeof output === 'object' && typeof output.then === 'function') return output.then(next).catch(next)
+          const output = this._middlewares.get('/').get(cursor).middleware(request, response, next)
+          if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+          return
         }
       }
 
       // Execute route specific middlewares if they exist
       if (hasRouteMiddlewares) {
       // Determine current route specific/method middleware and execute while accounting for global middlewares cursor offset
-        const object = route.middlewares[cursor - globalMiddlewaresLength]
+        const object = route.options.middlewares.get(cursor - globalMiddlewaresSize)
         if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
           response._track_middleware_cursor(cursor)
           const output = object.middleware(request, response, next)
-          if (typeof output === 'object' && typeof output.then === 'function') return output.then(next).catch(next)
+          if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+          return
         }
       }
     }

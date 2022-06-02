@@ -651,7 +651,7 @@ class Response extends Writable {
      */
   throw (error) {
     // Ensure error is an instance of Error
-    if (typeof error === 'object' && typeof error.message === 'string') return this.master_context.handlers.on_error(this.wrapped_request, this, error)
+    if (typeof error === 'object' && typeof error.message === 'string') return this.master_context.handlers.get('on_error')(this.wrapped_request, this, error)
 
     // If error is not an instance of Error, throw a warning error
     throw new Error('Response.throw() expects an instance of an Error.')

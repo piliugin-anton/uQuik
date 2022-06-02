@@ -25,15 +25,11 @@ class Route {
      */
   use (middleware) {
     // Store and sort middlewares to ensure proper execution order
-    this.options.middlewares.push(middleware)
-    this.options.middlewares.sort((a, b) => a.priority - b.priority)
+    this.options.middlewares.set(this.options.middlewares.size, middleware)
+    this.options.middlewares = new Map([...this.options.middlewares.entries()].sort((a, b) => a.priority - b.priority))
   }
 
   /* Route Getters */
-
-  get middlewares () {
-    return this.options.middlewares
-  }
 
   get path_parameters_key () {
     return this._path_parameters_key
