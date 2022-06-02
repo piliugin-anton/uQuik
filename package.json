@@ -12,7 +12,7 @@
     "fastify": "node benchmark/fastify.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrk": "wrk -t4 -c2500 -d60s -R68000 http://127.0.0.1:5000",
-    "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s -R40000 http://127.0.0.1:5000",
+    "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000",
     "wrk-uws": "wrk -t4 -c2500 -d60s -R108000 http://127.0.0.1:5001",
     "wrk-hyper": "wrk -t4 -c2500 -d60s http://127.0.0.1:5002",
     "wrk-hyper-post": "wrk -s post.lua -t4 -c2500 -d60s http://127.0.0.1:5002",
