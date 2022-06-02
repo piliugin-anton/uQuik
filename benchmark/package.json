@@ -4,7 +4,8 @@
   "description": "",
   "main": "uWebSockets.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug-uws": "node --inspect uWebSockets.js"
   },
   "author": "",
   "license": "ISC",

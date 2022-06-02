@@ -284,10 +284,9 @@ class Server extends Router {
 
       Object.keys(this._routes).forEach((method) => {
         // Match middleware pattern against all routes with this method
-        const routes = this._routes[method]
-        Object.keys(routes).forEach((pattern) => {
+        Object.keys(this._routes[method]).forEach((pattern) => {
         // If route's pattern starts with middleware pattern, then use middleware
-          if (pattern.startsWith(match)) routes[pattern].use(object)
+          if (pattern.startsWith(match)) this._routes[method][pattern].use(object)
         })
       })
     }
@@ -305,7 +304,7 @@ class Server extends Router {
   _parse_content_length (wrappedRequest) {
     // Ensure we have some content-length value which specifies incoming bytes
     const contentLength = Number(wrappedRequest.headers['content-length'])
-    return !isNaN(contentLength) ? contentLength : undefined
+    return !Number.isNaN(contentLength) ? contentLength : undefined
   }
 
   /**
@@ -359,7 +358,7 @@ class Server extends Router {
     }
 
     // Chain incoming request/response through all global/local/route-specific middlewares
-    return route.app._chain_middlewares(route, wrappedRequest, wrappedResponse)
+    return this._chain_middlewares(route, wrappedRequest, wrappedResponse)
   }
 
   /**
@@ -385,7 +384,7 @@ class Server extends Router {
 
     let next
     if (hasGlobalMiddlewares || hasRouteMiddlewares) {
-      next = (err) => route.app._chain_middlewares(route, request, response, cursor + 1, err)
+      next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
 
       // Execute global middlewares first as they take precedence over route specific middlewares
       if (hasGlobalMiddlewares) {
@@ -413,20 +412,12 @@ class Server extends Router {
 
     // Safely execute the user provided route handler
     try {
-      const output = route.handler(request, response, response.upgrade_socket)
+      const output = route.handler(request, response)
       if (typeof output === 'object' && typeof output.then === 'function') output.catch(next)
     } catch (error) {
       // If route handler throws an error, trigger error handler
       next(error)
     }
-  }
-
-  get routes () {
-    return this._routes
-  }
-
-  get middlewares () {
-    return this._middlewares
   }
 }
 
