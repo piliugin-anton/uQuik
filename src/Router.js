@@ -52,6 +52,9 @@ class Router {
     // Concatenate any remaining callbacks to the route options middlewares property
     if (callbacks.length > 0) options.middlewares = (options.middlewares || []).concat(callbacks)
 
+    // TODO: test this!
+    options.middlewares = [...options.middlewares.map((middleware, index) => [index, middleware])]
+
     // Initialize the record object which will hold information about this route
     const record = {
       method,

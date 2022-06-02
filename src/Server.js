@@ -126,7 +126,7 @@ class Server extends Router {
         if (listenSocket) {
           // Store the listen socket for future closure & bind the auto close handler if enabled from constructor options
           this.listen_socket = listenSocket
-          if (this.options.auto_close) this._bind_auto_close()
+          if (this.options.get('auto_close')) this._bind_auto_close()
           resolve(listenSocket)
         } else {
           reject(new Error('No Socket Received From uWebsockets.js'))
@@ -319,12 +319,12 @@ class Server extends Router {
     // Checking if we need to get request body
     if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
-      const maxBodyLength = route.options.max_body_length || this.options.max_body_length
+      const maxBodyLength = route.options.max_body_length || this.options.get('max_body_length')
       // Is bad request?
       const isBadRequest = method !== 'post' && method !== 'put' && method !== 'patch'
       if (wrappedRequest.contentLength > maxBodyLength || isBadRequest) {
         // Use fast abort scheme if specified in the server options
-        if (this.options.fast_abort === true) return response.close()
+        if (this.options.get('fast_abort')) return response.close()
 
         // For slow abort scheme, according to uWebsockets developer, we have to drain incoming data before aborting and closing request
         // Prematurely closing request with a 4xx leads to an ECONNRESET in which we lose 4xx status code from server
