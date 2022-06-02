@@ -1,9 +1,6 @@
 const { Server } = require('./')
 const StaticFiles = require('./src/middleware/StaticFiles')
 const path = require('path')
-const SegfaultHandler = require('segfault-handler')
-
-SegfaultHandler.registerHandler('crash.log')
 
 // eslint-disable-next-line new-cap
 const uQuik = new Server()
