@@ -1,6 +1,7 @@
 const bench = require('nanobench')
+const { test } = require('./src/helpers/media-typer')
 
-const loopCount = 200000
+const loopCount = 20000000
 
 const generateString = (length = 1) => {
   let result = ''
@@ -13,48 +14,74 @@ charactersLength))
   return result
 }
 
-const obj = {
-  test: 123,
-  test2: {
-    test: 12312,
-    test2: true,
-    test3: {
-      test: 0
-    }
-  },
-  test3: true
+const getRandomElement = () => {
+  const keys = [
+    'test6'
+  ]
+
+  return keys[Math.floor(Math.random() * keys.length)]
 }
 
-const promise = new Promise((resolve) => setTimeout(() => resolve(), 0))
-console.log(Object.prototype.toString.call(promise))
+const object = {
+  test6: {
+    test: 123
+  }
+}
 
-bench('instaceof', (b) => {
+const objectWithMap = {
+  test6: new Map()
+}
+
+objectWithMap.test6.set('test', 123)
+
+const mapWithObject = new Map()
+mapWithObject.set('test6', {
+  test: 123
+})
+
+const map = new Map()
+const test6 = new Map()
+test6.set('test', 123)
+map.set('test6', test6)
+
+bench('object', (b) => {
   b.start()
+
   for (let i = 0; i < loopCount; ++i) {
-    let isPromise
-    if (promise instanceof Promise) isPromise = 1
+    let value = object.test6.test
+    value = 1
   }
 
   b.end()
 })
 
-bench('toString()', (b) => {
+bench('objectWithMap', (b) => {
   b.start()
-
   for (let i = 0; i < loopCount; ++i) {
-    let isPromise
-    if (Object.prototype.toString.call(promise) === '[object Promise]') isPromise = 1
+    let value = objectWithMap.test6.get('test')
+    value = 1
   }
 
   b.end()
 })
 
-bench('2x typeof', (b) => {
+bench('map', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; ++i) {
-    let isPromise
-    if (typeof promise === 'object' && typeof promise.then === 'function') isPromise = 1
+    let value = map.get('test6').get('test')
+    value = 1
+  }
+
+  b.end()
+})
+
+bench('mapWithObject', (b) => {
+  b.start()
+
+  for (let i = 0; i < loopCount; ++i) {
+    let value = mapWithObject.get('test6').test
+    value = 1
   }
 
   b.end()

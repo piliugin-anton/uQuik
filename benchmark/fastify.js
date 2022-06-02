@@ -10,6 +10,7 @@ fastify.get('/', async (request, reply) => {
 const start = async () => {
   try {
     await fastify.listen(5003)
+    console.log('Fastify is running on port 5003')
   } catch (err) {
     process.exit(1)
   }

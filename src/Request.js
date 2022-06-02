@@ -175,7 +175,7 @@ class Request extends Readable {
      * @private
      * @returns {Promise}
      */
-  async _download_buffer () {
+  _download_buffer () {
     // Return pending buffer promise if in flight
     if (this.buffer_promise) return this.buffer_promise
 
@@ -248,7 +248,7 @@ class Request extends Readable {
     }
 
     // Initiate buffer download
-    return this._download_buffer()
+    return await this._download_buffer()
   }
 
   /**
@@ -273,7 +273,7 @@ class Request extends Readable {
      * @param {Any} defaultValue
      * @returns {Any}
      */
-  async _parse_json (string, defaultValue) {
+  _parse_json (string, defaultValue) {
     if (this.routeOptions.JSONParser) {
       return this.routeOptions.JSONParser(string) || defaultValue
     } else {
@@ -298,7 +298,7 @@ class Request extends Readable {
 
     // Retrieve body as text, safely parse json, cache and resolve
     const text = this.body_text || (await this.text())
-    this.body_json = await this._parse_json(text, defaultValue)
+    this.body_json = this._parse_json(text, defaultValue)
     return this.body_json
   }
 

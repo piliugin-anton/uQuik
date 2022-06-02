@@ -317,7 +317,7 @@ class Server extends Router {
      * @param {Request} request
      * @param {Response} response
      */
-  async _handle_uws_request (route, request, response) {
+  _handle_uws_request (route, request, response) {
     // Request method
     const method = request.getMethod()
 
