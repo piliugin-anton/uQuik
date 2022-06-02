@@ -1,7 +1,6 @@
 const bench = require('nanobench')
-const { test } = require('./src/helpers/media-typer')
 
-const loopCount = 20000000
+const loopCount = 2000000000
 
 const generateString = (length = 1) => {
   let result = ''
@@ -14,74 +13,34 @@ charactersLength))
   return result
 }
 
-const getRandomElement = () => {
-  const keys = [
-    'test6'
-  ]
-
-  return keys[Math.floor(Math.random() * keys.length)]
-}
-
 const object = {
-  test6: {
-    test: 123
-  }
+  test: 'sdf',
+  test2: true,
+  test3: 42,
+  test4: 234.23
 }
 
-const objectWithMap = {
-  test6: new Map()
-}
-
-objectWithMap.test6.set('test', 123)
-
-const mapWithObject = new Map()
-mapWithObject.set('test6', {
-  test: 123
-})
-
-const map = new Map()
-const test6 = new Map()
-test6.set('test', 123)
-map.set('test6', test6)
-
-bench('object', (b) => {
+bench('for in', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; ++i) {
-    let value = object.test6.test
-    value = 1
+    for (const name in object) {
+      //
+    }
   }
 
   b.end()
 })
 
-bench('objectWithMap', (b) => {
-  b.start()
-  for (let i = 0; i < loopCount; ++i) {
-    let value = objectWithMap.test6.get('test')
-    value = 1
-  }
-
-  b.end()
-})
-
-bench('map', (b) => {
+bench('Object.keys() for', (b) => {
   b.start()
 
   for (let i = 0; i < loopCount; ++i) {
-    let value = map.get('test6').get('test')
-    value = 1
-  }
-
-  b.end()
-})
-
-bench('mapWithObject', (b) => {
-  b.start()
-
-  for (let i = 0; i < loopCount; ++i) {
-    let value = mapWithObject.get('test6').test
-    value = 1
+    const keys = Object.keys(object)
+    const length = keys.length
+    for (let i2 = 0; i2 < length; i2++) {
+      const name = keys[i2]
+    }
   }
 
   b.end()

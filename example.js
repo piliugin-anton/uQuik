@@ -1,6 +1,9 @@
 const { Server } = require('./')
 const StaticFiles = require('./src/middleware/StaticFiles')
 const path = require('path')
+const SegfaultHandler = require('segfault-handler')
+
+SegfaultHandler.registerHandler('crash.log')
 
 // eslint-disable-next-line new-cap
 const uQuik = new Server()
@@ -33,7 +36,7 @@ uQuik.any('/', {
       }
     }
   } */
-}, async (req, res) => {
+}, /* async */ (req, res) => {
   /* try {
     await req.multipart(async (field) => {
       // Ensure that this field is a file-type
@@ -55,8 +58,8 @@ uQuik.any('/', {
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   } */
-  // res.send('hello world')
-  res.json(await req.json())
+  res.send('hello world')
+  // res.json(await req.json())
 })
 
 uQuik.listen(5000, '127.0.0.1')

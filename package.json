@@ -23,7 +23,8 @@
     "autocannon-fastify": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5003/test?param0=test",
     "clinic-doctor": "clinic doctor -- node example.js",
     "clinic-bubbleprof": "clinic bubbleprof -- node example.js",
-    "clinic-flame": "clinic flame -- node example.js"
+    "clinic-flame": "clinic flame -- node example.js",
+    "clinic-doctor-uws": "clinic doctor -- node benchmark/uWebSockets.js"
   },
   "dependencies": {
     "ajv": "^8.11.0",
@@ -44,6 +45,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.2.0",
     "eslint-plugin-promise": "^6.0.0",
-    "nanobench": "^2.1.1"
+    "nanobench": "^2.1.1",
+    "segfault-handler": "^1.3.0"
   }
 }
