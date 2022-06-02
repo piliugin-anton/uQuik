@@ -298,18 +298,6 @@ const isPromise = (v) => typeof v === 'object' && typeof v.then === 'function'
 const isRouter = (v) => isObject(v) && v.constructor.name === 'Router'
 const isServer = (v) => isObject(v) && v.constructor.name === 'Server'
 
-const wrapObject = (original, target) => {
-  Object.keys(target).forEach((key) => {
-    if (typeof target[key] === 'object') {
-      if (Array.isArray(target[key])) return (original[key] = target[key]) // lgtm [js/prototype-pollution-utility]
-      if (original[key] === null || typeof original[key] !== 'object') original[key] = {}
-      wrapObject(original[key], target[key])
-    } else {
-      original[key] = target[key]
-    }
-  })
-}
-
 const parsePathParameters = (pattern) => {
   const results = []
   let counter = 0
@@ -362,7 +350,6 @@ module.exports.isServer = isServer
 
 module.exports.getIP = getIP
 
-module.exports.wrapObject = wrapObject
 module.exports.parsePathParameters = parsePathParameters
 module.exports.asyncWait = asyncWait
 module.exports.mergeRelativePaths = mergeRelativePaths

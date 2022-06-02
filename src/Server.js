@@ -8,8 +8,6 @@ const Stream = require('stream') // lgtm [js/unused-local-variable]
 const Request = require('./Request')
 const Response = require('./Response')
 
-const { wrapObject } = require('./utils')
-
 class Server extends Router {
   /**
      * @param {Object} options Server Options
@@ -18,6 +16,7 @@ class Server extends Router {
      * @param {String} options.passphrase Strong passphrase for SSL cryptographic purposes.
      * @param {String} options.dh_params_file_name Path to SSL Diffie-Hellman parameters file.
      * @param {Boolean} options.ssl_prefer_low_memory_usage Specifies uWebsockets to prefer lower memory usage while serving SSL
+     * @param {String} options.ssl_ciphers Undocumented
      * @param {Boolean} options.fast_buffers Buffer.allocUnsafe is used when set to true for faster performance.
      * @param {Boolean} options.fast_abort Determines whether  will abrubptly close bad requests. This can be much faster but the client does not receive an HTTP status code as it is a premature connection closure.
      * @param {Boolean} options.trust_proxy Specifies whether to trust incoming request data from intermediate proxy(s)
@@ -42,6 +41,7 @@ class Server extends Router {
     this.options.set('key_file_name', options.key_file_name || undefined)
     this.options.set('passphrase', options.passphrase || undefined)
     this.options.set('dh_params_file_name', options.dh_params_file_name || undefined)
+    this.options.set('ssl_ciphers', options.ssl_ciphers || undefined)
     this.options.set('ssl_prefer_low_memory_usage', options.ssl_prefer_low_memory_usage || false)
     this.options.set('is_ssl', options.cert_file_name && options.key_file_name)
     this.options.set('auto_close', Object.prototype.hasOwnProperty.call(options, 'auto_close') ? options.auto_close : true)
@@ -87,14 +87,19 @@ class Server extends Router {
       ...this.options.get('ajv')
     })
 
-    // Store options locally for access throughout processing
-    wrapObject(this.options, options)
-
     // Create underlying uWebsockets App or SSLApp to power
     if (this.options.get('is_ssl')) {
-      this.uws_instance = uWebSockets.SSLApp(options)
+      this.uws_instance = uWebSockets.SSLApp({
+        key_file_name: this.options.get('key_file_name'),
+        cert_file_name: this.options.get('cert_file_name'),
+        passphrase: this.options.get('passphrase'),
+        dh_params_file_name: this.options.get('dh_params_file_name'),
+        ssl_ciphers: this.options.get('ssl_ciphers'),
+        /** This translates to SSL_MODE_RELEASE_BUFFERS */
+        ssl_prefer_low_memory_usage: this.options.get('ssl_prefer_low_memory_usage')
+      })
     } else {
-      this.uws_instance = uWebSockets.App(options)
+      this.uws_instance = uWebSockets.App()
     }
   }
 

@@ -195,7 +195,7 @@ class Request extends Readable {
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
         cursor: 0,
-        buffer: Buffer[this.appOptions.fast_buffers ? 'allocUnsafe' : 'alloc'](this.contentLength)
+        buffer: Buffer[this.appOptions.get('unsafe_buffers') ? 'allocUnsafe' : 'alloc'](this.contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -682,14 +682,14 @@ class Request extends Readable {
      */
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
-    const trustProxy = this.appOptions.trust_proxy
+    const trustProxy = this.appOptions.get('trust_proxy')
     const xForwardedProto = this.get('X-Forwarded-Proto')
     if (trustProxy && xForwardedProto) {
       return xForwardedProto.indexOf(',') !== -1 ? xForwardedProto.split(',')[0] : xForwardedProto
     }
 
     // Use uWS initially defined protocol
-    return this.appOptions.is_ssl ? 'https' : 'http'
+    return this.appOptions.get('is_ssl') ? 'https' : 'http'
   }
 
   /**
@@ -707,7 +707,7 @@ class Request extends Readable {
   get ips () {
     const clientIP = this.ip
     const proxyIP = this.proxy_ip
-    const trustProxy = this.appOptions.trust_proxy
+    const trustProxy = this.appOptions.get('trust_proxy')
     const xForwardedFor = this.get('X-Forwarded-For')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
     return [clientIP, proxyIP]
@@ -717,7 +717,7 @@ class Request extends Readable {
      * ExpressJS: Parse the "Host" header field to a hostname.
      */
   get hostname () {
-    const trustProxy = this.appOptions.trust_proxy
+    const trustProxy = this.appOptions.get('trust_proxy')
     let host = this.get('X-Forwarded-Host')
 
     if (!host || !trustProxy) {
