@@ -16,6 +16,8 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
+uQuik.options('/w', (req, res) => res.send('options'))
+
 uQuik.any('/', {
   /* schema: {
     request: {

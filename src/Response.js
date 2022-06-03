@@ -21,7 +21,7 @@ class Response extends Writable {
     this.wrapped_request = wrappedRequest
     this.raw_response = rawResponse
     this.master_context = route.app
-    this.appOptions = route.app.options
+    this.appOptions = route.app._options
     this.routeOptions = route.options
 
     // Bind the abort handler as required by uWebsockets.js

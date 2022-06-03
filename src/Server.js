@@ -35,21 +35,21 @@ class Server extends Router {
     // Initialize extended Router instance
     super()
 
-    this.options = new Map()
+    this._options = new Map()
 
-    this.options.set('cert_file_name', options.cert_file_name || undefined)
-    this.options.set('key_file_name', options.key_file_name || undefined)
-    this.options.set('passphrase', options.passphrase || undefined)
-    this.options.set('dh_params_file_name', options.dh_params_file_name || undefined)
-    this.options.set('ssl_ciphers', options.ssl_ciphers || undefined)
-    this.options.set('ssl_prefer_low_memory_usage', options.ssl_prefer_low_memory_usage || false)
-    this.options.set('is_ssl', options.cert_file_name && options.key_file_name)
-    this.options.set('auto_close', Object.prototype.hasOwnProperty.call(options, 'auto_close') ? options.auto_close : true)
-    this.options.set('fast_abort', Object.prototype.hasOwnProperty.call(options, 'fast_abort') ? options.fast_abort : false)
-    this.options.set('trust_proxy', Object.prototype.hasOwnProperty.call(options, 'trust_proxy') ? options.trust_proxy : false)
-    this.options.set('unsafe_buffers', Object.prototype.hasOwnProperty.call(options, 'unsafe_buffers') ? options.unsafe_buffers : false)
-    this.options.set('max_body_length', Object.prototype.hasOwnProperty.call(options, 'max_body_length') ? options.max_body_length : 1153434002)
-    this.options.set('ajv', Object.prototype.hasOwnProperty.call(options, 'ajv') && typeof options.ajv === 'object' ? options.ajv : {})
+    this._options.set('cert_file_name', options.cert_file_name || undefined)
+    this._options.set('key_file_name', options.key_file_name || undefined)
+    this._options.set('passphrase', options.passphrase || undefined)
+    this._options.set('dh_params_file_name', options.dh_params_file_name || undefined)
+    this._options.set('ssl_ciphers', options.ssl_ciphers || undefined)
+    this._options.set('ssl_prefer_low_memory_usage', options.ssl_prefer_low_memory_usage || false)
+    this._options.set('is_ssl', options.cert_file_name && options.key_file_name)
+    this._options.set('auto_close', Object.prototype.hasOwnProperty.call(options, 'auto_close') ? options.auto_close : true)
+    this._options.set('fast_abort', Object.prototype.hasOwnProperty.call(options, 'fast_abort') ? options.fast_abort : false)
+    this._options.set('trust_proxy', Object.prototype.hasOwnProperty.call(options, 'trust_proxy') ? options.trust_proxy : false)
+    this._options.set('unsafe_buffers', Object.prototype.hasOwnProperty.call(options, 'unsafe_buffers') ? options.unsafe_buffers : false)
+    this._options.set('max_body_length', Object.prototype.hasOwnProperty.call(options, 'max_body_length') ? options.max_body_length : 1153434002)
+    this._options.set('ajv', Object.prototype.hasOwnProperty.call(options, 'ajv') && typeof options.ajv === 'object' ? options.ajv : {})
 
     this._routes_locked = false
 
@@ -84,19 +84,19 @@ class Server extends Router {
       // Explicitly set allErrors to `false`.
       // When set to `true`, a DoS attack is possible.
       allErrors: false,
-      ...this.options.get('ajv')
+      ...this._options.get('ajv')
     })
 
     // Create underlying uWebsockets App or SSLApp to power
-    if (this.options.get('is_ssl')) {
+    if (this._options.get('is_ssl')) {
       this.uws_instance = uWebSockets.SSLApp({
-        key_file_name: this.options.get('key_file_name'),
-        cert_file_name: this.options.get('cert_file_name'),
-        passphrase: this.options.get('passphrase'),
-        dh_params_file_name: this.options.get('dh_params_file_name'),
-        ssl_ciphers: this.options.get('ssl_ciphers'),
+        key_file_name: this._options.get('key_file_name'),
+        cert_file_name: this._options.get('cert_file_name'),
+        passphrase: this._options.get('passphrase'),
+        dh_params_file_name: this._options.get('dh_params_file_name'),
+        ssl_ciphers: this._options.get('ssl_ciphers'),
         /** This translates to SSL_MODE_RELEASE_BUFFERS */
-        ssl_prefer_low_memory_usage: this.options.get('ssl_prefer_low_memory_usage')
+        ssl_prefer_low_memory_usage: this._options.get('ssl_prefer_low_memory_usage')
       })
     } else {
       this.uws_instance = uWebSockets.App()
@@ -126,7 +126,7 @@ class Server extends Router {
         if (listenSocket) {
           // Store the listen socket for future closure & bind the auto close handler if enabled from constructor options
           this.listen_socket = listenSocket
-          if (this.options.get('auto_close')) this._bind_auto_close()
+          if (this._options.get('auto_close')) this._bind_auto_close()
           resolve(listenSocket)
         } else {
           reject(new Error('No Socket Received From uWebsockets.js'))
@@ -319,10 +319,10 @@ class Server extends Router {
     // Checking if we need to get request body
     if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
-      const maxBodyLength = route.options.get('max_body_length') || this.options.get('max_body_length')
+      const maxBodyLength = route.options.get('max_body_length') || this._options.get('max_body_length')
       if (wrappedRequest.contentLength > maxBodyLength) {
         // Use fast abort scheme if specified in the server options
-        if (this.options.get('fast_abort')) return response.close()
+        if (this._options.get('fast_abort')) return response.close()
 
         // For slow abort scheme, according to uWebsockets developer, we have to drain incoming data before aborting and closing request
         // Prematurely closing request with a 4xx leads to an ECONNRESET in which we lose 4xx status code from server
