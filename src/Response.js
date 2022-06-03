@@ -157,10 +157,10 @@ class Response extends Writable {
     }
 
     // Initialize headers container object if it does not exist
-    if (this.headers === undefined) this.headers = {}
+    if (this.headers === undefined) this.headers = new Map()
 
     // Initialize header values as an array to allow for multiple values
-    if (this.headers[name] === undefined) this.headers[name] = []
+    if (this.headers.get(name) === undefined) this.headers.set(name, [])
 
     // Ensure that the value is always a string type
     if (typeof value !== 'string') {
@@ -173,7 +173,7 @@ class Response extends Writable {
     if (name.toLowerCase() === 'content-length') this.custom_content_length = Number(value)
 
     // Push current header value onto values array
-    this.headers[name].push(value)
+    this.headers.get(name).push(value)
     return this
   }
 
@@ -257,12 +257,12 @@ class Response extends Writable {
 
       // Iterate through all headers and write them to uWS
       if (this.headers) {
-        for (const name in this.headers) {
-          const length = this.headers[name].length
+        this.headers.forEach((value, name) => {
+          const length = value.length
           for (let i = 0; i < length; i++) {
-            this.raw_response.writeHeader(name, this.headers[name][i])
+            this.raw_response.writeHeader(name, value[i])
           }
-        }
+        })
       }
     })
   }
@@ -785,7 +785,7 @@ class Response extends Writable {
      * @returns {String|Array|undefined}
      */
   getHeader (name) {
-    return this.headers ? this.headers[name] : undefined
+    return this.headers.get(name)
   }
 
   /**
@@ -794,9 +794,11 @@ class Response extends Writable {
      */
   getHeaders () {
     const headers = {}
-    for (const name in this.headers) {
-      headers[name] = fastArrayJoin(this.headers[name], ',')
-    }
+
+    this.headers.forEach((value, name) => {
+      headers[name] = fastArrayJoin(value, ',')
+    })
+
     return headers
   }
 
@@ -805,7 +807,7 @@ class Response extends Writable {
      * @param {String} name
      */
   removeHeader (name) {
-    if (this.headers) delete this.headers[name]
+    this.headers.delete(name)
   }
 
   /**
@@ -863,10 +865,7 @@ class Response extends Writable {
      * @returns {String|Array}
      */
   get (name) {
-    if (this.headers) {
-      const values = this.headers[name]
-      if (values) return values.length === 0 ? values[0] : values
-    }
+    return this.headers.get(name)
   }
 
   /**
