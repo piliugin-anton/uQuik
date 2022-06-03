@@ -4,7 +4,7 @@ const { parseContentType } = require('./utils.js');
 
 function getInstance(cfg) {
   const headers = cfg.headers;
-  const conType = parseContentType(headers['content-type']);
+  const conType = parseContentType(headers.get('content-type'));
   if (!conType)
     throw new Error('Malformed content type');
 
@@ -33,7 +33,7 @@ function getInstance(cfg) {
     return new type(instanceCfg);
   }
 
-  throw new Error(`Unsupported content type: ${headers['content-type']}`);
+  throw new Error(`Unsupported content type: ${headers.get('content-type')}`);
 }
 
 // Note: types are explicitly listed here for easier bundling
@@ -47,9 +47,9 @@ module.exports = (cfg) => {
   if (typeof cfg !== 'object' || cfg === null)
     cfg = {};
 
-  if (typeof cfg.headers !== 'object'
+  if (!(cfg.headers instanceof Map)
       || cfg.headers === null
-      || typeof cfg.headers['content-type'] !== 'string') {
+      || typeof cfg.headers.get('content-type') !== 'string') {
     throw new Error('Missing Content-Type');
   }
 

@@ -26,7 +26,7 @@ const HPARSER_PRE_OWS = 1;
 const HPARSER_VALUE = 2;
 class HeaderParser {
   constructor(cb) {
-    this.header = Object.create(null);
+    this.header = new Map();
     this.pairCount = 0;
     this.byteCount = 0;
     this.state = HPARSER_NAME;
@@ -37,7 +37,7 @@ class HeaderParser {
   }
 
   reset() {
-    this.header = Object.create(null);
+    this.header = new Map();
     this.pairCount = 0;
     this.byteCount = 0;
     this.state = HPARSER_NAME;
@@ -131,10 +131,10 @@ class HeaderParser {
               } else {
                 if (++this.pairCount < MAX_HEADER_PAIRS) {
                   this.name = this.name.toLowerCase();
-                  if (this.header[this.name] === undefined)
-                    this.header[this.name] = [this.value];
+                  if (this.header.get(this.name) === undefined)
+                    this.header.set(this.name, [this.value])
                   else
-                    this.header[this.name].push(this.value);
+                    this.header.get(this.name).push(this.value);
                 }
                 if (code === 13/* '\r' */) {
                   ++this.crlf;
@@ -287,6 +287,7 @@ class Multipart extends Writable {
 
     this._hparser = null;
     const hparser = new HeaderParser((header) => {
+      console.log('header', header)
       this._hparser = null;
       skipPart = false;
 
@@ -297,12 +298,12 @@ class Multipart extends Writable {
       partTruncated = false;
 
       let filename;
-      if (!header['content-disposition']) {
+      if (!header.get('content-disposition')) {
         skipPart = true;
         return;
       }
 
-      const disp = parseDisposition(header['content-disposition'][0],
+      const disp = parseDisposition(header.get('content-disposition')[0],
                                     paramDecoder);
       if (!disp || disp.type !== 'form-data') {
         skipPart = true;
@@ -322,8 +323,8 @@ class Multipart extends Writable {
           filename = basename(filename);
       }
 
-      if (header['content-type']) {
-        const conType = parseContentType(header['content-type'][0]);
+      if (header.get('content-type')) {
+        const conType = parseContentType(header.get('content-type')[0]);
         if (conType) {
           partType = `${conType.type}/${conType.subtype}`;
           if (conType.params && typeof conType.params.charset === 'string')
@@ -331,8 +332,8 @@ class Multipart extends Writable {
         }
       }
 
-      if (header['content-transfer-encoding'])
-        partEncoding = header['content-transfer-encoding'][0].toLowerCase();
+      if (header.get('content-transfer-encoding'))
+        partEncoding = header.get('content-transfer-encoding')[0].toLowerCase();
 
       if (partType === 'application/octet-stream' || filename !== undefined) {
         // File

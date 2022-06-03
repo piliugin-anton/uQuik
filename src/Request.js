@@ -25,12 +25,12 @@ class Request extends Readable {
 
     this.__method = method
 
-    this.headers = {}
+    this.headers = new Map()
     this.path_parameters = {}
 
-    this.rawRequest.forEach((key, value) => (this.headers[key] = value))
+    this.rawRequest.forEach((key, value) => (this.headers.set(key, value)))
 
-    const contentLength = Number(this.headers['content-length'])
+    const contentLength = Number(this.headers.get('content-length'))
     this.contentLength = Number.isNaN(contentLength) ? undefined : contentLength
 
     // Parse path parameters from request path if we have a path parameters parsing key
@@ -385,7 +385,7 @@ class Request extends Readable {
     if (this.readableEnded) return Promise.resolve()
 
     // Resolve instantly if we do not have a valid multipart content type header
-    const contentType = this.headers['content-type']
+    const contentType = this.headers.get('content-type')
     if (!/^(multipart\/.+);(.*)$/i.test(contentType)) return Promise.resolve()
 
     // Return a promise which will be resolved after all incoming multipart data has been processed
@@ -445,9 +445,9 @@ class Request extends Readable {
     switch (lowercase) {
       case 'referer':
       case 'referrer':
-        return this.headers.referer || this.headers.referrer
+        return this.headers.get('referer') || this.headers.get('referrer')
       default:
-        return this.headers[lowercase]
+        return this.headers.get(lowercase)
     }
   }
 
@@ -604,7 +604,8 @@ class Request extends Readable {
     if (this._cookies) return this._cookies
 
     // Parse cookies from Cookie header and cache results
-    return (this._cookies = this.headers.cookie ? cookie.parse(this.headers.cookie) : {})
+    const cookies = this.headers.get('cookie')
+    return (this._cookies = cookies ? cookie.parse(cookies) : {})
   }
 
   /**
