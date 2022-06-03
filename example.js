@@ -16,7 +16,7 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
-uQuik.any('/', {
+uQuik.any('/:test', {
   /* schema: {
     request: {
       properties: {
@@ -33,8 +33,8 @@ uQuik.any('/', {
       }
     }
   } */
-}, async (req, res) => {
-  try {
+}, /* async */(req, res) => {
+  /* try {
     await req.multipart(async (field) => {
       // Ensure that this field is a file-type
       // You may also perform your own checks on the encoding and mime type as needed
@@ -54,8 +54,8 @@ uQuik.any('/', {
       console.log(error)
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
-  }
-  // res.send('hello world')
+  } */
+  res.send('hello world')
   // res.json(await req.json())
 })
 

@@ -287,7 +287,6 @@ class Multipart extends Writable {
 
     this._hparser = null;
     const hparser = new HeaderParser((header) => {
-      console.log('header', header)
       this._hparser = null;
       skipPart = false;
 

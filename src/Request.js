@@ -26,7 +26,7 @@ class Request extends Readable {
     this.__method = method
 
     this.headers = new Map()
-    this.path_parameters = {}
+    this.path_parameters = new Map()
 
     this.rawRequest.forEach((key, value) => (this.headers.set(key, value)))
 
@@ -48,11 +48,11 @@ class Request extends Readable {
     for (let i = 0; i < paramsLength; i++) {
       const value = this.rawRequest.getParameter(parametersKey[i][1])
       if (!this.path_parameters[parametersKey[i][0]]) {
-        this.path_parameters[parametersKey[i][0]] = value
+        this.path_parameters.set(parametersKey[i][0], value)
       } else if (typeof this.path_parameters[parametersKey[i][0]] === 'string') {
-        this.path_parameters[parametersKey[i][0]] = [this.path_parameters[parametersKey[i][0]], value]
+        this.path_parameters.set(parametersKey[i][0], [this.path_parameters[parametersKey[i][0]], value])
       } else if (Array.isArray(this.path_parameters[parametersKey[i][0]])) {
-        this.path_parameters[parametersKey[i][0]].push(value)
+        this.path_parameters.get(parametersKey[i][0]).push(value)
       }
     }
   }
@@ -519,7 +519,7 @@ class Request extends Readable {
     // Parse three dataset candidates
 
     // First check path parameters, body, and finally query_parameters
-    if (this.path_parameters[name] !== null && Object.prototype.hasOwnProperty.call(this.path_parameters, name)) return this.path_parameters[name]
+    if (this.path_parameters.has(name)) return this.path_parameters.get(name)
     if (this.body[name] !== null) return this.body[name]
     if (this.query_parameters.has(name)) {
       const values = this.query_parameters.getAll(name)
@@ -655,9 +655,6 @@ class Request extends Readable {
     return this.url
   }
 
-  /**
-     * ExpressJS: Alias of Request.path_parameters
-     */
   get params () {
     return this.path_parameters
   }
