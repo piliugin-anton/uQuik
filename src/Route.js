@@ -7,6 +7,7 @@ class Route {
      * @param {String} method
      * @param {String} pattern
      * @param {Function} handler
+     * @param {Map} options
      */
   constructor ({ app, method, pattern, options, handler }) {
     this._routeData = new Map()

@@ -249,8 +249,8 @@ class Server extends Router {
 
     // JSON Schema validators
     if (record.options.schema) {
-      if (record.options.schema.request) route.requestParser = this.ajv.compileParser(record.options.schema.request)
-      if (record.options.schema.response) route.responseSerializer = this.ajv.compileSerializer(record.options.schema.response)
+      if (record.options.schema.request) route.setRequestParser(this.ajv.compileParser(record.options.schema.request))
+      if (record.options.schema.response) route.setResponseSerializer(this.ajv.compileSerializer(record.options.schema.response))
     }
 
     this._routes.get(record.method).set(record.pattern, route)
@@ -319,7 +319,7 @@ class Server extends Router {
     // Checking if we need to get request body
     if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
-      const maxBodyLength = route.options.max_body_length || this.options.get('max_body_length')
+      const maxBodyLength = route.options.get('max_body_length') || this.options.get('max_body_length')
       // Is bad request?
       const isBadRequest = method !== 'post' && method !== 'put' && method !== 'patch'
       if (wrappedRequest.contentLength > maxBodyLength || isBadRequest) {
