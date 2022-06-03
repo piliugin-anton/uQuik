@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "debug": "node --inspect example.js",
+    "no-sync": "node --trace-sync-io example.js",
     "profile": "node --prof example.js",
     "example": "node example.js",
     "uws": "node benchmark/uWebSockets.js",
