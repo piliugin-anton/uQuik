@@ -320,15 +320,13 @@ class Server extends Router {
     if (wrappedRequest.contentLength) {
       // Determine and compare against a maximum incoming content length from the route options with a fallback to the server options
       const maxBodyLength = route.options.get('max_body_length') || this.options.get('max_body_length')
-      // Is bad request?
-      const isBadRequest = method !== 'post' && method !== 'put' && method !== 'patch'
-      if (wrappedRequest.contentLength > maxBodyLength || isBadRequest) {
+      if (wrappedRequest.contentLength > maxBodyLength) {
         // Use fast abort scheme if specified in the server options
         if (this.options.get('fast_abort')) return response.close()
 
         // For slow abort scheme, according to uWebsockets developer, we have to drain incoming data before aborting and closing request
         // Prematurely closing request with a 4xx leads to an ECONNRESET in which we lose 4xx status code from server
-        return response.onData((_, isLast) => isLast && wrappedResponse.status(isBadRequest ? 400 : 413).send())
+        return response.onData((_, isLast) => isLast && wrappedResponse.status(413).send())
       }
 
       // Begin streaming the incoming body data
