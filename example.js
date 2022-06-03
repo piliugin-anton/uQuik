@@ -33,7 +33,7 @@ uQuik.any('/', {
       }
     }
   } */
-}, async (req, res) => {
+}, (req, res) => {
   /* try {
     await req.multipart(async (field) => {
       // Ensure that this field is a file-type
@@ -55,9 +55,8 @@ uQuik.any('/', {
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   } */
-  // res.send('hello world')
-  console.log(await req.json())
-  res.send('ok')
+  res.send('hello world')
+  // console.log(await req.json())
 })
 
 uQuik.listen(5000, '127.0.0.1')
