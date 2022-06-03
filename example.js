@@ -11,7 +11,7 @@ uQuik.set_error_handler((request, response, error) => {
 /* uQuik.use(CORS())
 
 uQuik.head('/', (req, res) => {
-  // Replcae LENGTH with actual value
+  // Replace LENGTH with actual value
   res.status(200).header('content-type', 'application/json').header('content-length', 'LENGTH').send()
 })
 

@@ -35,47 +35,49 @@ class Server extends Router {
     // Initialize extended Router instance
     super()
 
-    this._options = new Map()
-
-    this._options.set('cert_file_name', options.cert_file_name || undefined)
-    this._options.set('key_file_name', options.key_file_name || undefined)
-    this._options.set('passphrase', options.passphrase || undefined)
-    this._options.set('dh_params_file_name', options.dh_params_file_name || undefined)
-    this._options.set('ssl_ciphers', options.ssl_ciphers || undefined)
-    this._options.set('ssl_prefer_low_memory_usage', options.ssl_prefer_low_memory_usage || false)
-    this._options.set('is_ssl', options.cert_file_name && options.key_file_name)
-    this._options.set('auto_close', Object.prototype.hasOwnProperty.call(options, 'auto_close') ? options.auto_close : true)
-    this._options.set('fast_abort', Object.prototype.hasOwnProperty.call(options, 'fast_abort') ? options.fast_abort : false)
-    this._options.set('trust_proxy', Object.prototype.hasOwnProperty.call(options, 'trust_proxy') ? options.trust_proxy : false)
-    this._options.set('unsafe_buffers', Object.prototype.hasOwnProperty.call(options, 'unsafe_buffers') ? options.unsafe_buffers : false)
-    this._options.set('max_body_length', Object.prototype.hasOwnProperty.call(options, 'max_body_length') ? options.max_body_length : 1153434002)
-    this._options.set('ajv', Object.prototype.hasOwnProperty.call(options, 'ajv') && typeof options.ajv === 'object' ? options.ajv : {})
+    this._options = new Map([
+      ['cert_file_name', options.cert_file_name || undefined],
+      ['key_file_name', options.key_file_name || undefined],
+      ['passphrase', options.passphrase || undefined],
+      ['dh_params_file_name', options.dh_params_file_name || undefined],
+      ['ssl_ciphers', options.ssl_ciphers || undefined],
+      ['ssl_prefer_low_memory_usage', options.ssl_prefer_low_memory_usage || false],
+      ['is_ssl', options.cert_file_name && options.key_file_name],
+      ['auto_close', options.auto_close || true],
+      ['fast_abort', options.fast_abort || false],
+      ['trust_proxy', options.trust_proxy || false],
+      ['unsafe_buffers', options.unsafe_buffers || false],
+      ['max_body_length', options.max_body_length || 1153434002],
+      ['ajv', typeof options.ajv === 'object' ? options.ajv : {}]
+    ])
 
     this._routes_locked = false
 
-    this.handlers = new Map()
-    this.handlers.set('on_not_found', null)
-    this.handlers.set('on_error', (request, response, error) => {
-      // Throw on default if user has not bound an error handler
-      response.status(500).send('Uncaught Exception Occured')
-      throw error
-    })
+    this.handlers = new Map([
+      ['on_not_found', null],
+      ['on_error', (request, response, error) => {
+        // Throw on default if user has not bound an error handler
+        response.status(500).send('Uncaught Exception Occured')
+        throw error
+      }]
+    ])
 
     this._middlewares = new Map([
       // This will contain global middlewares
       ['/', new Map()]
     ])
 
-    this._routes = new Map()
-    this._routes.set('any', new Map())
-    this._routes.set('get', new Map())
-    this._routes.set('post', new Map())
-    this._routes.set('options', new Map())
-    this._routes.set('head', new Map())
-    this._routes.set('put', new Map())
-    this._routes.set('delete', new Map())
-    this._routes.set('patch', new Map())
-    this._routes.set('trace', new Map())
+    this._routes = new Map([
+      ['any', new Map()],
+      ['get', new Map()],
+      ['post', new Map()],
+      ['options', new Map()],
+      ['head', new Map()],
+      ['put', new Map()],
+      ['delete', new Map()],
+      ['patch', new Map()],
+      ['trace', new Map()]
+    ])
 
     this.ajv = new AjvJTD({
       coerceTypes: 'array',
@@ -115,7 +117,7 @@ class Server extends Router {
   }
 
   /**
-     * Starts  webserver on specified port and host.
+     * Starts webserver on specified port and host.
      *
      * @param {Number} port
      * @param {String=} host Optional. Default: 0.0.0.0
@@ -137,7 +139,7 @@ class Server extends Router {
   }
 
   /**
-     * Stops/Closes  webserver instance.
+     * Stops/Closes webserver instance.
      *
      * @param {uWebSockets.us_listen_socket=} [listen_socket] Optional
      * @returns {Boolean}
