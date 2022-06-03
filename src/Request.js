@@ -133,6 +133,7 @@ class Request extends Readable {
     this._read = () => this.resume()
 
     // Bind a uWS.Response.onData() handler which will handle incoming chunks and pipe them to the readable stream
+    let buffer
     this.rawResponse.onData((arrayBuffer, isLast) => {
       // Do not process chunk if the readable stream is no longer active
       if (this.stream_ended || this.readableEnded || this.readableAborted) return
@@ -140,8 +141,7 @@ class Request extends Readable {
       // Convert the ArrayBuffer to a Buffer reference
       // Provide raw chunks if specified and we have something consuming stream already
       // This will prevent unneccessary duplication of buffers
-      let buffer
-      if (this.listenerCount('data') > 0 && this.stream_raw_chunks) {
+      if (this.listenerCount('data') !== 0 && this.stream_raw_chunks) {
         // Store a direct Buffer reference as this will be immediately consumed
         buffer = Buffer.from(arrayBuffer)
       } else {
@@ -190,7 +190,7 @@ class Request extends Readable {
     // Initiate a buffer promise with chunk retrieval process
     this.buffer_promise = new Promise((resolve) => {
       // Store promise resolve method to allow closure from _abort_buffer() method
-      this.buffer_resolve = resolve
+      // this.buffer_resolve = resolve
 
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
@@ -224,12 +224,13 @@ class Request extends Readable {
       this.once('end', () => resolve(body.buffer))
 
       // We must directly resume the readable stream to make it begin accepting data
+      // IMPORTANT!
       super.resume()
     })
 
     // Bind a then handler for caching the downloaded buffer
 
-    return await (this.body_buffer = this.buffer_promise)
+    return (this.body_buffer = this.buffer_promise)
   }
 
   /**
@@ -256,8 +257,8 @@ class Request extends Readable {
     if (this.body_text) return this.body_text
 
     // Retrieve body buffer, convert to string, cache and resolve
-    this.body_text = (this.body_buffer || (await this.buffer())).toString()
-    return this.body_text
+
+    return (this.body_text = (this.body_buffer || (await this.buffer())).toString())
   }
 
   /**

@@ -56,7 +56,8 @@ uQuik.any('/', {
     }
   } */
   // res.send('hello world')
-  res.json(await req.json())
+  console.log(await req.json())
+  res.send('ok')
 })
 
 uQuik.listen(5000, '127.0.0.1')
