@@ -30,6 +30,14 @@ class Route {
     this.options.middlewares = new Map([...this.options.middlewares.entries()].sort((a, b) => a.priority - b.priority))
   }
 
+  setRequestParser (fn) {
+    this._routeData.set('requestParser', fn)
+  }
+
+  setresponseSerializer (fn) {
+    this._routeData.set('responseSerializer', fn)
+  }
+
   /* Route Getters */
 
   get app () {
@@ -54,6 +62,14 @@ class Route {
 
   get path_parameters_key () {
     return this._routeData.get('path_parameters')
+  }
+
+  get requestParser () {
+    return this._routeData.get('requestParser')
+  }
+
+  get responseSerializer () {
+    return this._routeData.get('responseSerializer')
   }
 }
 
