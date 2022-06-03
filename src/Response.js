@@ -355,7 +355,7 @@ class Response extends Writable {
       this.wrapped_request._stop_streaming()
 
       // Attempt to write the body to the client and end the response
-      if (!this.streaming && !body && !isNaN(this.custom_content_length)) {
+      if (!this.streaming && !body && !Number.isNaN(this.custom_content_length)) {
         // Send the response with the uWS.HttpResponse.endWithoutBody(length, close_connection) method as we have no body data
         // NOTE: This method is completely undocumented by uWS but exists in the source code to solve the problem of no body being sent with a custom content-length
         this.raw_response.endWithoutBody()
