@@ -251,18 +251,20 @@ class Response extends Writable {
     // Ensure we are not in a paused state as uWS requires us to be a in a flowing state to be able to write status and headers
     this._resume_if_paused()
 
-    // Write the appropriate status code to the response along with mapped status code message
-    if (this.status_code) this.raw_response.writeStatus(statusCodes[this.status_code])
+    this.raw_response.cork(() => {
+      // Write the appropriate status code to the response along with mapped status code message
+      if (this.status_code) this.raw_response.writeStatus(statusCodes[this.status_code])
 
-    // Iterate through all headers and write them to uWS
-    if (this.headers) {
-      this.headers.forEach((value, name) => {
-        const length = value.length
-        for (let i = 0; i < length; i++) {
-          this.raw_response.writeHeader(name, value[i])
-        }
-      })
-    }
+      // Iterate through all headers and write them to uWS
+      if (this.headers) {
+        this.headers.forEach((value, name) => {
+          const length = value.length
+          for (let i = 0; i < length; i++) {
+            this.raw_response.writeHeader(name, value[i])
+          }
+        })
+      }
+    })
   }
 
   /**
