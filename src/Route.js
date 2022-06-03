@@ -35,7 +35,7 @@ class Route {
     this._routeData.set('requestParser', fn)
   }
 
-  setresponseSerializer (fn) {
+  setResponseSerializer (fn) {
     this._routeData.set('responseSerializer', fn)
   }
 
