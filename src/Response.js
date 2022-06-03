@@ -9,8 +9,6 @@ const mimeTypes = require('./helpers/mime-types')
 const { fastArrayJoin } = require('./utils')
 
 const SSEventStream = require('./SSEventStream')
-const LiveFile = require('./LiveFile')
-const FilePool = {}
 
 class Response extends Writable {
   constructor (wrappedRequest, rawResponse, route) {
@@ -565,53 +563,6 @@ class Response extends Writable {
      */
   html (body) {
     return this.type('html').send(body)
-  }
-
-  /**
-     * @private
-     * Sends file content with appropriate content-type header based on file extension from LiveFile.
-     *
-     * @param {LiveFile} liveFile
-     * @param {function(Object):void} callback
-     */
-  async _send_file (liveFile, callback) {
-    // Wait for LiveFile to be ready before serving
-    if (!liveFile.is_ready) await liveFile.ready()
-
-    // Write appropriate extension type if one has not been written yet
-    if (!this.type_written) this.type(liveFile.extension)
-
-    // Send response with file buffer as body
-    this.send(liveFile.buffer)
-
-    // Execute callback with cache pool, so user can expire as they wish.
-    if (callback) setImmediate(() => callback(FilePool))
-  }
-
-  /**
-     * This method is an alias of send() method except it sends the file at specified path.
-     * This method automatically writes the appropriate content-type header if one has not been specified yet.
-     * This method also maintains its own cache pool in memory allowing for fast performance.
-     * Avoid using this method to a send a large file as it will be kept in memory.
-     *
-     * @param {String} path
-     * @param {function(Object):void=} callback Executed after file has been served with the parameter being the cache pool.
-     */
-
-  file (path, callback) {
-    // Send file from local cache pool if available
-    if (FilePool[path]) return this._send_file(FilePool[path], callback)
-
-    // Create new LiveFile instance in local cache pool for new file path
-    FilePool[path] = new LiveFile({
-      path
-    })
-
-    // Assign error handler to live file
-    FilePool[path].on('error', (error) => this.throw(error))
-
-    // Serve file as response
-    this._send_file(FilePool[path], callback)
   }
 
   /**
