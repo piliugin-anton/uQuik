@@ -11,8 +11,8 @@ uQuik.set_error_handler((request, response, error) => {
 uQuik.use(CORS())
 
 uQuik.head('/', (req, res) => {
-  // add a content-length header: .header('content-length', LENGTH)
-  res.status(200).header('content-type', 'application/json').header('content-length', '0').send()
+  // Replcae LENGTH with actual value
+  res.status(200).header('content-type', 'application/json').header('content-length', 'LENGTH').send()
 })
 
 uQuik.options('/', (req, res) => res.status(200).header('Allow', 'GET, HEAD, PUT, PATCH, POST, DELETE').send())

@@ -61,9 +61,10 @@ class Server extends Router {
       throw error
     })
 
-    this._middlewares = new Map()
-    // This will contain global middlewares
-    this._middlewares.set('/', new Map())
+    this._middlewares = new Map([
+      // This will contain global middlewares
+      ['/', new Map()]
+    ])
 
     this._routes = new Map()
     this._routes.set('any', new Map())
