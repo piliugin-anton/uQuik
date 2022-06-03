@@ -9,12 +9,13 @@ class Route {
      * @param {Function} handler
      */
   constructor ({ app, method, pattern, options, handler }) {
-    this.app = app
-    this.method = method.toUpperCase()
-    this.pattern = pattern
-    this.handler = handler
-    this.options = options
-    this._path_parameters_key = parsePathParameters(pattern)
+    this._routeData = new Map()
+    this._routeData.set('app', app)
+    this._routeData.set('method', method.toUpperCase())
+    this._routeData.set('pattern', pattern)
+    this._routeData.set('handler', handler)
+    this._routeData.set('options', options)
+    this._routeData.set('path_parameters', parsePathParameters(pattern))
   }
 
   /**
@@ -31,8 +32,28 @@ class Route {
 
   /* Route Getters */
 
+  get app () {
+    return this._routeData.get('app')
+  }
+
+  get method () {
+    return this._routeData.get('method')
+  }
+
+  get pattern () {
+    return this._routeData.get('pattern')
+  }
+
+  get handler () {
+    return this._routeData.get('handler')
+  }
+
+  get options () {
+    return this._routeData.get('options')
+  }
+
   get path_parameters_key () {
-    return this._path_parameters_key
+    return this._routeData.get('path_parameters')
   }
 }
 

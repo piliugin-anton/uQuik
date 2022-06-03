@@ -256,7 +256,7 @@ class Server extends Router {
     this._routes.get(record.method).set(record.pattern, route)
 
     // Bind uWS.method() route which passes incoming request/respone to our handler
-    return this.uws_instance[record.method](record.pattern, (response, request) => this._handle_uws_request(this._routes.get(record.method).get(record.pattern), request, response))
+    return this.uws_instance[route.method](route.pattern, (response, request) => this._handle_uws_request(this._routes.get(route.method).get(route.pattern), request, response))
   }
 
   /**

@@ -53,7 +53,7 @@ class Router {
     if (callbacks.length > 0) options.middlewares = (options.middlewares || []).concat(callbacks)
 
     // TODO: test this!
-    options.middlewares = [...options.middlewares.map((middleware, index) => [index, middleware])]
+    if (Array.isArray(options.middlewares)) options.middlewares = new Map([...options.middlewares.map((middleware, index) => [index, middleware])])
 
     // Initialize the record object which will hold information about this route
     const record = {
@@ -202,9 +202,6 @@ class Router {
      * @typedef {Object} RouteOptions
      * @property {Number} max_body_length Overrides the global maximum body length specified in Server constructor options.
      * @property {Array.<MiddlewareHandler>|Array.<PromiseMiddlewareHandler>} middlewares Route specific middlewares
-     * @property {Object} streaming Global content streaming options.
-     * @property {Stream.ReadableOptions} streaming.readable Global content streaming options for Readable streams.
-     * @property {Stream.WritableOptions} streaming.writable Global content streaming options for Writable streams.
      */
 
   /**
