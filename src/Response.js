@@ -19,8 +19,8 @@ class Response extends Writable {
     this.wrapped_request = wrappedRequest
     this.raw_response = rawResponse
     this.master_context = route.app
-    this.appOptions = route.app._options
-    this.routeOptions = route.options
+    this.app_options = route.app._options
+    this.route_options = route.options
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
@@ -85,6 +85,7 @@ class Response extends Writable {
     if (typeof handler !== 'function') this.throw(new Error('atomic(handler) -> handler must be a Javascript function'))
 
     this._resume_if_paused()
+
     return this.raw_response.cork(handler)
   }
 
@@ -488,7 +489,7 @@ class Response extends Writable {
       readable.on('data', (chunk) => this._stream_chunk(readable, chunk, totalSize))
 
       // Bind listeners to end request on stream closure if no total size was specified and thus we delivered with chunked transfer
-      if (totalSize === undefined) {
+      if (!totalSize) {
         const endRequest = () => this.send()
         readable.once('end', endRequest)
       }
@@ -526,8 +527,8 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (this.routeOptions.JSONSerializer) {
-      body = this.routeOptions.JSONSerializer(body)
+    if (this.route_options.JSONSerializer) {
+      body = this.route_options.JSONSerializer(body)
     } else {
       try {
         body = JSON.stringify(body)

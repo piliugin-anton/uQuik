@@ -8,7 +8,7 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
-uQuik.use(CORS())
+// uQuik.use(CORS())
 
 uQuik.head('/', (req, res) => {
   // add a content-length header: .header('content-length', LENGTH)

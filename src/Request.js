@@ -18,17 +18,17 @@ class Request extends Readable {
     super()
 
     // Pre-parse core data attached to volatile uWebsockets request/response objects
-    this.rawRequest = rawRequest
-    this.rawResponse = rawResponse
-    this.appOptions = route.app._options
-    this.routeOptions = route.options
+    this.raw_request = rawRequest
+    this.raw_response = rawResponse
+    this.app_options = route.app._options
+    this.route_options = route.options
 
     this.__method = method
 
     this.headers = new Map()
     this.path_parameters = new Map()
 
-    this.rawRequest.forEach((key, value) => (this.headers.set(key, value)))
+    this.raw_request.forEach((key, value) => (this.headers.set(key, value)))
 
     const contentLength = Number(this.headers.get('content-length'))
     this.contentLength = Number.isNaN(contentLength) ? undefined : contentLength
@@ -46,7 +46,7 @@ class Request extends Readable {
     // Iterate over each expected path parameter key value pair and parse the value from uWS.HttpRequest.getParameter()
     const paramsLength = parametersKey.length
     for (let i = 0; i < paramsLength; i++) {
-      const value = this.rawRequest.getParameter(parametersKey[i][1])
+      const value = this.raw_request.getParameter(parametersKey[i][1])
       if (!this.path_parameters[parametersKey[i][0]]) {
         this.path_parameters.set(parametersKey[i][0], value)
       } else if (typeof this.path_parameters[parametersKey[i][0]] === 'string') {
@@ -66,7 +66,7 @@ class Request extends Readable {
   pause () {
     // Ensure request is not already paused before pausing
     if (!super.isPaused()) {
-      this.rawResponse.pause()
+      this.raw_response.pause()
       return super.pause()
     }
     return this
@@ -79,7 +79,7 @@ class Request extends Readable {
   resume () {
     // Ensure request is paused before resuming
     if (super.isPaused()) {
-      this.rawResponse.resume()
+      this.raw_response.resume()
       return super.resume()
     }
     return this
@@ -134,9 +134,9 @@ class Request extends Readable {
 
     // Bind a uWS.Response.onData() handler which will handle incoming chunks and pipe them to the readable stream
     let buffer
-    this.rawResponse.onData((arrayBuffer, isLast) => {
+    this.raw_response.onData((arrayBuffer, isLast) => {
       // Do not process chunk if the readable stream is no longer active
-      if (this.stream_ended || this.readableEnded || this.readableAborted) return
+      if (this.stream_ended || this.readableEnded || this.readableAborted) return this.raw_response.onData(() => {})
 
       // Convert the ArrayBuffer to a Buffer reference
       // Provide raw chunks if specified and we have something consuming stream already
@@ -195,7 +195,7 @@ class Request extends Readable {
       // Allocate an empty body buffer to store all incoming chunks depending on buffering scheme
       const body = {
         cursor: 0,
-        buffer: Buffer[this.appOptions.get('unsafe_buffers') ? 'allocUnsafe' : 'alloc'](this.contentLength)
+        buffer: Buffer[this.app_options.get('unsafe_buffers') ? 'allocUnsafe' : 'alloc'](this.contentLength)
       }
 
       // Drain any previously buffered data from the readable request stream
@@ -271,8 +271,8 @@ class Request extends Readable {
      * @returns {Any}
      */
   _parse_json (string, defaultValue) {
-    if (this.routeOptions.JSONParser) {
-      return this.routeOptions.JSONParser(string) || defaultValue
+    if (this.route_options.JSONParser) {
+      return this.route_options.JSONParser(string) || defaultValue
     } else {
       try {
         return JSON.parse(string)
@@ -561,7 +561,7 @@ class Request extends Readable {
      * Note! Utilizing any of uWS.Request's methods after initial synchronous call will throw a forbidden access error.
      */
   get raw () {
-    return this.rawRequest
+    return this.raw_request
   }
 
   get method () {
@@ -573,7 +573,7 @@ class Request extends Readable {
   get path () {
     if (this._path) return this._path
 
-    return (this._path = this.rawRequest.getUrl())
+    return (this._path = this.raw_request.getUrl())
   }
 
   get url () {
@@ -617,7 +617,7 @@ class Request extends Readable {
     // Return from cache if already parsed once
     if (this._query_parameters) return this._query_parameters
 
-    return (this._query_parameters = new URLSearchParams(this.rawRequest.getQuery()))
+    return (this._query_parameters = new URLSearchParams(this.raw_request.getQuery()))
   }
 
   /**
@@ -626,7 +626,7 @@ class Request extends Readable {
      */
   get ip () {
     // Convert Remote IP to string on first access
-    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.rawResponse.getRemoteAddress())
+    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.raw_response.getRemoteAddress())
 
     return this.remote_ip
   }
@@ -637,7 +637,7 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.rawResponse.getRemoteProxiedAddress())
+    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.raw_response.getRemoteProxiedAddress())
 
     return this.remote_proxy_ip
   }
@@ -681,14 +681,14 @@ class Request extends Readable {
      */
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
-    const trustProxy = this.appOptions.get('trust_proxy')
+    const trustProxy = this.app_options.get('trust_proxy')
     const xForwardedProto = this.get('X-Forwarded-Proto')
     if (trustProxy && xForwardedProto) {
       return xForwardedProto.indexOf(',') !== -1 ? xForwardedProto.split(',')[0] : xForwardedProto
     }
 
     // Use uWS initially defined protocol
-    return this.appOptions.get('is_ssl') ? 'https' : 'http'
+    return this.app_options.get('is_ssl') ? 'https' : 'http'
   }
 
   /**
@@ -706,7 +706,7 @@ class Request extends Readable {
   get ips () {
     const clientIP = this.ip
     const proxyIP = this.proxy_ip
-    const trustProxy = this.appOptions.get('trust_proxy')
+    const trustProxy = this.app_options.get('trust_proxy')
     const xForwardedFor = this.get('X-Forwarded-For')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
     return [clientIP, proxyIP]
@@ -716,7 +716,7 @@ class Request extends Readable {
      * ExpressJS: Parse the "Host" header field to a hostname.
      */
   get hostname () {
-    const trustProxy = this.appOptions.get('trust_proxy')
+    const trustProxy = this.app_options.get('trust_proxy')
     let host = this.get('X-Forwarded-Host')
 
     if (!host || !trustProxy) {
