@@ -117,7 +117,7 @@ class Server extends Router {
   }
 
   /**
-     * Starts webserver on specified port and host.
+     * Starts  webserver on specified port and host.
      *
      * @param {Number} port
      * @param {String=} host Optional. Default: 0.0.0.0
@@ -139,7 +139,7 @@ class Server extends Router {
   }
 
   /**
-     * Stops/Closes webserver instance.
+     * Stops/Closes  webserver instance.
      *
      * @param {uWebSockets.us_listen_socket=} [listen_socket] Optional
      * @returns {Boolean}
