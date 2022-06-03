@@ -12,12 +12,13 @@
   }
 
   function isString (s) {
-    return typeof s === 'string' || s instanceof String
+    return typeof s === 'string'
   }
 
   function isOriginAllowed (origin, allowedOrigin) {
     if (Array.isArray(allowedOrigin)) {
-      for (let i = 0; i < allowedOrigin.length; ++i) {
+      const allowedOriginLength = allowedOrigin.length
+      for (let i = 0; i < allowedOriginLength; ++i) {
         if (isOriginAllowed(origin, allowedOrigin[i])) {
           return true
         }
@@ -141,7 +142,8 @@
   }
 
   function applyHeaders (headers, res) {
-    for (let i = 0, n = headers.length; i < n; i++) {
+    const headersLength = headers.length
+    for (let i = 0, n = headersLength; i < n; i++) {
       const header = headers[i]
       if (header) {
         if (Array.isArray(header)) {

@@ -8,14 +8,14 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
-uQuik.use(CORS())
+/* uQuik.use(CORS())
 
 uQuik.head('/', (req, res) => {
   // Replcae LENGTH with actual value
   res.status(200).header('content-type', 'application/json').header('content-length', 'LENGTH').send()
 })
 
-uQuik.options('/', (req, res) => res.status(200).header('Allow', 'GET, HEAD, PUT, PATCH, POST, DELETE').send())
+uQuik.options('/', (req, res) => res.status(200).header('Allow', 'GET, HEAD, PUT, PATCH, POST, DELETE').send()) */
 
 uQuik.any('/', {
   /* schema: {
