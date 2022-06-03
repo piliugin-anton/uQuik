@@ -1,10 +1,5 @@
-const { Server } = require('./')
 const path = require('path')
-const blocked = require('blocked-at')
-
-blocked((time, stack) => {
-  console.log(`Blocked for ${time}ms, operation started here:`, stack)
-})
+const { Server, CORS } = require('./')
 
 // eslint-disable-next-line new-cap
 const uQuik = new Server()
@@ -13,14 +8,12 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
-// uQuik.get('/', (req, res) => res.send('hello world'))
+uQuik.use(CORS())
 
-// uQuik.use(StaticFiles())
-
-// uQuik.get('/*', () => {})
-// uQuik.head('/*', () => {})
-
-uQuik.head('/header', (req, res) => res.header('content-length', false).send())
+uQuik.head('/', (req, res) => {
+  // add a content-length header: .header('content-length', LENGTH)
+  res.status(200).header('content-type', 'application/json').header('content-length', false).send()
+})
 
 uQuik.any('/', {
   /* schema: {

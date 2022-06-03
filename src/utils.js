@@ -348,6 +348,7 @@ module.exports.isPromise = isPromise
 module.exports.isRouter = isRouter
 module.exports.isServer = isServer
 
+module.exports.fastArrayJoin = fastArrayJoin
 module.exports.getIP = getIP
 
 module.exports.parsePathParameters = parsePathParameters
