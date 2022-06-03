@@ -16,7 +16,7 @@ uQuik.set_error_handler((request, response, error) => {
 // uQuik.get('/*', () => {})
 // uQuik.head('/*', () => {})
 
-uQuik.options('/header', (req, res) => res.header('content-length', false).send())
+uQuik.head('/header', (req, res) => res.header('content-length', false).send())
 
 uQuik.any('/', {
   /* schema: {
