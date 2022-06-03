@@ -1,6 +1,10 @@
 const { Server } = require('./')
-const StaticFiles = require('./src/middleware/StaticFiles')
 const path = require('path')
+const blocked = require('blocked-at')
+
+blocked((time, stack) => {
+  console.log(`Blocked for ${time}ms, operation started here:`, stack)
+})
 
 // eslint-disable-next-line new-cap
 const uQuik = new Server()

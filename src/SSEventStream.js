@@ -1,9 +1,7 @@
 class SSEventStream {
-  #response
-
   constructor (response) {
     // Store the response object locally
-    this.#response = response
+    this.response = response
   }
 
   /**
@@ -12,11 +10,11 @@ class SSEventStream {
      */
   _write_sse_headers () {
     // Only write headers if the response has not been initiated yet
-    if (!this.#response.initiated) {
-      this.#response.header('content-type', 'text/event-stream')
-      this.#response.header('cache-control', 'no-cache')
-      this.#response.header('connection', 'keep-alive')
-      this.#response.header('x-accel-buffering', 'no')
+    if (!this.response.initiated) {
+      this.response.header('content-type', 'text/event-stream')
+      this.response.header('cache-control', 'no-cache')
+      this.response.header('connection', 'keep-alive')
+      this.response.header('x-accel-buffering', 'no')
     }
   }
 
@@ -38,7 +36,7 @@ class SSEventStream {
      */
   close () {
     // Ends the connection by sending the final empty message
-    return this.#response.send()
+    return this.response.send()
   }
 
   /**
@@ -50,7 +48,7 @@ class SSEventStream {
      */
   comment (data) {
     // Prefix the message with a colon character to signify a comment
-    return this.#response.write(`: ${data}\n`)
+    return this.response.write(`: ${data}\n`)
   }
 
   /**
@@ -81,7 +79,7 @@ class SSEventStream {
     this._write_sse_headers()
 
     // Write the string based payload to the client
-    return this.#response.write(parts.join('\n'))
+    return this.response.write(parts.join('\n'))
   }
 
   /* SSEConnection Properties */
@@ -92,7 +90,7 @@ class SSEventStream {
      * @returns {Boolean}
      */
   get active () {
-    return !this.#response.completed
+    return !this.response.completed
   }
 }
 
