@@ -8,8 +8,8 @@ Features:
 - Modular Routers Support
 - Server-Sent Events Support
 - HTTP Streaming Support
-- Performant Multipart File Uploading
+- Performant Multipart File Uploading (using [`Busboy`](https://github.com/mscdex/busboy))
 - Global Error/Event Handlers
-- JSON schema validation ([`Ajv`](https://ajv.js.org/json-type-definition.html))
+- JSON schema validation (using [`Ajv`](https://ajv.js.org/json-type-definition.html))
 - Cryptographically Secure Cookie Signing/Authentication
 - TypeScript Types Support
