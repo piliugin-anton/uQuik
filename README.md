@@ -1,5 +1,5 @@
 # uQuik
-HTTP(S) web-framework for Node.js
+Highly performant HTTP(S) web-framework for Node.js
 #### Powered by [`uWebSockets.js`](https://github.com/uNetworking/uWebSockets.js), based on [`Hyper-Express`](https://github.com/kartikk221/hyper-express)
 
 
