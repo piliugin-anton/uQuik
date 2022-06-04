@@ -3,7 +3,7 @@ HTTP(S) web-framework for Node.js
 #### Powered by [`uWebSockets.js`](https://github.com/uNetworking/uWebSockets.js), based on [`Hyper-Express`](https://github.com/kartikk221/hyper-express)
 
 
-Features:
+#### Features:
 - Simplified HTTP
 - Global & Route-Specific Middlewares Support
 - Modular Routers Support
@@ -15,7 +15,7 @@ Features:
 - Cryptographically Secure Cookie Signing/Authentication
 - TypeScript Types Support
 
-Requirements:
+#### Requirements:
 - Node.js version 14.15.0 or higher
 
 
