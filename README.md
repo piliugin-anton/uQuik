@@ -16,7 +16,7 @@ Features:
 - TypeScript Types Support
 
 Requirements:
-- Node.js version 14.15.0 and higher
+- Node.js version 14.15.0 or higher
 
 
 ## License
