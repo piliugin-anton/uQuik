@@ -1,0 +1,6 @@
+.vscode
+.eslintignore
+.eslintrc.js
+.gitignore
+.prettierignore
+post.lua

@@ -8,24 +8,9 @@
     "no-sync": "node --trace-sync-io example.js",
     "profile": "node --prof example.js",
     "example": "node example.js",
-    "uws": "node benchmark/uWebSockets.js",
-    "hyper": "node benchmark/Hyper-Express.js",
-    "fastify": "node benchmark/fastify.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrk": "wrk -t4 -c2500 -d60s -R62000 http://127.0.0.1:5000",
-    "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000",
-    "wrk-uws": "wrk -t4 -c2500 -d60s -R108000 http://127.0.0.1:5001",
-    "wrk-hyper": "wrk -t4 -c2500 -d60s http://127.0.0.1:5002",
-    "wrk-hyper-post": "wrk -s post.lua -t4 -c2500 -d60s http://127.0.0.1:5002",
-    "wrk-fastify": "wrk -t4 -c2500 -d60s http://127.0.0.1:5003",
-    "autocannon": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5000",
-    "autocannon-uws": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5001",
-    "autocannon-hyper": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5002",
-    "autocannon-fastify": "autocannon --renderStatusCodes --debug --warmup [ -c 2500 -d 30 ] -c 2500 -d 30 -p 4 http://127.0.0.1:5003",
-    "clinic-doctor": "clinic doctor -- node example.js",
-    "clinic-bubbleprof": "clinic bubbleprof -- node example.js",
-    "clinic-flame": "clinic flame -- node example.js",
-    "clinic-doctor-uws": "clinic doctor -- node benchmark/uWebSockets.js"
+    "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000"
   },
   "dependencies": {
     "ajv": "^8.11.0",
@@ -35,8 +20,8 @@
   },
   "keywords": [
     "uQuik",
-    "Hyper-Express",
-    "uWebsockets.js"
+    "uWebsockets.js",
+    "Hyper-Express"
   ],
   "author": "Anton Piliugin",
   "license": "MIT",
