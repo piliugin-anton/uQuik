@@ -355,9 +355,7 @@ class Response extends Writable {
       // Attempt to write the body to the client and end the response
       if (!this.streaming && !body) {
         // Add Content-Length where needed
-        if (!this.hasContentLength && this.wrapped_request.method !== 'HEAD') {
-          this.raw_response.writeHeader('Content-Length', '0')
-        }
+        if (!this.hasContentLength && this.wrapped_request.method !== 'HEAD') this.raw_response.writeHeader('Content-Length', '0')
         // Send the response with the uWS.HttpResponse.endWithoutBody(length, close_connection) method as we have no body data
         // NOTE: This method is completely undocumented by uWS but exists in the source code to solve the problem of no body being sent with a custom content-length
         this.raw_response.endWithoutBody()
