@@ -35,7 +35,6 @@ uQuik.any('/', {
     }
   } */
 }, async (req, res) => {
-  return res.redirect('http://127.0.0.1:5000/test')
   /* try {
     await req.multipart(async (field) => {
       // Ensure that this field is a file-type
@@ -57,7 +56,7 @@ uQuik.any('/', {
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   } */
-  // res.send('hello world')
+  res.send('hello world')
   // res.json(await req.json())
 })
 

@@ -13,6 +13,7 @@ Highly performant HTTP(S) web-framework for Node.js
 - Global Error/Event Handlers
 - JSON schema validation (using [`Ajv`](https://ajv.js.org/json-type-definition.html))
 - Cryptographically Secure Cookie Signing/Authentication
+- ExpressJS API Compatibility Through Shared Methods/Properties
 - TypeScript Types Support
 
 #### Requirements:
