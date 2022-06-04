@@ -354,7 +354,7 @@ class Response extends Writable {
 
       // Attempt to write the body to the client and end the response
       if (!this.streaming && !body) {
-        // Add Content-Length for all status codes where body is optional
+        // Add Content-Length where needed
         if (!this.hasContentLength && this.wrapped_request.method !== 'HEAD') {
           this.raw_response.writeHeader('Content-Length', '0')
         }
