@@ -8,14 +8,14 @@ uQuik.set_error_handler((request, response, error) => {
   console.log(error)
 })
 
-/* uQuik.use(CORS())
+uQuik.use(CORS())
 
 uQuik.head('/', (req, res) => {
   // Replace LENGTH with actual value
-  res.status(200).header('content-type', 'application/json').header('content-length', 'LENGTH').send()
+  res.status(200).header('content-type', 'application/json').send()
 })
 
-uQuik.options('/', (req, res) => res.status(200).header('Allow', 'GET, HEAD, PUT, PATCH, POST, DELETE').send()) */
+uQuik.options('/', (req, res) => res.status(200).header('Allow', 'GET, HEAD, PUT, PATCH, POST, DELETE').send())
 
 uQuik.any('/', {
   /* schema: {
@@ -34,7 +34,8 @@ uQuik.any('/', {
       }
     }
   } */
-}, (req, res) => {
+}, async (req, res) => {
+  return res.redirect('http://127.0.0.1:5000/test')
   /* try {
     await req.multipart(async (field) => {
       // Ensure that this field is a file-type
@@ -56,7 +57,7 @@ uQuik.any('/', {
       return res.status(500).send('Oops! An uncaught error occured on our end.')
     }
   } */
-  res.send('hello world')
+  // res.send('hello world')
   // res.json(await req.json())
 })
 

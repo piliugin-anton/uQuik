@@ -168,8 +168,7 @@ class Response extends Writable {
       )
     }
 
-    // Determine if the header being written is a "content-length" header and if so, set the length
-    if (name.toLowerCase() === 'content-length') this.custom_content_length = Number(value)
+    if (name.toLocaleLowerCase() === 'content-length') this.hasContentLength = true
 
     // Push current header value onto values array
     this.headers.get(name).push(value)
@@ -354,7 +353,11 @@ class Response extends Writable {
       this.wrapped_request._stop_streaming()
 
       // Attempt to write the body to the client and end the response
-      if (!this.streaming && !body && !Number.isNaN(this.custom_content_length)) {
+      if (!this.streaming && !body) {
+        // Add Content-Length for all status codes where body is optional
+        if (!this.hasContentLength && this.wrapped_request.method !== 'HEAD') {
+          this.raw_response.writeHeader('Content-Length', '0')
+        }
         // Send the response with the uWS.HttpResponse.endWithoutBody(length, close_connection) method as we have no body data
         // NOTE: This method is completely undocumented by uWS but exists in the source code to solve the problem of no body being sent with a custom content-length
         this.raw_response.endWithoutBody()
@@ -513,10 +516,11 @@ class Response extends Writable {
      * This method is used to redirect an incoming request to a different url.
      *
      * @param {String} url Redirect URL
+     * @param {Number=} code Status code (301 or 302)
      * @returns {Boolean} Boolean
      */
-  redirect (url) {
-    if (!this.completed) return this.status(302).header('location', url).send()
+  redirect (url, code = 302) {
+    if (!this.completed) return this.status(code).header('Location', url).send()
     return false
   }
 
