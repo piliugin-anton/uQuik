@@ -7,15 +7,17 @@
     "debug": "node --inspect example.js",
     "no-sync": "node --trace-sync-io example.js",
     "profile": "node --prof example.js",
-    "example": "node example.js",
+    "example": "node examples/basic.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrk": "wrk -t4 -c2500 -d60s -R62000 http://127.0.0.1:5000",
     "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000"
   },
   "dependencies": {
     "ajv": "^8.11.0",
+    "fast-jwt": "^1.5.4",
     "fast-uri": "^2.0.0",
     "readable-stream": "^3.6.0",
+    "steed": "^1.1.3",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0"
   },
   "keywords": [

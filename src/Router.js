@@ -20,7 +20,6 @@ class Router {
      * @param {String} method Supported: any, get, post, delete, head, options, patch, put, trace
      * @param {String} pattern Example: "/api/v1"
      * @param {Object} options Route processor options (Optional)
-     * @param {Number} options.max_body_length Maximum body length
      * @param {Function} handler Example: (request, response) => {}
      */
   _register_route () {
@@ -56,9 +55,7 @@ class Router {
     // TODO: test this!
     if (Array.isArray(options.middlewares)) options.middlewares = new Map([...options.middlewares.map((middleware, index) => [index, middleware])])
 
-    const opts = new Map()
-    opts.set('max_body_length', options.max_body_length)
-    opts.set('middlewares', options.widdlewares)
+    const opts = new Map(Object.entries(options))
 
     // Initialize the record object which will hold information about this route
     const record = {
@@ -206,6 +203,7 @@ class Router {
   /**
      * @typedef {Map} RouteOptions
      * @property {Number} max_body_length Overrides the global maximum body length specified in Server constructor options.
+     * @property {Object} jwt JWT options
      * @property {Map.<MiddlewareHandler>|Map.<PromiseMiddlewareHandler>} middlewares Route specific middlewares
      */
 

@@ -7,6 +7,7 @@ const Router = require('./Router')
 const Stream = require('stream') // lgtm [js/unused-local-variable]
 const Request = require('./Request')
 const Response = require('./Response')
+const JWT = require('./JWT')
 
 class Server extends Router {
   /**
@@ -251,9 +252,15 @@ class Server extends Router {
     if (record.options._temporary === true) route._temporary = true
 
     // JSON Schema validators
-    if (record.options.schema) {
-      if (record.options.schema.request) route.setRequestParser(this.ajv.compileParser(record.options.schema.request))
-      if (record.options.schema.response) route.setResponseSerializer(this.ajv.compileSerializer(record.options.schema.response))
+    if (record.options.has('schema')) {
+      if (record.options.get('schema').request) route.setRequestParser(this.ajv.compileParser(record.options.schema.request))
+      if (record.options.get('schema').response) route.setResponseSerializer(this.ajv.compileSerializer(record.options.schema.response))
+    }
+
+    if (record.options.has('jwt')) {
+      const jwtOptions = record.options.get('jwt')
+
+      if (typeof jwtOptions === 'object') JWT(this, jwtOptions)
     }
 
     this._routes.get(record.method).set(record.pattern, route)
@@ -403,6 +410,14 @@ class Server extends Router {
       // If route handler throws an error, trigger error handler
       next(error)
     }
+  }
+
+  decorate (name, value) {
+    if (this[name]) {
+      throw new Error(`Decorator ${name} already exists!`)
+    }
+
+    this[name] = value
   }
 }
 

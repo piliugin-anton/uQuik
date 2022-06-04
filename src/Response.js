@@ -225,7 +225,7 @@ class Response extends Writable {
     }
 
     // Initialize cookies holder and store cookie value
-    if (this.cookies === undefined) this.cookies = {}
+    if (!this.cookies) this.cookies = {}
     this.cookies[name] = value
 
     // Serialize the cookie options and write the 'Set-Cookie' header
