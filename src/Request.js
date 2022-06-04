@@ -136,7 +136,7 @@ class Request extends Readable {
     let buffer
     this.raw_response.onData((arrayBuffer, isLast) => {
       // Do not process chunk if the readable stream is no longer active
-      if (this.stream_ended || this.readableEnded || this.readableAborted) return this.raw_response.onData(() => {})
+      if (this.stream_ended || this.readableEnded || this.readableAborted) return
 
       // Convert the ArrayBuffer to a Buffer reference
       // Provide raw chunks if specified and we have something consuming stream already

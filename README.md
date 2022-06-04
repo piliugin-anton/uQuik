@@ -1,2 +1,15 @@
 # uQuik
-HTTP(S) server based on uWebSockets.js and partially on HyperExpress
+HTTP(S) web-framework for Node.js
+#### Powered by [`uWebSockets.js`](https://github.com/uNetworking/uWebSockets.js), based on [`Hyper-Express`](https://github.com/kartikk221/hyper-express)
+
+Features:
+- Simplified HTTP
+- Global & Route-Specific Middlewares Support
+- Modular Routers Support
+- Server-Sent Events Support
+- HTTP Streaming Support
+- Performant Multipart File Uploading
+- Global Error/Event Handlers
+- JSON schema validation ([`Ajv`](https://ajv.js.org/json-type-definition.html))
+- Cryptographically Secure Cookie Signing/Authentication
+- TypeScript Types Support
