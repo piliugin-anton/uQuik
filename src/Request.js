@@ -21,7 +21,8 @@ class Request extends Readable {
     this.raw_request = rawRequest
     this.raw_response = rawResponse
     this.app_options = route.app._options
-    this.route_options = route.options
+
+    route.requestDecorators.forEach((decorator, name) => (this[name] = decorator))
 
     this.__method = method
 
@@ -271,8 +272,8 @@ class Request extends Readable {
      * @returns {Any}
      */
   _parse_json (string, defaultValue) {
-    if (this.route_options.JSONParser) {
-      return this.route_options.JSONParser(string) || defaultValue
+    if (this.JSONParser) {
+      return this.JSONParser(string) || defaultValue
     } else {
       try {
         return JSON.parse(string)

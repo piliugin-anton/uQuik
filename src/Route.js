@@ -10,13 +10,16 @@ class Route {
      * @param {Map} options
      */
   constructor ({ app, method, pattern, options, handler }) {
-    this._routeData = new Map()
-    this._routeData.set('app', app)
-    this._routeData.set('method', method.toUpperCase())
-    this._routeData.set('pattern', pattern)
-    this._routeData.set('handler', handler)
-    this._routeData.set('options', options)
-    this._routeData.set('path_parameters', parsePathParameters(pattern))
+    this._routeData = new Map([
+      ['app', app],
+      ['method', method.toUpperCase()],
+      ['pattern', pattern],
+      ['handler', handler],
+      ['options', options],
+      ['path_parameters', parsePathParameters(pattern)],
+      ['requestDecorators', new Map()],
+      ['responseDecorators', new Map()]
+    ])
   }
 
   /**
@@ -26,17 +29,26 @@ class Route {
      * @param {Function} handler
      */
   use (middleware) {
+    console.log(typeof this.options)
     // Store and sort middlewares to ensure proper execution order
-    this.options.middlewares.set(this.options.middlewares.size, middleware)
-    this.options.middlewares = new Map([...this.options.middlewares.entries()].sort((a, b) => a.priority - b.priority))
+    this.options.middlewares.push(middleware)
+    this.options.middlewares = this.options.middlewares.sort((a, b) => a.priority - b.priority)
   }
 
-  setRequestParser (fn) {
-    this._routeData.set('requestParser', fn)
+  setRequestDecorator (object) {
+    if (this.requestDecorators.has(object.name)) {
+      throw new Error(`Request decorator with name ${object.name} already exist`)
+    }
+
+    this._routeData.get('requestDecorators').set(object.name, object.fn)
   }
 
-  setResponseSerializer (fn) {
-    this._routeData.set('responseSerializer', fn)
+  setResponseDecorator (object) {
+    if (this.responseDecorators.has(object.name)) {
+      throw new Error(`Response decorator with name ${object.name} already exist`)
+    }
+
+    this._routeData.get('responseDecorators').set(object.name, object.fn)
   }
 
   /* Route Getters */
@@ -61,16 +73,20 @@ class Route {
     return this._routeData.get('options')
   }
 
+  get middlewares () {
+    return this._routeData.get('options').get('middlewares')
+  }
+
   get path_parameters_key () {
     return this._routeData.get('path_parameters')
   }
 
-  get requestParser () {
-    return this._routeData.get('requestParser')
+  get requestDecorators () {
+    return this._routeData.get('requestDecorators')
   }
 
-  get responseSerializer () {
-    return this._routeData.get('responseSerializer')
+  get responseDecorators () {
+    return this._routeData.get('responseDecorators')
   }
 }
 

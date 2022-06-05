@@ -4,9 +4,9 @@
   "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
-    "debug": "node --inspect example.js",
-    "no-sync": "node --trace-sync-io example.js",
-    "profile": "node --prof example.js",
+    "debug": "node --inspect examples/basic.js",
+    "no-sync": "node --trace-sync-io examples/basic.js",
+    "profile": "node --prof examples/basic.js",
     "example": "node examples/basic.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrk": "wrk -t4 -c2500 -d60s -R62000 http://127.0.0.1:5000",

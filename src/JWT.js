@@ -153,17 +153,16 @@ function JWT (context, options = {}) {
     context.decorate('jwt', jwtDecorator)
   }
 
-  context.use((req, res, next) => {
-    req[jwtVerifyName] = requestVerify
-    res[jwtSignName] = replySign
-    next()
-  })
-
   const signerConfig = checkAndMergeSignOptions()
   const signer = createSigner(signerConfig.options)
   const decoder = createDecoder(decodeOptions)
   const verifierConfig = checkAndMergeVerifyOptions()
   const verifier = createVerifier(verifierConfig.options)
+
+  return [
+    { name: jwtVerifyName, fn: requestVerify },
+    { name: jwtSignName, fn: replySign }
+  ]
 
   function decode (token, options) {
     assert(token, 'Missing token')

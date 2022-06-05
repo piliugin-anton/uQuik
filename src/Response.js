@@ -20,7 +20,8 @@ class Response extends Writable {
     this.raw_response = rawResponse
     this.master_context = route.app
     this.app_options = route.app._options
-    this.route_options = route.options
+
+    route.responseDecorators.forEach((decorator, name) => (this[name] = decorator))
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
@@ -156,10 +157,12 @@ class Response extends Writable {
     }
 
     // Initialize headers container object if it does not exist
-    if (this.headers === undefined) this.headers = new Map()
+    if (!this.headers) {
+      this.headers = new Map()
+    }
 
     // Initialize header values as an array to allow for multiple values
-    if (this.headers.get(name) === undefined) this.headers.set(name, [])
+    if (!this.headers.has(name)) this.headers.set(name, [])
 
     // Ensure that the value is always a string type
     if (typeof value !== 'string') {
@@ -172,6 +175,7 @@ class Response extends Writable {
 
     // Push current header value onto values array
     this.headers.get(name).push(value)
+
     return this
   }
 
@@ -197,17 +201,7 @@ class Response extends Writable {
      * @param {Boolean} signCookie Enables/Disables Cookie Signing
      * @returns {Response} Response (Chainable)
      */
-  cookie (
-    name,
-    value,
-    expiry,
-    options = {
-      secure: true,
-      sameSite: 'none',
-      path: '/'
-    },
-    signCookie = true
-  ) {
+  cookie (name, value, expiry, options = { secure: true, httpOnly: true, sameSite: 'strict', path: '/' }, signCookie = true) {
     // Determine if this is a delete operation and recursively call self with appropriate options
     if (name && value === null) {
       return this.cookie(name, '', null, {
@@ -529,8 +523,8 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (this.route_options.JSONSerializer) {
-      body = this.route_options.JSONSerializer(body)
+    if (this.JSONSerialize) {
+      body = this.JSONSerialize(body)
     } else {
       try {
         body = JSON.stringify(body)

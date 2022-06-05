@@ -19,7 +19,7 @@ class Router {
      * @private
      * @param {String} method Supported: any, get, post, delete, head, options, patch, put, trace
      * @param {String} pattern Example: "/api/v1"
-     * @param {Object} options Route processor options (Optional)
+     * @param {Map} options Route processor options (Optional)
      * @param {Function} handler Example: (request, response) => {}
      */
   _register_route () {
@@ -52,16 +52,13 @@ class Router {
     // Concatenate any remaining callbacks to the route options middlewares property
     if (callbacks.length > 0) options.middlewares = (options.middlewares || []).concat(callbacks)
 
-    // TODO: test this!
-    if (Array.isArray(options.middlewares)) options.middlewares = new Map([...options.middlewares.map((middleware, index) => [index, middleware])])
-
-    const opts = new Map(Object.entries(options))
+    if (!Array.isArray(options.middleware)) options.middlewares = []
 
     // Initialize the record object which will hold information about this route
     const record = {
       method,
       pattern,
-      options: opts,
+      options: new Map(Object.entries(options)),
       handler
     }
 
@@ -204,7 +201,7 @@ class Router {
      * @typedef {Map} RouteOptions
      * @property {Number} max_body_length Overrides the global maximum body length specified in Server constructor options.
      * @property {Object} jwt JWT options
-     * @property {Map.<MiddlewareHandler>|Map.<PromiseMiddlewareHandler>} middlewares Route specific middlewares
+     * @property {Array.<MiddlewareHandler>|Array.<PromiseMiddlewareHandler>} middlewares Route specific middlewares
      */
 
   /**

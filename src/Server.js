@@ -65,7 +65,7 @@ class Server extends Router {
 
     this._middlewares = new Map([
       // This will contain global middlewares
-      ['/', new Map()]
+      ['/', []]
     ])
 
     this._routes = new Map([
@@ -224,7 +224,7 @@ class Server extends Router {
 
     // Process and combine middlewares for routes that support middlewares
     // Initialize route-specific middlewares if they do not exist
-    if (!(record.options.middlewares instanceof Map)) record.options.middlewares = new Map()
+    if (!Array.isArray(record.options.middlewares)) record.options.middlewares = []
 
     // Parse middlewares that apply to this route based on execution pattern
     const middlewares = []
@@ -233,12 +233,10 @@ class Server extends Router {
     })
 
     // Map all user specified route specific middlewares with a priority of 2 + combine matched middlewares with route middlewares
-    record.options.middlewares.forEach((middleware) => middlewares.push({
+    record.options.middlewares = record.options.middlewares.map((middleware) => middlewares.push({
       priority: 2,
       middleware
     }))
-
-    record.options.middlewares = new Map([...middlewares.map((middleware, index) => [index, middleware])])
 
     const route = new Route({
       app: this,
@@ -253,14 +251,28 @@ class Server extends Router {
 
     // JSON Schema validators
     if (record.options.has('schema')) {
-      if (record.options.get('schema').request) route.setRequestParser(this.ajv.compileParser(record.options.schema.request))
-      if (record.options.get('schema').response) route.setResponseSerializer(this.ajv.compileSerializer(record.options.schema.response))
+      if (record.options.get('schema').request) {
+        route.setRequestDecorator({
+          name: 'JSONParse',
+          fn: this.ajv.compileParser(record.options.schema.request)
+        })
+      }
+      if (record.options.get('schema').response) {
+        route.setResponseDecorator({
+          name: 'JSONSerialize',
+          fn: this.ajv.compileSerializer(record.options.schema.response)
+        })
+      }
     }
 
     if (record.options.has('jwt')) {
       const jwtOptions = record.options.get('jwt')
 
-      if (typeof jwtOptions === 'object') JWT(this, jwtOptions)
+      if (typeof jwtOptions === 'object') {
+        const [requestVerifier, responseSigner] = JWT(this, jwtOptions)
+        route.setRequestDecorator(requestVerifier)
+        route.setResponseDecorator(responseSigner)
+      }
     }
 
     this._routes.get(record.method).set(record.pattern, route)
@@ -286,7 +298,7 @@ class Server extends Router {
     }
 
     // Store middleware object in its pattern branch
-    this._middlewares.get(record.pattern).set(this._middlewares.get(record.pattern).size, object)
+    this._middlewares.get(record.pattern).push(object)
 
     // Inject middleware into all routes that match its execution pattern if it is non global
     if (object.priority !== 0) {
@@ -368,37 +380,34 @@ class Server extends Router {
     if (error) return response.throw(error)
 
     // Determine next callback based on if either global or route middlewares exist
-    const globalMiddlewaresSize = this._middlewares.get('/').size
-    const hasGlobalMiddlewares = globalMiddlewaresSize !== 0
-    const hasRouteMiddlewares = route.options.middlewares.size !== 0
 
-    let next
-    if (hasGlobalMiddlewares || hasRouteMiddlewares) {
-      next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
+    const globalMiddlewares = this._middlewares.get('/')
+    const globalMiddlewaresLength = globalMiddlewares.length
+    const hasGlobalMiddlewares = globalMiddlewaresLength !== 0
+    const routeMiddlewares = route.options.middlewares
+    const hasRouteMiddlewares = routeMiddlewares.length !== 0
 
-      // Execute global middlewares first as they take precedence over route specific middlewares
-      if (hasGlobalMiddlewares) {
-      // Determine current global middleware and execute
-        if (this._middlewares.get('/').get(cursor)) {
-        // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-          response._track_middleware_cursor(cursor)
-          const output = this._middlewares.get('/').get(cursor).middleware(request, response, next)
-          if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-          return
-        }
-      }
+    const next = hasGlobalMiddlewares || hasRouteMiddlewares ? (err) => this._chain_middlewares(route, request, response, cursor + 1, err) : undefined
 
-      // Execute route specific middlewares if they exist
-      if (hasRouteMiddlewares) {
+    // Execute global middlewares first as they take precedence over route specific middlewares
+    if (hasGlobalMiddlewares && globalMiddlewares[cursor]) {
+      // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
+      response._track_middleware_cursor(cursor)
+      const output = globalMiddlewares[cursor].middleware(request, response, next)
+      if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+      return
+    }
+
+    // Execute route specific middlewares if they exist
+    if (hasRouteMiddlewares) {
       // Determine current route specific/method middleware and execute while accounting for global middlewares cursor offset
-        const object = route.options.middlewares.get(cursor - globalMiddlewaresSize)
-        if (object) {
+      const object = route.options.middlewares.get(cursor - globalMiddlewaresLength)
+      if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-          response._track_middleware_cursor(cursor)
-          const output = object.middleware(request, response, next)
-          if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-          return
-        }
+        response._track_middleware_cursor(cursor)
+        const output = object.middleware(request, response, next)
+        if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+        return
       }
     }
 
@@ -418,6 +427,30 @@ class Server extends Router {
     }
 
     this[name] = value
+  }
+
+  get _middlewaresArray () {
+    if (this.__middlewaresArray) return this.__middlewaresArray
+
+    const middlewares = []
+
+    this._middlewares.forEach((global) => {
+      const globalMiddlewaresLength = global.length
+      for (let i = 0; i < globalMiddlewaresLength; i++) {
+        middlewares.push(global[i].middleware)
+      }
+    })
+    this._routes.forEach((routes) => {
+      routes.forEach((route) => {
+        const routeMiddlewares = route.options.get('middlewares')
+        const routeMiddlewaresLength = routeMiddlewares.length
+        for (let i = 0; i < routeMiddlewaresLength; i++) {
+          middlewares.push(routeMiddlewares[i].middleware)
+        }
+      })
+    })
+
+    return (this.__middlewaresArray = middlewares)
   }
 }
 
