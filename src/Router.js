@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-const Stream = require('stream') // lgtm [js/unused-local-variable]
+const Stream = require('readable-stream') // lgtm [js/unused-local-variable]
 const { mergeRelativePaths, isServer, isFunction, isArray, isObject, isString, isRouter } = require('./utils')
 
 class Router {

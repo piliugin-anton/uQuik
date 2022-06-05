@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 const { Readable, Writable } = require('readable-stream')
 // eslint-disable-next-line no-unused-vars
-const Server = require('./Server.js') // lgtm [js/unused-local-variable]
+const Server = require('./Server') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const statusCodes = require('./statusCodes.json')

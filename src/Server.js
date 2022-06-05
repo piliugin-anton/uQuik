@@ -1,12 +1,13 @@
 const uWebSockets = require('uWebSockets.js')
 const AjvJTD = require('ajv/dist/jtd')
 const fastUri = require('fast-uri')
-const Route = require('./Route')
 const Router = require('./Router')
-// eslint-disable-next-line no-unused-vars
-const Stream = require('stream') // lgtm [js/unused-local-variable]
+const Route = require('./Route')
 const Request = require('./Request')
 const Response = require('./Response')
+const CustomError = require('./CustomError')
+// eslint-disable-next-line no-unused-vars
+const Stream = require('readable-stream') // lgtm [js/unused-local-variable]
 const JWT = require('./JWT')
 
 class Server extends Router {
@@ -24,6 +25,7 @@ class Server extends Router {
      * @param {Number} options.max_body_length Maximum body content length allowed in bytes. For Reference: 1kb = 1000 bytes and 1mb = 1000kb.
      * @param {Boolean} options.auto_close Whether to automatically close the server instance when the process exits. Default: true
      * @param {Object} options.ajv Ajv-JTD options
+     * @param {Boolean|Object} options.json_errors Boolean or Object containing a JTD schema
      */
   constructor (options = {}) {
     // Only accept object as a parameter type for options
@@ -49,7 +51,8 @@ class Server extends Router {
       ['trust_proxy', options.trust_proxy || false],
       ['unsafe_buffers', options.unsafe_buffers || false],
       ['max_body_length', options.max_body_length || 1153434002],
-      ['ajv', typeof options.ajv === 'object' ? options.ajv : {}]
+      ['ajv', typeof options.ajv === 'object' ? options.ajv : {}],
+      ['json_errors', options.json_errors || false]
     ])
 
     this._routes_locked = false
@@ -57,6 +60,15 @@ class Server extends Router {
     this.handlers = new Map([
       ['on_not_found', null],
       ['on_error', (request, response, error) => {
+        if (error instanceof CustomError) {
+          response.status(error.status)
+          if (this._options.get('json_errors')) {
+            return response
+              .header('Content-Type', 'application/json')
+              .send(this._options.get('json_error_serializer')({ error: error.message }))
+          }
+          return response.send(error.message)
+        }
         // Throw on default if user has not bound an error handler
         response.status(500).send('Uncaught Exception Occured')
         throw error
@@ -90,6 +102,12 @@ class Server extends Router {
       allErrors: false,
       ...this._options.get('ajv')
     })
+
+    const jsonErrors = this._options.get('json_errors')
+
+    if (jsonErrors) {
+      this._options.set('json_error_serializer', this.ajv.compileSerializer(typeof jsonErrors === 'object' ? jsonErrors : { properties: { error: { type: 'string' } } }))
+    }
 
     // Create underlying uWebsockets App or SSLApp to power
     if (this._options.get('is_ssl')) {
@@ -166,11 +184,19 @@ class Server extends Router {
      * Sets a global error handler which will catch most uncaught errors across all routes/middlewares.
      *
      * @param {RouteErrorHandler} handler
+     * @param {Object=} options
+     * @param {Boolean|Object} options.json
      */
-  set_error_handler (handler) {
+  set_error_handler (handler, options = {}) {
     if (typeof handler !== 'function') throw new Error('handler must be a function')
 
     this.handlers.set('on_error', handler)
+
+    if (options && options.json) {
+      this._options.set('json_errors', true)
+
+      this._options.set('json_error_serializer', typeof options.json === 'object' ? this.ajv.compileSerializer(options.json) : JSON.parse)
+    }
   }
 
   /**

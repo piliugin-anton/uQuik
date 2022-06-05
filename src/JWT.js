@@ -2,14 +2,7 @@ const { createSigner, createDecoder, createVerifier, TokenError } = require('fas
 const assert = require('assert')
 const steed = require('steed')
 const { parse } = require('./helpers/@lukeed.ms')
-
-class JWTError extends Error {
-  constructor (message, status) {
-    super(message)
-    this.name = 'JWTError'
-    this.status = status
-  }
-}
+const CustomError = require('./CustomError')
 
 const messages = {
   badRequestErrorMessage: 'Format is Authorization: Bearer [token]',
@@ -187,7 +180,7 @@ function JWT (context, options = {}) {
     if (extractToken) {
       token = extractToken(request)
       if (!token) {
-        throw new JWTError(messagesOptions.badRequestErrorMessage, 400)
+        throw new CustomError(messagesOptions.badRequestErrorMessage, 400)
       }
     } else if (headerAuthorization) {
       const parts = headerAuthorization.split(' ')
@@ -196,10 +189,10 @@ function JWT (context, options = {}) {
         token = parts[1]
 
         if (!/^Bearer$/i.test(scheme)) {
-          throw new JWTError(messagesOptions.badRequestErrorMessage, 400)
+          throw new CustomError(messagesOptions.badRequestErrorMessage, 400)
         }
       } else {
-        throw new JWTError(messagesOptions.badRequestErrorMessage, 400)
+        throw new CustomError(messagesOptions.badRequestErrorMessage, 400)
       }
     } else if (cookie) {
       if (cookies) {
@@ -207,13 +200,13 @@ function JWT (context, options = {}) {
         if (tokenValue) {
           token = cookie.signed ? request.unsignCookie(tokenValue).value : tokenValue
         } else {
-          throw new JWTError(messagesOptions.noAuthorizationInCookieMessage, 401)
+          throw new CustomError(messagesOptions.noAuthorizationInCookieMessage, 401)
         }
       } else {
-        throw new JWTError(messagesOptions.badCookieRequestErrorMessage, 400)
+        throw new CustomError(messagesOptions.badCookieRequestErrorMessage, 400)
       }
     } else {
-      throw new JWTError(messagesOptions.noAuthorizationInHeaderMessage, 401)
+      throw new CustomError(messagesOptions.noAuthorizationInHeaderMessage, 401)
     }
 
     return token
@@ -445,12 +438,12 @@ function JWT (context, options = {}) {
           }
         } catch (error) {
           if (error.code === TokenError.codes.expired) {
-            return callback(new JWTError(messagesOptions.authorizationTokenExpiredMessage, 401))
+            return callback(new CustomError(messagesOptions.authorizationTokenExpiredMessage, 401))
           }
 
           if (error.code === TokenError.codes.invalidKey || error.code === TokenError.codes.invalidSignature || error.code === TokenError.codes.invalidClaimValue
           ) {
-            return callback(new JWTError(typeof messagesOptions.authorizationTokenInvalid === 'function' ? messagesOptions.authorizationTokenInvalid(error) : messagesOptions.authorizationTokenInvalid, 401))
+            return callback(new CustomError(typeof messagesOptions.authorizationTokenInvalid === 'function' ? messagesOptions.authorizationTokenInvalid(error) : messagesOptions.authorizationTokenInvalid, 401))
           }
 
           return callback(error)
@@ -464,11 +457,11 @@ function JWT (context, options = {}) {
 
           if (maybePromise && maybePromise.then) {
             maybePromise
-              .then(trusted => trusted ? callback(null, result) : callback(new JWTError(messagesOptions.authorizationTokenUntrusted, 401)))
+              .then(trusted => trusted ? callback(null, result) : callback(new CustomError(messagesOptions.authorizationTokenUntrusted, 401)))
           } else if (maybePromise) {
             callback(null, maybePromise)
           } else {
-            callback(new JWTError(messagesOptions.authorizationTokenUntrusted, 401))
+            callback(new CustomError(messagesOptions.authorizationTokenUntrusted, 401))
           }
         }
       }
