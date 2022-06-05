@@ -157,19 +157,13 @@ class Response extends Writable {
     }
 
     // Initialize headers container object if it does not exist
-    if (!this.headers) {
-      this.headers = new Map()
-    }
+    if (!this.headers) this.headers = new Map()
 
     // Initialize header values as an array to allow for multiple values
     if (!this.headers.has(name)) this.headers.set(name, [])
 
     // Ensure that the value is always a string type
-    if (typeof value !== 'string') {
-      this.throw(
-        new Error('header(name, value) -> value candidates must always be of type string')
-      )
-    }
+    if (typeof value !== 'string') this.throw(new Error('header(name, value) -> value candidates must always be of type string'))
 
     if (name.toLocaleLowerCase() === 'content-length') this.hasContentLength = true
 
@@ -202,13 +196,6 @@ class Response extends Writable {
      * @returns {Response} Response (Chainable)
      */
   cookie (name, value, expiry, options = { secure: true, httpOnly: true, sameSite: 'strict', path: '/' }, signCookie = true) {
-    // Determine if this is a delete operation and recursively call self with appropriate options
-    if (name && value === null) {
-      return this.cookie(name, '', null, {
-        maxAge: 0
-      })
-    }
-
     // Convert expiry to a valid Date object or delete expiry altogether
     if (typeof expiry === 'number') options.expires = new Date(Date.now() + expiry)
 
@@ -392,13 +379,7 @@ class Response extends Writable {
       const output = handler(offset)
 
       // Throw an exception if the handler did not return a boolean value as that is an improper implementation
-      if (typeof output !== 'boolean') {
-        this.throw(
-          new Error(
-            'Response.drain(handler) -> handler must return a boolean value stating if the write was successful or not.'
-          )
-        )
-      }
+      if (typeof output !== 'boolean') this.throw(new Error('Response.drain(handler) -> handler must return a boolean value stating if the write was successful or not.'))
 
       // Return the boolean value to uWS as required by uWS documentation
       return output
@@ -464,11 +445,7 @@ class Response extends Writable {
      */
   stream (readable, totalSize) {
     // Ensure readable is an instance of a stream.Readable
-    if (typeof readable !== 'object' && typeof readable.destroy !== 'function') {
-      this.throw(
-        new Error('Response.stream(readable, totalSize) -> readable must be a Readable stream.')
-      )
-    }
+    if (typeof readable !== 'object' && typeof readable.destroy !== 'function') this.throw(new Error('Response.stream(readable, totalSize) -> readable must be a Readable stream.'))
 
     // Do not allow streaming if response has already been aborted or completed
     if (!this.completed) {
@@ -513,6 +490,7 @@ class Response extends Writable {
      */
   redirect (url, code = 302) {
     if (!this.completed) return this.status(code).header('Location', url).send()
+
     return false
   }
 
@@ -523,14 +501,6 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (this.JSONSerialize) {
-      body = this.JSONSerialize(body)
-    } else {
-      try {
-        body = JSON.stringify(body)
-      } catch (ex) {}
-    }
-
     if (!body) body = '{}'
 
     return this.type('json').send(body)
@@ -548,6 +518,7 @@ class Response extends Writable {
   jsonp (body, name) {
     const queryParameters = this.wrapped_request.query_parameters
     const methodName = queryParameters.callback || name
+
     return this.type('js').send(`${methodName}(${JSON.stringify(body)})`)
   }
 
@@ -560,36 +531,6 @@ class Response extends Writable {
      */
   html (body) {
     return this.type('html').send(body)
-  }
-
-  /**
-     * Writes approriate headers to signify that file at path has been attached.
-     *
-     * @param {String} path
-     * @param {String=} name
-     * @returns {Response}
-     */
-  attachment (path, name) {
-    // Attach a blank content-disposition header when no filename is defined
-    if (path === undefined) return this.header('Content-Disposition', 'attachment')
-
-    // Parses path in to file name and extension to write appropriate attachment headers
-    const chunks = path.split('/')
-    const finalName = name || chunks[chunks.length - 1]
-    const nameChunks = finalName.split('.')
-    const extension = nameChunks[nameChunks.length - 1]
-    return this.header('Content-Disposition', `attachment; filename="${finalName}"`).type(extension)
-  }
-
-  /**
-     * Writes appropriate attachment headers and sends file content for download on user browser.
-     * This method combined Response.attachment() and Response.file() under the hood, so be sure to follow the same guidelines for usage.
-     *
-     * @param {String} path
-     * @param {String=} filename
-     */
-  download (path, filename) {
-    return this.attachment(path, filename).file(path)
   }
 
   /**
@@ -633,7 +574,8 @@ class Response extends Writable {
     // Return a new SSE instance if one has not been created yet
     if (this.wrapped_request.method === 'GET') {
       // Create new SSE instance if one has not been created yet
-      if (this._sse === undefined) this._sse = new SSEventStream(this)
+      if (!this._sse) this._sse = new SSEventStream(this)
+
       return this._sse
     }
   }
@@ -655,9 +597,7 @@ class Response extends Writable {
      * @param {String} name
      */
   _throw_unsupported (name) {
-    this.throw(
-      new Error(`One of your middlewares or logic tried to call Response.${name} which is unsupported.`)
-    )
+    this.throw(new Error(`One of your middlewares or logic tried to call Response.${name} which is unsupported.`))
   }
 
   /**
@@ -846,14 +786,6 @@ class Response extends Writable {
      */
   render () {
     this._throw_unsupported('render()')
-  }
-
-  /**
-     * ExpressJS: Alias of Response.file()
-     * @param {String} path
-     */
-  sendFile (path) {
-    return this.file(path)
   }
 
   /**

@@ -268,6 +268,8 @@ const fastArrayJoin = (array, separator = '') => {
 }
 
 const getIP = (ab) => {
+  if (ab.byteLength === 0) return ''
+
   const uint8array = new Uint8Array(ab)
   if (uint8array.length === 4) {
     return fastArrayJoin(uint8array, '.')

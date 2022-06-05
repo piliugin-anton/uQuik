@@ -357,16 +357,12 @@ class Request extends Readable {
      */
 
   /**
-     * @typedef {('PARTS_LIMIT_REACHED'|'FILES_LIMIT_REACHED'|'FIELDS_LIMIT_REACHED')} MultipartLimitReject
-     */
-
-  /**
      * Downloads and parses incoming body as a multipart form.
      * This allows for easy consumption of fields, values and files.
      *
      * @param {busboy.BusboyConfig|SyncMultipartHandler|AsyncMultipartHandler} options
      * @param {(SyncMultipartHandler|AsyncMultipartHandler)=} handler
-     * @returns {Promise<MultipartLimitReject|Error>} A promise which is resolved once all multipart fields have been processed
+     * @returns {Promise<CustomError|Error>} A promise which is resolved once all multipart fields have been processed
      */
   multipart (options, handler) {
     // Migrate options to handler if no options object is provided by user
@@ -503,7 +499,7 @@ class Request extends Readable {
      * @returns {Number|Array}
      */
   range (size, options) {
-    const range = this.get('Range')
+    const range = this.get('range')
     if (!range) return
     return parseRange(size, range, options)
   }
@@ -517,9 +513,9 @@ class Request extends Readable {
   param (name, defaultValue) {
     // Parse three dataset candidates
 
-    // First check path parameters, body, and finally query_parameters
+    // First check path parameters, (body?), and finally query_parameters
     if (this.path_parameters.has(name)) return this.path_parameters.get(name)
-    if (this.body[name] !== null) return this.body[name]
+    // if (this.body[name] !== null) return this.body[name]
     if (this.query_parameters.has(name)) {
       const values = this.query_parameters.getAll(name)
       return values.length === 1 ? values[0] : values
@@ -529,7 +525,7 @@ class Request extends Readable {
   }
 
   /**
-     * ExpressJS: Check if the incoming request contains the "Content-Type" header field, and it contains the give mime `type`.
+     * ExpressJS: Check if the incoming request contains the "Content-Type" header field, and it's value equals the given mime `type`.
      * @param {String|Array} types
      * @returns {String|false|null}
      */
@@ -635,7 +631,7 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.raw_response.getRemoteProxiedAddress())
+    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.raw_response.getProxiedRemoteAddress())
 
     return this.remote_proxy_ip
   }
@@ -705,8 +701,9 @@ class Request extends Readable {
     const clientIP = this.ip
     const proxyIP = this.proxy_ip
     const trustProxy = this.app_options.get('trust_proxy')
-    const xForwardedFor = this.get('X-Forwarded-For')
+    const xForwardedFor = this.get('x-forwarded-for')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
+
     return [clientIP, proxyIP]
   }
 
@@ -718,7 +715,7 @@ class Request extends Readable {
     let host = this.get('X-Forwarded-Host')
 
     if (!host || !trustProxy) {
-      host = this.get('Host')
+      host = this.get('host')
     } else if (host.indexOf(',') !== -1) {
       // Note: X-Forwarded-Host is normally only ever a
       //       single value, but this is to be safe.
