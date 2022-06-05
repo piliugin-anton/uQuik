@@ -401,23 +401,24 @@ class Server extends Router {
     }
 
     // Execute route specific middlewares if they exist
-    if (hasRouteMiddlewares && routeMiddlewares[cursor - globalMiddlewaresLength]) {
-      response._track_middleware_cursor(cursor)
-      // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-      const output = routeMiddlewares[cursor - globalMiddlewaresLength].middleware(request, response, next)
-      if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-      return
+    if (hasRouteMiddlewares) {
+      const routeMiddleware = routeMiddlewares[cursor - globalMiddlewaresLength]
+      if (routeMiddleware) {
+        response._track_middleware_cursor(cursor)
+        // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
+        const output = routeMiddlewares[cursor - globalMiddlewaresLength].middleware(request, response, next)
+        if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+        return
+      }
     }
 
-    // Trigger user assigned route handler with wrapped request/response objects.
     // Safely execute the user assigned handler and catch both sync/async errors.
-    new Promise((resolve, reject) => {
-      try {
-        resolve(route.handler(request, response))
-      } catch (error) {
-        reject(error)
-      }
-    }).catch(next)
+    try {
+      const output = route.handler(request, response)
+      if (typeof output === 'object' && typeof output.then === 'function') output.catch((error) => this.handlers.get('on_error')(request, response, error))
+    } catch (error) {
+      this.handlers.get('on_error')(request, response, error)
+    }
   }
 
   decorate (name, value) {
