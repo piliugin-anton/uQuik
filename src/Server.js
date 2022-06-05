@@ -382,12 +382,9 @@ class Server extends Router {
 
     const globalMiddlewares = this._middlewares.get('/')
     const globalMiddlewaresLength = globalMiddlewares.length
-    const hasGlobalMiddlewares = globalMiddlewaresLength !== 0
-    const routeMiddlewares = route.options.middlewares
-    const hasRouteMiddlewares = routeMiddlewares.length !== 0
 
     // Execute global middlewares first as they take precedence over route specific middlewares
-    if (hasGlobalMiddlewares && globalMiddlewares[cursor]) {
+    if (globalMiddlewaresLength !== 0 && globalMiddlewares[cursor]) {
       const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
       response._track_middleware_cursor(cursor)
       // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
@@ -396,8 +393,10 @@ class Server extends Router {
       return
     }
 
+    const routeMiddlewares = route.options.middlewares
+
     // Execute route specific middlewares if they exist
-    if (hasRouteMiddlewares) {
+    if (routeMiddlewares.length !== 0) {
       const routeMiddleware = routeMiddlewares[cursor - globalMiddlewaresLength]
       if (routeMiddleware) {
         const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
