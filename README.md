@@ -12,6 +12,8 @@ Highly performant HTTP(S) web-framework for Node.js
 - Performant Multipart File Uploading (using [`Busboy`](https://github.com/mscdex/busboy))
 - Global Error/Event Handlers
 - JSON schema validation (using [`Ajv`](https://ajv.js.org/json-type-definition.html))
+- JSON Web Token (using [`fast-jwt`](https://github.com/nearform/fast-jwt))
+- CORS support (using [`cors`](https://github.com/expressjs/cors))
 - Cryptographically Secure Cookie Signing/Authentication
 - ExpressJS API Compatibility Through Shared Methods/Properties
 - TypeScript Types Support

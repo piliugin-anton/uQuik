@@ -330,8 +330,7 @@ class Server extends Router {
     const wrappedRequest = new Request(
       request,
       response,
-      route,
-      request.getMethod()
+      route
     )
 
     // Wrap uWS.Response -> Response
