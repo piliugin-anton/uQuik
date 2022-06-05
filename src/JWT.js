@@ -182,13 +182,15 @@ function JWT (context, options = {}) {
 
     let token
     const extractToken = options.extractToken
+    const headerAuthorization = request.headers.get('authorization')
+    const cookies = request.cookies
     if (extractToken) {
       token = extractToken(request)
       if (!token) {
         throw new JWTError(messagesOptions.badRequestErrorMessage, 400)
       }
-    } else if (request.headers && request.headers.authorization) {
-      const parts = request.headers.authorization.split(' ')
+    } else if (headerAuthorization) {
+      const parts = headerAuthorization.split(' ')
       if (parts.length === 2) {
         const scheme = parts[0]
         token = parts[1]
@@ -200,10 +202,9 @@ function JWT (context, options = {}) {
         throw new JWTError(messagesOptions.badRequestErrorMessage, 400)
       }
     } else if (cookie) {
-      if (request.cookies) {
-        if (request.cookies[cookie.cookieName]) {
-          const tokenValue = request.cookies[cookie.cookieName]
-
+      if (cookies) {
+        const tokenValue = cookies[cookie.cookieName]
+        if (tokenValue) {
           token = cookie.signed ? request.unsignCookie(tokenValue).value : tokenValue
         } else {
           throw new JWTError(messagesOptions.noAuthorizationInCookieMessage, 401)
