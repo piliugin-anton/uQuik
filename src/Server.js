@@ -442,7 +442,11 @@ class Server extends Router {
     }
   }
 
-  /* Decorate server instance, used internally */
+  /**
+   * Decorate server instance, used internally
+   * @param {String} name Decorator name
+   * @param {any} value Decorator value
+   */
   decorate (name, value) {
     if (this[name]) {
       throw new Error(`Decorator ${name} already exists!`)

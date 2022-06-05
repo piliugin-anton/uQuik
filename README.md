@@ -15,8 +15,7 @@ Highly performant HTTP(S) web-framework for Node.js
 - JSON Web Token (using [`fast-jwt`](https://github.com/nearform/fast-jwt))
 - CORS support (using [`cors`](https://github.com/expressjs/cors))
 - Cryptographically Secure Cookie Signing/Authentication
-- ExpressJS API Compatibility Through Shared Methods/Properties
-- TypeScript Types Support
+- ExpressJS API Compatibility (partial)
 
 #### Requirements:
 - Node.js version 14.15.0 or higher
