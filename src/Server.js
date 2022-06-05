@@ -354,8 +354,8 @@ class Server extends Router {
       wrappedRequest._start_streaming()
     } else {
       // Push an EOF chunk to signify the readable has already ended thus no more content is readable
-      // wrappedRequest.push(null)
-      wrappedRequest._stop_streaming()
+      wrappedRequest.push(null)
+      // wrappedRequest._stop_streaming()
     }
 
     // Chain incoming request/response through all global/local/route-specific middlewares
