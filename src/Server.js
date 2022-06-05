@@ -291,7 +291,7 @@ class Server extends Router {
      */
   _create_middleware (record) {
     // Initialize middlewares array for specified pattern
-    if (this._middlewares.get(record.pattern) === undefined) this._middlewares.set(record.pattern, new Map())
+    if (!this._middlewares.has(record.pattern)) this._middlewares.set(record.pattern, new Map())
 
     // Create a middleware object with an appropriate priority
     const object = {
@@ -327,14 +327,13 @@ class Server extends Router {
      */
   _handle_uws_request (route, request, response) {
     // Request method
-    const method = request.getMethod()
 
     // Wrap uWS.Request -> Request
     const wrappedRequest = new Request(
       request,
       response,
       route,
-      method
+      request.getMethod()
     )
 
     // Wrap uWS.Response -> Response
