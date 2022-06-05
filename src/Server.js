@@ -139,10 +139,10 @@ class Server extends Router {
      * Starts  webserver on specified port and host.
      *
      * @param {Number} port
-     * @param {String=} host Optional. Default: 0.0.0.0
+     * @param {String=} host Optional. Default: 127.0.0.1
      * @returns {Promise} Promise
      */
-  listen (port, host = '0.0.0.0') {
+  listen (port, host = '127.0.0.1') {
     return new Promise((resolve, reject) =>
       this.uws_instance.listen(host, port, (listenSocket) => {
         if (listenSocket) {
@@ -183,9 +183,9 @@ class Server extends Router {
   /**
      * Sets a global error handler which will catch most uncaught errors across all routes/middlewares.
      *
-     * @param {RouteErrorHandler} handler
-     * @param {Object=} options
-     * @param {Boolean|Object} options.json
+     * @param {RouteErrorHandler} handler Hanlder function
+     * @param {Object=} options Error handler options
+     * @param {Boolean|Object} options.json Boolean or JTD schema object
      */
   set_error_handler (handler, options = {}) {
     if (typeof handler !== 'function') throw new Error('handler must be a function')
@@ -442,36 +442,13 @@ class Server extends Router {
     }
   }
 
+  /* Decorate server instance, used internally */
   decorate (name, value) {
     if (this[name]) {
       throw new Error(`Decorator ${name} already exists!`)
     }
 
     this[name] = value
-  }
-
-  get _middlewaresArray () {
-    if (this.__middlewaresArray) return this.__middlewaresArray
-
-    const middlewares = []
-
-    this._middlewares.forEach((global) => {
-      const globalMiddlewaresLength = global.length
-      for (let i = 0; i < globalMiddlewaresLength; i++) {
-        middlewares.push(global[i].middleware)
-      }
-    })
-    this._routes.forEach((routes) => {
-      routes.forEach((route) => {
-        const routeMiddlewares = route.options.get('middlewares')
-        const routeMiddlewaresLength = routeMiddlewares.length
-        for (let i = 0; i < routeMiddlewaresLength; i++) {
-          middlewares.push(routeMiddlewares[i].middleware)
-        }
-      })
-    })
-
-    return (this.__middlewaresArray = middlewares)
   }
 }
 

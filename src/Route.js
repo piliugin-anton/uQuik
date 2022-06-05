@@ -29,7 +29,6 @@ class Route {
      * @param {Function} handler
      */
   use (middleware) {
-    console.log(typeof this.options)
     // Store and sort middlewares to ensure proper execution order
     this.options.middlewares.push(middleware)
     this.options.middlewares = this.options.middlewares.sort((a, b) => a.priority - b.priority)

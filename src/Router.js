@@ -14,13 +14,18 @@ class Router {
   }
 
   /**
+     * @typedef RouteHandler
+     * @type {function(Request, Response):void}
+     */
+
+  /**
      * Registers a route in the routes array for this router.
      *
      * @private
      * @param {String} method Supported: any, get, post, delete, head, options, patch, put, trace
      * @param {String} pattern Example: "/api/v1"
      * @param {Map} options Route processor options (Optional)
-     * @param {Function} handler Example: (request, response) => {}
+     * @param {RouteHandler} handler Example: (request, response) => {}
      */
   _register_route () {
     // Initialize property holders for building a route record
@@ -172,11 +177,7 @@ class Router {
     const pattern = isString(arguments[0]) ? arguments[0] : '/'
 
     // Validate that the pattern value does not contain any wildcard or path parameter prefixes which are not allowed
-    if (pattern.indexOf('*') > -1 || pattern.indexOf(':') > -1) {
-      throw new Error(
-        'Server/Router.use() -> Wildcard "*" & ":parameter" prefixed paths are not allowed when binding middlewares or routers using this method.'
-      )
-    }
+    if (pattern.indexOf('*') > -1 || pattern.indexOf(':') > -1) throw new Error('Server/Router.use() -> Wildcard "*" & ":parameter" prefixed paths are not allowed when binding middlewares or routers using this method.')
 
     // Register each candidate individually depending on the type of candidate value
     for (let i = 0; i < arguments.length; i++) {
@@ -201,12 +202,10 @@ class Router {
      * @typedef {Map} RouteOptions
      * @property {Number} max_body_length Overrides the global maximum body length specified in Server constructor options.
      * @property {Object} jwt JWT options
+     * @property {Object} schema JTD schema object
+     * @property {Object} schema.request JTD schema for request
+     * @property {Object} schema.response JTDschema for response
      * @property {Array.<MiddlewareHandler>|Array.<PromiseMiddlewareHandler>} middlewares Route specific middlewares
-     */
-
-  /**
-     * @typedef RouteHandler
-     * @type {function(Request, Response):void}
      */
 
   /**
@@ -321,24 +320,6 @@ class Router {
      */
   connect () {
     return this._register_route('connect', ...arguments)
-  }
-
-  /* Route getters */
-
-  /**
-     * Returns All routes in this router in the order they were registered.
-     * @returns {Array}
-     */
-  get routes () {
-    return this.records.routes
-  }
-
-  /**
-     * Returns all middlewares in this router in the order they were registered.
-     * @returns {Array}
-     */
-  get middlewares () {
-    return this.records.middlewares
   }
 }
 
