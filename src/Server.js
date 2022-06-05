@@ -326,8 +326,6 @@ class Server extends Router {
      * @param {Response} response
      */
   _handle_uws_request (route, request, response) {
-    // Request method
-
     // Wrap uWS.Request -> Request
     const wrappedRequest = new Request(
       request,
@@ -388,10 +386,9 @@ class Server extends Router {
     const routeMiddlewares = route.options.middlewares
     const hasRouteMiddlewares = routeMiddlewares.length !== 0
 
-    const next = hasGlobalMiddlewares || hasRouteMiddlewares ? (err) => this._chain_middlewares(route, request, response, cursor + 1, err) : undefined
-
     // Execute global middlewares first as they take precedence over route specific middlewares
     if (hasGlobalMiddlewares && globalMiddlewares[cursor]) {
+      const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
       response._track_middleware_cursor(cursor)
       // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
       const output = globalMiddlewares[cursor].middleware(request, response, next)
@@ -403,6 +400,7 @@ class Server extends Router {
     if (hasRouteMiddlewares) {
       const routeMiddleware = routeMiddlewares[cursor - globalMiddlewaresLength]
       if (routeMiddleware) {
+        const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
         response._track_middleware_cursor(cursor)
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
         const output = routeMiddlewares[cursor - globalMiddlewaresLength].middleware(request, response, next)
