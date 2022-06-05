@@ -413,14 +413,15 @@ class Server extends Router {
       }
     }
 
-    // Safely execute the user provided route handler
-    try {
-      const output = route.handler(request, response)
-      if (typeof output === 'object' && typeof output.then === 'function') output.catch(next)
-    } catch (error) {
-      // If route handler throws an error, trigger error handler
-      next(error)
-    }
+    // Trigger user assigned route handler with wrapped request/response objects.
+    // Safely execute the user assigned handler and catch both sync/async errors.
+    new Promise((resolve, reject) => {
+      try {
+        resolve(route.handler(request, response))
+      } catch (error) {
+        reject(error)
+      }
+    }).catch(next)
   }
 
   decorate (name, value) {
