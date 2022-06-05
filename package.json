@@ -10,7 +10,7 @@
     "example": "node examples/basic.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrk": "wrk -t4 -c2500 -d60s -R62000 http://127.0.0.1:5000",
-    "wrk-post": "wrk -s post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000"
+    "wrk-post": "wrk -s examples/post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000"
   },
   "dependencies": {
     "ajv": "^8.11.0",

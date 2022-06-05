@@ -155,7 +155,7 @@ function populateMaps (extensions, types) {
   // source preference (least -> most)
   const preference = ['nginx', 'apache', undefined, 'iana']
 
-  Object.keys(db).forEach(function forEachMimeType (type) {
+  for (const type in db) {
     const mime = db[type]
     const exts = mime.extensions
 
@@ -184,5 +184,5 @@ function populateMaps (extensions, types) {
       // set the extension -> mime
       types[extension] = type
     }
-  })
+  }
 }
