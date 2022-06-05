@@ -55,6 +55,8 @@ class Server extends Router {
       ['json_errors', options.json_errors || false]
     ])
 
+    const jsonErrors = this._options.get('json_errors')
+
     this._routes_locked = false
 
     this.handlers = new Map([
@@ -62,7 +64,7 @@ class Server extends Router {
       ['on_error', (request, response, error) => {
         if (error instanceof CustomError) {
           response.status(error.status)
-          if (this._options.get('json_errors')) {
+          if (jsonErrors) {
             return response
               .header('Content-Type', 'application/json')
               .send(this._options.get('json_error_serializer')({ error: error.message }))
@@ -102,8 +104,6 @@ class Server extends Router {
       allErrors: false,
       ...this._options.get('ajv')
     })
-
-    const jsonErrors = this._options.get('json_errors')
 
     if (jsonErrors) {
       this._options.set('json_error_serializer', this.ajv.compileSerializer(typeof jsonErrors === 'object' ? jsonErrors : { properties: { error: { type: 'string' } } }))
