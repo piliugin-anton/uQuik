@@ -411,9 +411,9 @@ class Server extends Router {
     // Safely execute the user assigned handler and catch both sync/async errors.
     try {
       const output = route.handler(request, response)
-      if (typeof output === 'object' && typeof output.then === 'function') output.catch((error) => this.handlers.get('on_error')(request, response, error))
+      if (typeof output === 'object' && typeof output.then === 'function') output.catch((error) => response.throw(error))
     } catch (error) {
-      this.handlers.get('on_error')(request, response, error)
+      response.throw(error)
     }
   }
 
