@@ -393,24 +393,20 @@ class Server extends Router {
 
     // Execute global middlewares first as they take precedence over route specific middlewares
     if (hasGlobalMiddlewares && globalMiddlewares[cursor]) {
-      // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
       response._track_middleware_cursor(cursor)
+      // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
       const output = globalMiddlewares[cursor].middleware(request, response, next)
       if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
       return
     }
 
     // Execute route specific middlewares if they exist
-    if (hasRouteMiddlewares) {
-      // Determine current route specific/method middleware and execute while accounting for global middlewares cursor offset
-      const object = route.options.middlewares[cursor - globalMiddlewaresLength]
-      if (object) {
-        // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-        response._track_middleware_cursor(cursor)
-        const output = object.middleware(request, response, next)
-        if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-        return
-      }
+    if (hasRouteMiddlewares && routeMiddlewares[cursor - globalMiddlewaresLength]) {
+      response._track_middleware_cursor(cursor)
+      // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
+      const output = routeMiddlewares[cursor - globalMiddlewaresLength].middleware(request, response, next)
+      if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+      return
     }
 
     // Trigger user assigned route handler with wrapped request/response objects.
