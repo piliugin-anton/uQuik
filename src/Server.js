@@ -403,7 +403,7 @@ class Server extends Router {
     // Execute route specific middlewares if they exist
     if (hasRouteMiddlewares) {
       // Determine current route specific/method middleware and execute while accounting for global middlewares cursor offset
-      const object = route.options.middlewares.get(cursor - globalMiddlewaresLength)
+      const object = route.options.middlewares[cursor - globalMiddlewaresLength]
       if (object) {
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
         response._track_middleware_cursor(cursor)
