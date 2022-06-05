@@ -4,6 +4,7 @@ const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const busboy = require('./helpers/busboy')
 const MultipartField = require('./MultipartField')
+const CustomError = require('./CustomError')
 const { getIP } = require('./utils')
 
 // ExpressJS compatibility packages
@@ -400,11 +401,11 @@ class Request extends Readable {
 
       // Bind limit event handlers to reject as error code constants
       // eslint-disable-next-line prefer-promise-reject-errors
-      uploader.on('partsLimit', () => reject('PARTS_LIMIT_REACHED'))
+      uploader.on('partsLimit', () => reject(new CustomError('PARTS_LIMIT_REACHED', 413)))
       // eslint-disable-next-line prefer-promise-reject-errors
-      uploader.on('filesLimit', () => reject('FILES_LIMIT_REACHED'))
+      uploader.on('filesLimit', () => reject(new CustomError('FILES_LIMIT_REACHED', 413)))
       // eslint-disable-next-line prefer-promise-reject-errors
-      uploader.on('fieldsLimit', () => reject('FIELDS_LIMIT_REACHED'))
+      uploader.on('fieldsLimit', () => reject(new CustomError('FIELDS_LIMIT_REACHED', 413)))
 
       // Bind a 'field' event handler to process each incoming field
       uploader.on('field', (name, value, info) => this._on_multipart_field(handler, name, value, info))
@@ -426,8 +427,7 @@ class Request extends Readable {
       try {
         this.pipe(uploader)
       } catch (ex) {
-        // eslint-disable-next-line prefer-promise-reject-errors
-        reject('INTERNAL_ERROR')
+        reject(new Error('INTERNAL_ERROR'))
       }
     })
   }
