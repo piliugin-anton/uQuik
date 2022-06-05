@@ -251,20 +251,22 @@ class Server extends Router {
 
     // JSON Schema validators
     if (record.options.has('schema')) {
-      if (record.options.get('schema').request) {
+      const schema = record.options.get('schema')
+      if (schema.request) {
         route.setRequestDecorator({
           name: 'JSONParse',
-          fn: this.ajv.compileParser(record.options.schema.request)
+          fn: this.ajv.compileParser(schema.request)
         })
       }
       if (record.options.get('schema').response) {
         route.setResponseDecorator({
           name: 'JSONSerialize',
-          fn: this.ajv.compileSerializer(record.options.schema.response)
+          fn: this.ajv.compileSerializer(schema.response)
         })
       }
     }
 
+    // JWT
     if (record.options.has('jwt')) {
       const jwtOptions = record.options.get('jwt')
 
