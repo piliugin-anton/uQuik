@@ -237,22 +237,22 @@ uquik
 
 ### Errors
 
-#### Hello World Error
+#### Hello Error
 ```javascript
 const { Server, CustomError } = require("uquik");
 
 const uquik = new Server({
-  json_errors: true // This will set to send errors in json format: {"error":"Hello World!"}
+  json_errors: true // This will set to send errors in JSON format: {"error":"Hello Error!"}
 });
 
 uquik.get("/", (request, response) => {
   // Create a new CustomError(message, status_code)
-  response.throw(new CustomError("Hello World!", 500));
+  response.throw(new CustomError("Hello Error!", 500));
 });
 
 uquik
   .listen(5000, "127.0.0.1")
-  .then((socket) => console.log("[uQuik] Server started"))
-  .catch((error) => console.log("[uQuik] Failed to start a server", error));
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
 
 ```
