@@ -1,6 +1,10 @@
+.github
 .vscode
+docs
+examples
+node_modules
 .eslintignore
 .eslintrc.js
 .gitignore
 .prettierignore
-post.lua
+.env
