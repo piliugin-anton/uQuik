@@ -5,5 +5,3 @@ node_modules/*
 
 benchmark/node_modules
 .clinic
-examples
-docs
