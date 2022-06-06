@@ -25,8 +25,11 @@ class Request extends Readable {
 
     this.locals = {}
 
+    // IMPORTANT TO GET ALL THE DATA!
     this.method = this.raw_request.getMethod().toUpperCase()
     this.path = this.raw_request.getUrl()
+    this._remote_ip = this.raw_response.getRemoteAddress()
+    this._remote_proxy_ip = this.raw_response.getProxiedRemoteAddress()
 
     route.requestDecorators.forEach((decorator, name) => (this[name] = decorator))
 
@@ -613,7 +616,7 @@ class Request extends Readable {
      */
   get ip () {
     // Convert Remote IP to string on first access
-    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this.raw_response.getRemoteAddress())
+    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this._remote_ip)
 
     return this.remote_ip
   }
@@ -624,7 +627,7 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this.raw_response.getProxiedRemoteAddress())
+    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this._remote_proxy_ip)
 
     return this.remote_proxy_ip
   }
