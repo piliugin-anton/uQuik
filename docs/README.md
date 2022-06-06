@@ -1,6 +1,6 @@
 # Documentation
 
-# Examples
+## Examples
 
 #### Hello World
 ```javascript
@@ -19,7 +19,7 @@ uquik
 
 ```
 
-## Multipart
+### Multipart
 
 ```javascript
 const { Server } = require("uquik");
@@ -76,7 +76,7 @@ uquik
 
 ```
 
-## CORS
+### CORS
 
 #### Global CORS
 
@@ -116,7 +116,7 @@ uquik
 
 ```
 
-## JSON schema (JTD)
+### JSON schema (JTD)
 ```javascript
 const { Server } = require("uquik");
 
