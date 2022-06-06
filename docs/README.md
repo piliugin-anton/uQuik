@@ -203,7 +203,7 @@ uquik.post("/login", { jwt }, (request, response) => {
 });
 
 uquik.use("/protected", async (request, response, next) => {
-  // Verify provided token (from Authorization header or cookies)
+  // Verify provided token (from Authorization header or cookies, depending on options)
   try {
     request.locals.decodedToken = await request.jwtVerify();
     next();
