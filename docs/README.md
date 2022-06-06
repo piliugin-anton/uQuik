@@ -4,17 +4,17 @@
 To see a thrown errors in console while you are developing your backend create a file `.env` in your project root, and place there `NODE_ENV="development"`
 
 ## Links
-[Hello World](https://github.com/piliugin-anton/uQuik/tree/master/docs#hello-world)
+- [Hello World](https://github.com/piliugin-anton/uQuik/tree/master/docs#hello-world)
 
-[Multipart](https://github.com/piliugin-anton/uQuik/tree/master/docs#multipart)
+- [Multipart](https://github.com/piliugin-anton/uQuik/tree/master/docs#multipart)
 
-[Cross-Origin Resource Sharing (CORS)](https://github.com/piliugin-anton/uQuik/tree/master/docs#cross-origin-resource-sharing-cors)
+- [Cross-Origin Resource Sharing (CORS)](https://github.com/piliugin-anton/uQuik/tree/master/docs#cross-origin-resource-sharing-cors)
 
-[JSON schema (JTD)](https://github.com/piliugin-anton/uQuik/tree/master/docs#json-schema-jtd)
+- [JSON schema (JTD)](https://github.com/piliugin-anton/uQuik/tree/master/docs#json-schema-jtd)
 
-[JSON WebToken (JWT)](https://github.com/piliugin-anton/uQuik/tree/master/docs#json-webtoken-jwt)
+- [JSON WebToken (JWT)](https://github.com/piliugin-anton/uQuik/tree/master/docs#json-webtoken-jwt)
 
-[Errors](https://github.com/piliugin-anton/uQuik/tree/master/docs#errors)
+- [Errors](https://github.com/piliugin-anton/uQuik/tree/master/docs#errors)
 
 ## Examples
 
