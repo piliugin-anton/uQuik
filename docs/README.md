@@ -2,7 +2,7 @@
 
 # Examples
 
-#### Simple 'Hello World' application
+#### 'Hello World' application
 ```javascript
 const { Server } = require("uquik");
 
