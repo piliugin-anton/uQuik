@@ -38,11 +38,7 @@ class MultipartField {
      */
   write (path, options) {
     // Throw an error if this method is called on a non file field
-    if (this.file === undefined) {
-      throw new Error(
-        'Request.MultipartField.write(path, options) -> This method can only be called on a field that is a file type.'
-      )
-    }
+    if (!this.file) throw new Error('Request.MultipartField.write(path, options) -> This method can only be called on a field that is a file type.')
 
     // Return a promise which resolves once write stream has finished
     return new Promise((resolve, reject) => {

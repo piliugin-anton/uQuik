@@ -25,6 +25,9 @@ class Request extends Readable {
 
     this.locals = {}
 
+    this.method = this.raw_request.getMethod().toUpperCase()
+    this.path = this.raw_request.getUrl()
+
     route.requestDecorators.forEach((decorator, name) => (this[name] = decorator))
 
     this.headers = new Map()
@@ -558,18 +561,6 @@ class Request extends Readable {
      */
   get raw () {
     return this.raw_request
-  }
-
-  get method () {
-    if (this._method) return this._method
-
-    return (this._method = this.raw_request.getMethod().toUpperCase())
-  }
-
-  get path () {
-    if (this._path) return this._path
-
-    return (this._path = this.raw_request.getUrl())
   }
 
   get url () {
