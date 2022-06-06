@@ -40,7 +40,7 @@ uquik
   .catch((error) => console.log("[uQuik] Failed to start a server", error));
 
 ````
-## [Documentation](https://github.com/piliugin-anton/uQuik/docs)
+## [Documentation](https://github.com/piliugin-anton/uQuik/tree/master/docs)
 
 
 ## License
