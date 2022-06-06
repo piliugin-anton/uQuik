@@ -31,7 +31,7 @@ class Request extends Readable {
     this._remote_ip = this.raw_response.getRemoteAddress()
     this._remote_proxy_ip = this.raw_response.getProxiedRemoteAddress()
 
-    route.requestDecorators.forEach((decorator, name) => (this[name] = decorator))
+    this.decorators = route.requestDecorators
 
     this.headers = new Map()
     this.path_parameters = new Map()
@@ -278,8 +278,8 @@ class Request extends Readable {
      * @returns {Any}
      */
   _parse_json (string, defaultValue) {
-    if (this.JSONParser) {
-      return this.JSONParser(string) || defaultValue
+    if (this.decorators.has('JSONParse')) {
+      return this.decorators.get('JSONParse')(string) || defaultValue
     } else {
       try {
         return JSON.parse(string)

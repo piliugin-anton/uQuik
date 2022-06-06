@@ -21,9 +21,9 @@ class Response extends Writable {
     this.master_context = route.app
     this.app_options = route.app._options
 
-    this.locals = {}
+    this.decorators = route.requestDecorators
 
-    route.responseDecorators.forEach((decorator, name) => (this[name] = decorator))
+    this.locals = {}
 
     // Bind the abort handler as required by uWebsockets.js
     this._bind_abort_handler()
@@ -493,8 +493,8 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (this.JSONSerializer) {
-      body = this.JSONSerializer(body)
+    if (this.decorators.has('JSONSerialize')) {
+      body = this.decorators.get('JSONSerialize')(body)
     } else {
       try {
         body = JSON.stringify(body)

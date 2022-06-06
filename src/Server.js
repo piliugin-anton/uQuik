@@ -290,7 +290,7 @@ class Server extends Router {
           fn: this.ajv.compileParser(schema.request)
         })
       }
-      if (record.options.get('schema').response) {
+      if (schema.response) {
         route.setResponseDecorator({
           name: 'JSONSerialize',
           fn: this.ajv.compileSerializer(schema.response)
