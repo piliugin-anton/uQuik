@@ -4,7 +4,9 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
 ### Modularity With Routers
 Routers allow you to group specific routes under their own branch which you can then assign onto a master branch. The example below shows how all routes for an api version can be bound to a single router and then that router can be bound to the webserver to automatically bind all sub-routes.
 ```javascript
-const api_v1_router = new HyperExpress.Router();
+const { Server, Router } = require('uquik');
+const uquik = new Server();
+const api_v1_router = new Router();
 
 // Create routes directly on the Router
 api_v1_router.post('/register', async (request, response) => {
@@ -21,7 +23,7 @@ api_v1_router.post('/register', async (request, response) => {
 // Assume webserver is a HyperExpress.Server instance
 // This will cause all routes in the api_v1_router to listen on '/api/v1'
 // This means the example route above would listen on '/api/v1/register'
-webserver.use('/api/v1', api_v1_router);
+uquik.use('/api/v1', api_v1_router);
 ```
 
 ### Router Instance Properties
