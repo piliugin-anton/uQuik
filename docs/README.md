@@ -76,9 +76,9 @@ uquik
 
 ```
 
-#### CORS
+## CORS
 
-## Global CORS
+#### Global CORS
 
 ```javascript
 const { Server, CORS } = require("uquik");
@@ -97,7 +97,7 @@ uquik
   .catch((error) => console.log("[Example] Failed to start a server", error));
 ```
 
-## Route-specific CORS
+#### Route-specific CORS
 ```javascript
 const { Server, CORS } = require("uquik");
 
