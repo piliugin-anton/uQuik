@@ -23,6 +23,8 @@ class Request extends Readable {
     this.raw_response = rawResponse
     this.app_options = route.app._options
 
+    this.locals = {}
+
     route.requestDecorators.forEach((decorator, name) => (this[name] = decorator))
 
     this.headers = new Map()

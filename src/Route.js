@@ -30,8 +30,8 @@ class Route {
      */
   use (middleware) {
     // Store and sort middlewares to ensure proper execution order
-    this.options.middlewares.push(middleware)
-    this.options.middlewares = this.options.middlewares.sort((a, b) => a.priority - b.priority)
+    this.options.middlewares.set(this.options.middlewares.size, middleware)
+    this.options.middlewares = new Map([...this.options.middlewares.entries()].sort((a, b) => a.priority - b.priority))
   }
 
   setRequestDecorator (object) {
@@ -39,7 +39,7 @@ class Route {
       throw new Error(`Request decorator with name ${object.name} already exist`)
     }
 
-    this._routeData.get('requestDecorators').set(object.name, object.fn)
+    this.requestDecorators.set(object.name, object.fn)
   }
 
   setResponseDecorator (object) {
@@ -47,7 +47,7 @@ class Route {
       throw new Error(`Response decorator with name ${object.name} already exist`)
     }
 
-    this._routeData.get('responseDecorators').set(object.name, object.fn)
+    this.responseDecorators.set(object.name, object.fn)
   }
 
   /* Route Getters */

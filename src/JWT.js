@@ -65,7 +65,6 @@ function JWT (context, options = {}) {
     secret,
     sign: initialSignOptions = {},
     trusted,
-    decoratorName = 'user',
     verify: initialVerifyOptions = {},
     namespace
   } = options
@@ -115,35 +114,14 @@ function JWT (context, options = {}) {
     throw new Error('ECDSA Signatures set as Algorithm in the options require a private and public key to be set as the secret')
   }
 
-  const jwtDecorator = {
-    decode,
-    options: {
-      decode: decodeOptions,
-      sign: initialSignOptions,
-      verify: initialVerifyOptions,
-      messages: messagesOptions,
-      decoratorName
-    },
-    cookie,
-    sign,
-    verify,
-    lookupToken
-  }
-
   let jwtDecodeName = 'jwtDecode'
   let jwtVerifyName = 'jwtVerify'
   let jwtSignName = 'jwtSign'
-  if (namespace) {
-    if (context.jwt[namespace]) {
-      throw new Error(`JWT namespace already used "${namespace}"`)
-    }
-    context.jwt[namespace] = jwtDecorator
 
+  if (namespace) {
     jwtDecodeName = jwtDecode ? (typeof jwtDecode === 'string' ? jwtDecode : 'jwtDecode') : `${namespace}JwtDecode`
     jwtVerifyName = jwtVerify || `${namespace}JwtVerify`
     jwtSignName = jwtSign || `${namespace}JwtSign`
-  } else {
-    context.decorate('jwt', jwtDecorator)
   }
 
   const signerConfig = checkAndMergeSignOptions()

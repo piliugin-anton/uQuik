@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const Server = require('./src/Server')
 const Router = require('./src/Router')
 const Route = require('./src/Route')

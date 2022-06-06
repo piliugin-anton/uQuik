@@ -51,13 +51,15 @@ class Router {
     // Write the route handler and route options object with fallback to the default options
     const handler = callbacks.pop()
     options = options || {
-      middlewares: method === 'any' ? undefined : []
+      middlewares: method === 'any' ? undefined : new Map()
     }
 
-    // Concatenate any remaining callbacks to the route options middlewares property
-    if (callbacks.length > 0) options.middlewares = (options.middlewares || []).concat(callbacks)
+    if (Array.isArray(options.middlewares)) options.middlewares = new Map(options.middlewares.map((middleware, index) => [index, middleware]))
 
-    if (!Array.isArray(options.middleware)) options.middlewares = []
+    // Concatenate any remaining callbacks to the route options middlewares property
+    if (callbacks.length > 0) {
+      callbacks.forEach((middleware) => options.middlewares.set(options.middlewares.size, middleware))
+    }
 
     // Initialize the record object which will hold information about this route
     const record = {

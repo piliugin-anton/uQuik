@@ -21,6 +21,8 @@ class Response extends Writable {
     this.master_context = route.app
     this.app_options = route.app._options
 
+    this.locals = {}
+
     route.responseDecorators.forEach((decorator, name) => (this[name] = decorator))
 
     // Bind the abort handler as required by uWebsockets.js
@@ -98,13 +100,7 @@ class Response extends Writable {
      */
   status (code) {
     // Throw expection if a status change is attempted after response has been initiated
-    if (this.initiated) {
-      this.throw(
-        new Error(
-          'Response.status(code) -> HTTP Status Code cannot be changed once a response has been initiated.'
-        )
-      )
-    }
+    if (this.initiated) this.throw(new Error('Response.status(code) -> HTTP Status Code cannot be changed once a response has been initiated.'))
 
     // Set the numeric status code. Status text is appended before writing status to uws
     this.status_code = code
@@ -501,9 +497,15 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (!body) body = '{}'
+    if (this.JSONSerializer) {
+      body = this.JSONSerializer(body)
+    } else {
+      try {
+        body = JSON.stringify(body)
+      } catch (ex) {}
+    }
 
-    return this.type('json').send(body)
+    return this.type('json').send(body || '{}')
   }
 
   /**
