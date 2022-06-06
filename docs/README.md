@@ -163,3 +163,58 @@ uquik
   .catch((error) => console.log("[Example] Failed to start a server", error));
 
 ```
+
+### JSON WebToken (JWT)
+```javascript
+const { Server } = require("uquik");
+
+const uquik = new Server({
+  json_errors: true,
+});
+
+const jwt = {
+  secret: "test",
+};
+
+uquik.get("/protected", { jwt }, (request, response) => {
+  // Authorized, sending the data
+  response.send(`Hello ${request.locals.decodedToken.userId}`);
+});
+
+uquik.post("/login", { jwt }, (request, response) => {
+  // Send user a token on successfull login
+  response.json({ token: response.locals.token });
+});
+
+uquik.use("/protected", async (request, response, next) => {
+  // Verify provided token (from Authorization header or cookies)
+  try {
+    request.locals.decodedToken = await request.jwtVerify();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+uquik.use("/login", async (request, response, next) => {
+  // Here you implement a logic for login (access db, get user ID, etc.)
+  try {
+    response.locals.token = await response.jwtSign(
+      {
+        userId: 12345,
+      },
+      {
+        expiresIn: "1d",
+      }
+    );
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+```
