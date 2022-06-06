@@ -27,12 +27,6 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
   * **Default:** `false`
 * `max_body_length` [`Number`]: Maximum number of `bytes` allowed for incoming request body size. For reference, **1kb** = **1000 Bytes** and **1mb** = **1000kb**.
   * **Default:** `250 * 1000` or **250kb**
-* `streaming`[`Object`]: Specifies global constructor options for internal readable and writable streams.
-  * `readable`[`stream.ReadableOptions`]: Constructor options for `Request` body readable streams.
-    * See the official [`> [ReadableOptions]`](https://nodejs.org/api/stream.html#new-streamreadableoptions) Node.js documentation for more information.
-  * `writable`[`stream.WritableOptions`]:  Constructor options for `Response` body writable streams.
-    * See the official [`> [WritableOptions]`](https://nodejs.org/api/stream.html#new-streamwritableoptions) Node.js documentation for more information.
-  * **Note** you can also override globally specified `streaming` options on a per-route basis in the route options.
 
 ### Server Instance Properties
 | Property  | Type     | Description                |
@@ -46,7 +40,7 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
 ### Server Instance Methods
 * `listen(Number: port, String?: host)`: Starts the uWebsockets server on specified port.
     * **Returns** a `Promise` and resolves `uw_listen_socket`.
-    * **Note** port is required and host is `0.0.0.0` by default.
+    * **Note** port is required and host is `127.0.0.1` by default.
 * `close(uws_socket?: socket)`: Closes the uWebsockets se@Brver gracefully.
     * **Note**: socket is not required.
 * `set_error_handler(Function: handler)`: Binds a global catch-all error handler that will attempt to catch mostsynchronous/asynchronous errors.
@@ -67,5 +61,3 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
       * `any(String: pattern, Function: middleware, Function: handler)`: Creates an any method HTTP route with the specified route-specific `middleware` and `handler`.
       * `any(String: pattern, Function[]: middlewares, Function: handler)`: Creates an any method HTTP route with the specified set of route-specific `middlewares` and `handler`.
     * **See** [`> [Router]`](./Router.md) for full documentation on this method.
-    * **See** [`> [Websocket]`](./Websocket.md) for usage documentation on the `upgrade()` and `ws()` alias method.
-* `publish(String: topic, String|Buffer|ArrayBuffer: message, Boolean?: is_binary, Boolean?: compress)`: Publishes the specified message to the specified topic in **MQTT syntax** to all WebSocket connections on this Server instance.
