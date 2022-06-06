@@ -28,6 +28,20 @@
   ],
   "author": "Anton Piliugin",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piliugin-anton/uQuik.git"
+  },
+  "bugs": {
+    "url": "https://github.com/piliugin-anton/uQuik/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "branches": [
+      "master"
+    ]
+  },
+  "homepage": "https://github.com/piliugin-anton/uQuik#readme",
   "devDependencies": {
     "eslint": "^8.17.0",
     "eslint-config-standard": "^17.0.0",
