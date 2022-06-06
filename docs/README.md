@@ -19,7 +19,7 @@ uquik
 
 ```
 
-#### Multipart
+## Multipart
 
 ```javascript
 const { Server } = require("uquik");
@@ -108,6 +108,54 @@ uquik.get("/helloCORS", (request, response) => {
 });
 
 uquik.use("/helloCORS", CORS());
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+
+```
+
+## JSON schema (JTD)
+```javascript
+const { Server } = require("uquik");
+
+const uquik = new Server({
+  json_errors: true,
+});
+
+const schema = {
+  request: {
+    properties: {
+      bar: { type: "string" },
+    },
+  },
+  response: {
+    properties: {
+      test: { type: "uint8" },
+      foo: { type: "string" },
+    },
+    additionalProperties: false,
+  },
+};
+
+uquik.post("/something", { schema }, (request, response) => {
+  // Access request.locals.JSONRequest here
+  console.log(request.locals.JSONRequest);
+
+  const responseData = {
+    test: 123,
+    foo: "bar",
+    test2: "sdfsdf",
+  };
+
+  response.json(responseData);
+});
+
+uquik.use("/something", async (request, response, next) => {
+  request.locals.JSONRequest = await request.json();
+  next();
+});
 
 uquik
   .listen(5000, "127.0.0.1")
