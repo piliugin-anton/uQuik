@@ -75,3 +75,43 @@ uquik
   .catch((error) => console.log("[Example] Failed to start a server", error));
 
 ```
+
+#### CORS
+
+## Global CORS
+
+```javascript
+const { Server, CORS } = require("uquik");
+
+const uquik = new Server();
+
+uquik.use(CORS());
+
+uquik.get("/", (request, response) => {
+  response.send("Hello CORS World!");
+});
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+```
+
+## Route-specific CORS
+```javascript
+const { Server, CORS } = require("uquik");
+
+const uquik = new Server();
+
+uquik.get("/helloCORS", (request, response) => {
+  response.send("Hello CORS World!");
+});
+
+uquik.use("/helloCORS", CORS());
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+
+```
