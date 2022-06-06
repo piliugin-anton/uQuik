@@ -1,6 +1,6 @@
 # Documentation
 
-## Examples
+# Examples
 
 #### Simple 'Hello World' application
 ```javascript
@@ -19,7 +19,7 @@ uquik
 
 ```
 
-# Multipart
+#### Multipart
 
 ```javascript
 const { Server } = require("uquik");
