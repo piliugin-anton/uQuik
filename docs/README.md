@@ -198,7 +198,7 @@ uquik.get("/protected", { jwt }, (request, response) => {
 });
 
 uquik.post("/login", { jwt }, (request, response) => {
-  // Send user a token on successfull login
+  // Sucessfully logged-in, sending a token
   response.json({ token: response.locals.token });
 });
 
