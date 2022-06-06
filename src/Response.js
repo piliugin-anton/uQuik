@@ -21,7 +21,7 @@ class Response extends Writable {
     this.master_context = route.app
     this.app_options = route.app._options
 
-    this.decorators = route.responseDecorators
+    route.responseDecorators.forEach((decorator, name) => (this[name] = decorator))
 
     this.locals = {}
 
@@ -493,8 +493,8 @@ class Response extends Writable {
      * @returns {Boolean} Boolean
      */
   json (body) {
-    if (this.decorators.has('JSONSerialize')) {
-      body = this.decorators.get('JSONSerialize')(body)
+    if (this.JSONSerialize) {
+      body = this.JSONSerialize(body)
     } else {
       try {
         body = JSON.stringify(body)
