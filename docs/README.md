@@ -242,7 +242,7 @@ uquik
 const { Server, CustomError } = require("uquik");
 
 const uquik = new Server({
-  json_errors: true // This will send an error in json format: {"error":"Hello World!"}
+  json_errors: true // This will set to send errors in json format: {"error":"Hello World!"}
 });
 
 uquik.get("/", (request, response) => {
