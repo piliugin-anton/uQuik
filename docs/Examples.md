@@ -3,35 +3,24 @@ Below are various examples and snippets that make use of most components in Hype
 
 #### Simple 'Hello World' application
 ```javascript
-const HyperExpress = require('hyper-express');
-const webserver = new HyperExpress.Server();
+const { Server } = require("uquik");
 
-// Create GET route to serve 'Hello World'
-webserver.get('/', (request, response) => {
-    response.send('Hello World');
-})
+const uquik = new Server();
 
-// Activate webserver by calling .listen(port, callback);
-webserver.listen(80)
-.then((socket) => console.log('Webserver started on port 80'))
-.catch((error) => console.log('Failed to start webserver on port 80'));
-```
-
-#### Retrieving request properties and body 
-```javascript
-webserver.post('/api/v1/delete_user/:id', async (request, response) => {
-   let headers = request.headers;
-   let id = request.path_parameters.id;
-   let body = await request.json(); // we must await as .json() returns a Promise
-   // body will contain the parsed JSON object or an empty {} object on invalid JSON
-   
-   // Do some stuff here
+uquik.get("/", (request, response) => {
+  response.send("Hello World!");
 });
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[uQuik] Server started"))
+  .catch((error) => console.log("[uQuik] Failed to start a server", error));
+
 ```
 
 #### Forbidden request scenario utilizing multiple response methods
 ```javascript
-webserver.post('/api/v1/delete_user/:id', async (request, response) => {
+uquik.post('/api/v1/delete_user/:id', async (request, response) => {
    // Some bad stuff happened and this request is now forbidden
    
    // We multiple response network calls in atomic callback for best performance
@@ -56,7 +45,7 @@ webserver.post('/api/v1/delete_user/:id', async (request, response) => {
 ```javascript
 const fs = require('fs');
 
-webserver.post('/assets/some_video.mkv', async (request, response) => {
+uquik.post('/assets/some_video.mkv', async (request, response) => {
    // Create a readable stream for the file
    const readable = fs.createReadStream('/path/to/some_video.mkv');
 
@@ -72,7 +61,7 @@ webserver.post('/assets/some_video.mkv', async (request, response) => {
 ```javascript
 const fs = require('fs');
 
-webserver.post('/stream/some-data', async (request, response) => {
+uquik.post('/stream/some-data', async (request, response) => {
     // Get some readable stream which will retrieve our large dataset
     const readable = getReadableStreamForOurData();
 
@@ -87,7 +76,7 @@ webserver.post('/stream/some-data', async (request, response) => {
 
 // Bind a global middleware that executes on all incoming requests
 // These also execute before route/method specific middlewares as they are global
-webserver.use((request, response, next) => {
+uquik.use((request, response, next) => {
     // Do some asynchronous stuff
     some_asynchronous_call((data) => {
         // you can assign values onto the request and response objects to be accessed later
@@ -110,43 +99,10 @@ const specific_middleware2 = (request, response, next) => {
 
 // Bind a route/method specific middleware
 // Middlewares are executed in the order they are specified in the middlewares Array
-webserver.get('/', {
+uquik.get('/', {
     middlewares: [specific_middleware1, specific_middleware2]
 }, (request, response) => {
     // Handle your request as you normally would here
     return response.send('Hello World');
-});
-```
-
-#### Creating a websocket route that dispatches news events
-```javascript
-const webserver = new HyperExpress.Server();
-
-// Create an upgrade route so we can authenticate incoming connections
-webserver.upgrade('/ws/connect', async (request, response) => {
-    // Do some kind of asynchronous verification here
-    
-    // Upgrade the incoming request with some context
-    response.upgrade({
-        user_id: 'some_user_id',
-        event: 'news_updates'
-    });
-});
-
-// Create websocket route to handle opened websocket connections
-webserver.ws('/ws/connect', (ws) => {
-    // Log when a connection has opened for debugging
-    console.log('user ' + ws.context.user_id + ' has connected to consume news events');
-    
-    // Handle incoming messages to perform changes in consumption
-    ws.on('message', (message) => {
-        // Make some changes to which events user consumes based on incoming message
-    });
-    
-    // Do some cleanup once websocket connection closes
-    ws.on('close', (code, message) => {
-       console.log('use ' + ws.context.user_id + ' is no longer listening for news events.');
-       // You may do some cleanup here regarding analytics
-    });
 });
 ```

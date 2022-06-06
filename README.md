@@ -24,22 +24,8 @@ Highly performant HTTP(S) web-framework for Node.js
 
 #### Installation:
 `npm install uquik`
-#### Code:
-````javascript
-const { Server } = require("uquik");
 
-const uquik = new Server();
 
-uquik.get("/", (request, response) => {
-  response.send("Hello World!");
-});
-
-uquik
-  .listen(5000, "127.0.0.1")
-  .then((socket) => console.log("[uQuik] Server started"))
-  .catch((error) => console.log("[uQuik] Failed to start a server", error));
-
-````
 ## [Documentation](https://github.com/piliugin-anton/uQuik/tree/master/docs)
 
 
