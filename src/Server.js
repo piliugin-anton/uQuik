@@ -281,20 +281,22 @@ class Server extends Router {
     // Mark route as temporary if specified from options
     if (record.options._temporary === true) route._temporary = true
 
-    // JSON Schema validators
+    // JSON Schema validation
     if (record.options.has('schema')) {
       const schema = record.options.get('schema')
-      if (schema.request) {
-        route.setRequestDecorator({
-          name: 'JSONParse',
-          fn: this.ajv.compileParser(schema.request)
-        })
-      }
-      if (schema.response) {
-        route.setResponseDecorator({
-          name: 'JSONSerialize',
-          fn: this.ajv.compileSerializer(schema.response)
-        })
+      if (typeof schema === 'object') {
+        if (typeof schema.request === 'object') {
+          route.setRequestDecorator({
+            name: 'JSONParse',
+            fn: this.ajv.compileParser(schema.request)
+          })
+        }
+        if (typeof schema.response === 'object') {
+          route.setResponseDecorator({
+            name: 'JSONSerialize',
+            fn: this.ajv.compileSerializer(schema.response)
+          })
+        }
       }
     }
 

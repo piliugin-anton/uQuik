@@ -21,7 +21,7 @@ class Response extends Writable {
     this.master_context = route.app
     this.app_options = route.app._options
 
-    this.decorators = route.requestDecorators
+    this.decorators = route.responseDecorators
 
     this.locals = {}
 
