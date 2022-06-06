@@ -6,7 +6,10 @@ Server-Sent Events are essentially a HTTP request that stays alive and gradually
 
 See below for an example of a simple news events endpoint using Server-Sent Events:
 ```javascript
+const { Server } = require('uquik');
 const crypto = require('crypto');
+
+const uquik = new Server();
 
 const sse_streams = {};
 function broadcast_message(message) {
@@ -16,7 +19,7 @@ function broadcast_message(message) {
     })
 }
 
-webserver.get('/news/events', (request, response) => {
+uquik.get('/news/events', (request, response) => {
     // You may perform some authentication here as this is just a normal HTTP GET request
     
     // Check to ensure that SSE if available for this request

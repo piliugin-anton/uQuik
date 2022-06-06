@@ -1,5 +1,8 @@
 # Documentation
 
+## Development
+To see a thrown errors while you are developing your backend create a file `.env` in your project root, and place there `NODE_ENV="development"`
+
 ## Examples
 
 #### Hello World
