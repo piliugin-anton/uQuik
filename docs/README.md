@@ -143,6 +143,7 @@ uquik
 
 ### Cross-Origin Resource Sharing (CORS)
 
+#### Available options for CORS [see here](https://github.com/expressjs/cors) 
 #### Global CORS
 
 ```javascript
@@ -182,6 +183,8 @@ uquik
 ```
 
 ### JSON schema (JTD)
+
+#### Available schema properties [see here](https://ajv.js.org/json-type-definition.html)
 ```javascript
 const { Server } = require("uquik");
 
@@ -230,6 +233,9 @@ uquik
 ```
 
 ### JSON WebToken (JWT)
+
+#### JWT options for route [see here](./Router.md)
+#### Available options for jwtVerify() and jwtSign() [see here](https://github.com/nearform/fast-jwt)
 ```javascript
 const { Server } = require("uquik");
 
@@ -239,22 +245,23 @@ const uquik = new Server({
 
 const jwt = {
   secret: "test",
+  formatUser: (decodedToken) => decodedToken.userId,
 };
 
 uquik.get("/protected", { jwt }, (request, response) => {
   // Authorized, sending the data
-  response.send(`Hello ${request.locals.decodedToken.userId}`);
+  response.send(`Hello ${request.locals.userId}`);
 });
 
 uquik.post("/login", { jwt }, (request, response) => {
-  // Sucessfully logged-in, sending a token
+  // Send user a token on successfull login
   response.json({ token: response.locals.token });
 });
 
 uquik.use("/protected", async (request, response, next) => {
-  // Verify provided token (from Authorization header or cookies, depending on options)
+  // Verify provided token (from Authorization header or cookies)
   try {
-    request.locals.decodedToken = await request.jwtVerify();
+    request.locals.userId = await request.jwtVerify();
     next();
   } catch (err) {
     next(err);

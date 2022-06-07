@@ -47,6 +47,12 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
           The plugin will fallback to looking for the token in the authorization header if either of the following happens (even if the cookie option is enabled):
             * The request has both the authorization and cookie header Cookie is empty, authorization header is present
             * If you are signing your cookie, you can set the signed boolean to true which will make sure the JWT is verified using the unsigned value.
+
+        * `formatUser`[`Function`]
+          You may want to format decoded token, returned from `request.jwtVerify()`
+        
+        * `trusted`[`Function`]
+          You can validate tokens based on your list (db, file or any other source)
   
 
   * **Note!** Route specific middlewares **NOT** supported with `any` method routes.
