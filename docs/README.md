@@ -8,6 +8,8 @@ To see a thrown errors in console while you are developing your backend create a
 
 - [Routing](https://github.com/piliugin-anton/uQuik/tree/master/docs#routing)
 
+- [Path parameters](https://github.com/piliugin-anton/uQuik/tree/master/docs#path-parameters)
+
 - [Multipart](https://github.com/piliugin-anton/uQuik/tree/master/docs#multipart)
 
 - [Cross-Origin Resource Sharing (CORS)](https://github.com/piliugin-anton/uQuik/tree/master/docs#cross-origin-resource-sharing-cors)
@@ -55,6 +57,30 @@ helloWorldRouter.get("/world", (request, response) =>
 apiRouter.use("/hello", helloWorldRouter);
 
 uquik.use("/api", apiRouter);
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+```
+
+#### Path parameters
+```javascript
+const { Server } = require("uquik");
+
+const uquik = new Server();
+
+uquik.get("/users/:userId", (request, response) => {
+  response.send(`User ID: ${request.path_parameters.get("userId")}`);
+});
+
+uquik.get("/users/:userId/:method", (request, response) => {
+  response.send(
+    `User ID: ${request.path_parameters.get(
+      "userId"
+    )}, method: ${request.path_parameters.get("method")}`
+  );
+});
 
 uquik
   .listen(5000, "127.0.0.1")

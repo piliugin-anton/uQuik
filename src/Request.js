@@ -646,6 +646,9 @@ class Request extends Readable {
     return this.url
   }
 
+  /**
+   * @returns {Map} Returns Map object
+   */
   get params () {
     return this.path_parameters
   }
