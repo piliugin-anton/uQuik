@@ -1,6 +1,6 @@
 {
   "name": "uquik",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
