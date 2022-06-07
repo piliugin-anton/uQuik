@@ -32,7 +32,7 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
     * `options`[`Object`]: Route options can be utiliized to override and specify options specific to a route.
       * `max_body_length`[`Number`]: Overrides the global `Server.max_body_length` parameter used to enforce a maximum body size limit for this route.
       * `middlewares`[`Array`]: Can be used to provide route specific middlewares.
-      * `jwt`[`Object`] JWT options
+      * `jwt`[`Object`] JWT options:
         * **secret** (required)
           The secret can be a primitive type String, a function that returns a String or an object { private, public }.
 
