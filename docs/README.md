@@ -26,9 +26,7 @@ const { Server } = require("uquik");
 
 const uquik = new Server();
 
-uquik.get("/", (request, response) => {
-  response.send("Hello World!");
-});
+uquik.get("/", (request, response) => response.send("Hello World!"));
 
 uquik
   .listen(5000, "127.0.0.1")
