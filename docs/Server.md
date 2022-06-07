@@ -27,6 +27,7 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
   * **Default:** `false`
 * `max_body_length` [`Number`]: Maximum number of `bytes` allowed for incoming request body size. For reference, **1kb** = **1000 Bytes** and **1mb** = **1000kb**.
   * **Default:** `256000` or **256kb**
+* `ajv` [`Object`]: Ajv options, See [available options](https://ajv.js.org/options.html)
 * `json_errors` [`Boolean`]: Throw errors in JSON format? Default: **false**
 
 ### Server Instance Properties
