@@ -443,6 +443,10 @@ class Server extends Router {
       response.throw(error)
     }
   }
+
+  get routes () {
+    return this._routes
+  }
 }
 
 module.exports = Server

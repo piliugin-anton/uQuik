@@ -34,9 +34,8 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
 | Property  | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `uws_instance` | `uWS` | Underlying uWebsockets TemplatedApp instance. |
-| `routes` | `Object` | All routes created on current instance. |
-| `middlewares` | `Object` | All non route specific midddlewares on current instance. |
-| `handlers` | `Object` | Global handlers for current instance. |
+| `routes` | `Map` | All routes created on current instance. |
+| `handlers` | `Map` | Global handlers for current instance. |
 
 ### Server Instance Methods
 * `listen(Number: port, String?: host)`: Starts the uWebsockets server on specified port.
