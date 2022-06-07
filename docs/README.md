@@ -37,7 +37,7 @@ uquik
 
 ```
 
-#### Routing
+### Routing
 ```javascript
 const { Server, Router } = require("uquik");
 
@@ -54,7 +54,7 @@ uquik
   .listen(5000, "127.0.0.1")
   .then((socket) => console.log("[Example] Server started"))
   .catch((error) => console.log("[Example] Failed to start a server", error));
-````
+```
 
 ### Multipart
 
