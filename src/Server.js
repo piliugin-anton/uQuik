@@ -64,10 +64,10 @@ class Server extends Router {
       ['on_error', (request, response, error) => {
         if (process.env.NODE_ENV === 'development') console.log(error)
 
-        if (response.completed) return response.close()
+        if (response.initiated || response.completed || request.streaming) return response.close()
 
         if (error instanceof CustomError) {
-          if (!response.initiated) response.status(error.status)
+          response.status(error.status)
 
           if (jsonErrors) {
             return response
@@ -78,9 +78,7 @@ class Server extends Router {
           return response.send(error.message)
         }
 
-        if (!response.initiated) response.status(500)
-
-        return response.send('Uncaught Exception Occured')
+        return response.status(500).send('Uncaught Exception Occured')
       }]
     ])
 
