@@ -60,7 +60,7 @@ class Server extends Router {
     this._routes_locked = false
 
     this.handlers = new Map([
-      ['on_not_found', null],
+      ['on_not_found', (request, response) => response.status(404).send()],
       ['on_error', (request, response, error) => {
         if (process.env.NODE_ENV === 'development') console.log(error)
 
@@ -150,6 +150,10 @@ class Server extends Router {
      * @returns {Promise} Promise
      */
   listen (port, host = '127.0.0.1') {
+    // Adding not found handler (404)
+    this.any('/*', (request, response) => this.handlers.get('on_not_found')(request, response))
+    this.routes_locked = true
+
     return new Promise((resolve, reject) =>
       this.uws_instance.listen(host, port, (listenSocket) => {
         if (listenSocket) {
@@ -222,20 +226,7 @@ class Server extends Router {
     if (typeof handler !== 'function') throw new Error('handler must be a function')
 
     // Store not_found handler and bind it as a catchall route
-    if (this.handlers.get('on_not_found') === null) {
-      this.handlers.set('on_not_found', handler)
-      return setTimeout(
-        (reference) => {
-          reference.any('/*', (request, response) => reference.handlers.get('on_not_found')(request, response))
-          reference.routes_locked = true
-        },
-        0,
-        this
-      )
-    }
-
-    // Do not allow user to re-register not found handler
-    throw new Error('A Not Found handler has already been registered.')
+    this.handlers.set('on_not_found', handler)
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "uquik",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "profile": "node --prof examples/basic.js",
     "example": "node examples/basic.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "wrk": "wrk -t4 -c2500 -d60s -R62000 http://127.0.0.1:5000",
+    "wrk": "wrk -t4 -c2500 -d60s http://127.0.0.1:5000",
     "wrk-post": "wrk -s examples/post.lua -t4 -c2500 -d60s -R31000 http://127.0.0.1:5000"
   },
   "dependencies": {
