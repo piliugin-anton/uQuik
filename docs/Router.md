@@ -35,21 +35,15 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
       * `jwt`[`Object`] JWT options:
         * **secret** (required)
           The secret can be a primitive type String, a function that returns a String or an object { private, public }.
+          In this object `{ private, public }` the `private` key is a string, buffer or object containing either the secret for HMAC algorithms or the PEM encoded private key for RSA and ECDSA. In case of a private key with passphrase an object `{ private: { key, passphrase }, public }` can be used (based on [crypto documentation](https://nodejs.org/api/crypto.html#crypto_sign_sign_private_key_output_format)), in this case be sure you pass the `algorithm` inside the signing options prefixed by the `sign` key of the plugin registering options).
+          In this object `{ private, public }` the `public` key is a string or buffer containing either the secret for HMAC algorithms, or the PEM encoded public key for RSA and ECDSA.
+          Function based `secret` is supported by the `request.jwtVerify()` and `response.jwtSign()` methods and is called with `request`, `token`, and `callback` parameters.
 
-          In this object { private, public } the private key is a string, buffer or object containing either the secret for HMAC algorithms or the PEM encoded private key for RSA and ECDSA. In case of a private key with passphrase an object { private: { key, passphrase }, public } can be used (based on crypto documentation), in this case be sure you pass the algorithm inside the signing options prefixed by the sign key of the plugin registering options).
-
-          In this object { private, public } the public key is a string or buffer containing either the secret for HMAC algorithms, or the PEM encoded public key for RSA and ECDSA.
-
-          Function based secret is supported by the request.jwtVerify() and response.jwtSign() methods and is called with request, token, and callback parameters.
-
-        * **cookie**
-          Example using cookie
-
+        * **cookie**[`Object`]
           In some situations you may want to store a token in a cookie. This allows you to drastically reduce the attack surface of XSS on your web app with the httpOnly and secure flags. Cookies can be susceptible to CSRF. You can mitigate this by either setting the sameSite flag to strict, or by using a CSRF library
-
           The request has both the authorization and cookie header Cookie is empty, authorization header is present
-
           If you are signing your cookie, you can set the signed boolean to true which will make sure the JWT is verified using the unsigned value.
+          * **cookieName**
   
 
   * **Note!** Route specific middlewares **NOT** supported with `any` method routes.
