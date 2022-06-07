@@ -32,9 +32,6 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
     * `options`[`Object`]: Route options can be utiliized to override and specify options specific to a route.
       * `max_body_length`[`Number`]: Overrides the global `Server.max_body_length` parameter used to enforce a maximum body size limit for this route.
       * `middlewares`[`Array`]: Can be used to provide route specific middlewares.
-        * **Note!** Route specific middlewares **NOT** supported with `any` method routes.
-        * **Note!** Middlewares are executed in the order provided in the `Array` provided.
-        * **Note!** Global/Router middlewares will be executed before route specific middlewares are executed.
       * `jwt`[`Object`] JWT options
         * secret (required)
 
@@ -47,7 +44,10 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
           Function based secret is supported by the request.jwtVerify() and reply.jwtSign() methods and is called with request, token, and callback parameters.
   
 
-    * **Note** `pattern` is treated as a **strict** match and trailing-slashes will be treated as different paths.
-    * **Supports** both synchronous and asynchronous route `handler` functions.
-    * **Supports** path parameters with `:param` prefix. 
-        * **Example:** `/api/v1/users/:action/:id` will populate `Request.path_parameters` with `id` value from path.
+  * **Note!** Route specific middlewares **NOT** supported with `any` method routes.
+  * **Note!** Middlewares are executed in the order provided in the `Array` provided.
+  * **Note!** Global/Router middlewares will be executed before route specific middlewares are executed.
+  * **Note** `pattern` is treated as a **strict** match and trailing-slashes will be treated as different paths.
+  * **Supports** both synchronous and asynchronous route `handler` functions.
+  * **Supports** path parameters with `:param` prefix. 
+    * **Example:** `/api/v1/users/:action/:id` will populate `Request.path_parameters` with `id` value from path.
