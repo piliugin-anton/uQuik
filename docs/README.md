@@ -41,22 +41,20 @@ const { Server, Router } = require("uquik");
 
 const uquik = new Server();
 
-const helloRouter = new Router();
-helloRouter.get("/", (request, response) =>
-  response.send("This is /")
-);
-helloRouter.get("/hello", (request, response) =>
-  response.send("This is /hello")
+const apiRouter = new Router();
+apiRouter.get("/", (request, response) => response.send("This is /api"));
+apiRouter.get("/hello", (request, response) =>
+  response.send("This is /api/hello")
 );
 
 const helloWorldRouter = new Router();
 helloWorldRouter.get("/world", (request, response) =>
-  response.send("This is /hello/world")
+  response.send("This is /api/hello/world")
 );
 
-helloRouter.use("/", helloWorldRouter);
+apiRouter.use("/hello", helloWorldRouter);
 
-uquik.use("/", helloRouter);
+uquik.use("/api", apiRouter);
 
 uquik
   .listen(5000, "127.0.0.1")
