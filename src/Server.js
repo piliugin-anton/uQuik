@@ -295,7 +295,7 @@ class Server extends Router {
       const jwtOptions = record.options.get('jwt')
 
       if (typeof jwtOptions === 'object') {
-        const [requestVerifier, responseSigner] = JWT(this, jwtOptions)
+        const [requestVerifier, responseSigner] = JWT(jwtOptions)
         route.setRequestDecorator(requestVerifier)
         route.setResponseDecorator(responseSigner)
       }

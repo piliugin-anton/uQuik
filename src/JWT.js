@@ -50,7 +50,7 @@ function convertToMs (time) {
   return parse(time)
 }
 
-function JWT (context, options = {}) {
+function JWT (options = {}) {
   if (!options.secret) {
     throw new Error('Missing secret')
   }
@@ -59,14 +59,10 @@ function JWT (context, options = {}) {
     cookie,
     decode: decodeOptions = {},
     formatUser,
-    jwtDecode,
-    jwtSign,
-    jwtVerify,
     secret,
     sign: initialSignOptions = {},
     trusted,
-    verify: initialVerifyOptions = {},
-    namespace
+    verify: initialVerifyOptions = {}
   } = options
 
   let secretOrPrivateKey
@@ -114,15 +110,9 @@ function JWT (context, options = {}) {
     throw new Error('ECDSA Signatures set as Algorithm in the options require a private and public key to be set as the secret')
   }
 
-  let jwtDecodeName = 'jwtDecode'
-  let jwtVerifyName = 'jwtVerify'
-  let jwtSignName = 'jwtSign'
-
-  if (namespace) {
-    jwtDecodeName = jwtDecode ? (typeof jwtDecode === 'string' ? jwtDecode : 'jwtDecode') : `${namespace}JwtDecode`
-    jwtVerifyName = jwtVerify || `${namespace}JwtVerify`
-    jwtSignName = jwtSign || `${namespace}JwtSign`
-  }
+  const jwtDecodeName = 'jwtDecode'
+  const jwtVerifyName = 'jwtVerify'
+  const jwtSignName = 'jwtSign'
 
   const signerConfig = checkAndMergeSignOptions()
   const signer = createSigner(signerConfig.options)
