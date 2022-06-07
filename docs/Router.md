@@ -53,6 +53,3 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
   * **Note!** Middlewares are executed in the order provided in the `Array` provided.
   * **Note!** Global/Router middlewares will be executed before route specific middlewares are executed.
   * **Note** `pattern` is treated as a **strict** match and trailing-slashes will be treated as different paths.
-  * **Supports** both synchronous and asynchronous route `handler` functions.
-  * **Supports** path parameters with `:param` prefix. 
-    * **Example:** `/api/v1/users/:action/:id` will populate `Request.path_parameters` with `id` value from path.
