@@ -42,6 +42,7 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
         * **cookie**[`Object`]
           * **cookieName**['String']
           * **signed**['Boolean']
+
           In some situations you may want to store a token in a cookie. This allows you to drastically reduce the attack surface of XSS on your web app with the `httpOnly` and `secure` flags. Cookies can be susceptible to CSRF. You can mitigate this by either setting the `sameSite` flag to `strict`, or by using a CSRF library
           The plugin will fallback to looking for the token in the authorization header if either of the following happens (even if the cookie option is enabled):
             * The request has both the authorization and cookie header Cookie is empty, authorization header is present
