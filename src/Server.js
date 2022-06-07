@@ -157,6 +157,7 @@ class Server extends Router {
           this.listen_socket = listenSocket
           if (this._options.get('auto_close')) this._bind_auto_close()
           resolve(listenSocket)
+          process.send('ready')
         } else {
           reject(new Error('No Socket Received From uWebsockets.js'))
         }
