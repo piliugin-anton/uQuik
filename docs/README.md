@@ -1,7 +1,7 @@
 # Documentation
 
 ## Development
-To see a thrown errors in console while you are developing your backend create a file `.env` in your project root, and place there `NODE_ENV="development"`
+To see a thrown errors in console while you are developing your backend create a file `.env` in your project root, and place there `NODE_ENV="development"`, see [`.env`](https://github.com/piliugin-anton/uQuik/blob/master/.env)
 
 ## Links
 - [Hello World](https://github.com/piliugin-anton/uQuik/tree/master/docs#hello-world)
