@@ -6,6 +6,8 @@ To see a thrown errors in console while you are developing your backend create a
 ## Links
 - [Hello World](https://github.com/piliugin-anton/uQuik/tree/master/docs#hello-world)
 
+- [Routing](https://github.com/piliugin-anton/uQuik/tree/master/docs#routing)
+
 - [Multipart](https://github.com/piliugin-anton/uQuik/tree/master/docs#multipart)
 
 - [Cross-Origin Resource Sharing (CORS)](https://github.com/piliugin-anton/uQuik/tree/master/docs#cross-origin-resource-sharing-cors)
@@ -34,6 +36,25 @@ uquik
   .catch((error) => console.log("[uQuik] Failed to start a server", error));
 
 ```
+
+#### Routing
+```javascript
+const { Server, Router } = require("uquik");
+
+const uquik = new Server();
+
+const helloRouter = new Router();
+
+helloRouter.get("/", (request, response) => response.send("This is /hello"))
+helloRouter.get("/world", (request, response) => response.send("This is /hello/world"))
+
+uquik.use("/hello", helloRouter);
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+````
 
 ### Multipart
 
