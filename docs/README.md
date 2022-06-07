@@ -75,11 +75,7 @@ uquik.get("/users/:userId", (request, response) => {
 });
 
 uquik.get("/users/:userId/:method", (request, response) => {
-  response.send(
-    `User ID: ${request.path_parameters.get(
-      "userId"
-    )}, method: ${request.path_parameters.get("method")}`
-  );
+  response.send(`User ID: ${request.path_parameters.get("userId")}, method: ${request.path_parameters.get("method")}`);
 });
 
 uquik
