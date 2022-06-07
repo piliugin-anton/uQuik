@@ -33,7 +33,7 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
       * `max_body_length`[`Number`]: Overrides the global `Server.max_body_length` parameter used to enforce a maximum body size limit for this route.
       * `middlewares`[`Array`]: Can be used to provide route specific middlewares.
       * `jwt`[`Object`] JWT options
-        * secret (**required**)
+        * **secret** (required)
           The secret can be a primitive type String, a function that returns a String or an object { private, public }.
 
           In this object { private, public } the private key is a string, buffer or object containing either the secret for HMAC algorithms or the PEM encoded private key for RSA and ECDSA. In case of a private key with passphrase an object { private: { key, passphrase }, public } can be used (based on crypto documentation), in this case be sure you pass the algorithm inside the signing options prefixed by the sign key of the plugin registering options).
@@ -42,7 +42,7 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
 
           Function based secret is supported by the request.jwtVerify() and response.jwtSign() methods and is called with request, token, and callback parameters.
 
-        * cookie
+        * **cookie**
           Example using cookie
 
           In some situations you may want to store a token in a cookie. This allows you to drastically reduce the attack surface of XSS on your web app with the httpOnly and secure flags. Cookies can be susceptible to CSRF. You can mitigate this by either setting the sameSite flag to strict, or by using a CSRF library
