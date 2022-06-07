@@ -1,6 +1,6 @@
 # Server
 Below is a breakdown of the `Server` component which is an extended `Router` instance for modularity support.
-* See [`> [Router]`](./Router.md) for more information on additional methods and properties available.
+* See [`Router`](./Router.md) for more information on additional methods and properties available.
 
 ### Server Constructor Options
 * `key_file_name` [`String`]: Path to SSL private key file to be used for SSL/TLS.
@@ -52,7 +52,6 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
       * `use(Function | Router: ...handler)`: Binds the specified functions as middlewares and mounts the `Router` instances on the `/` pattern.
       * `use(String: pattern, Function | Router: ...handler)`: Binds the specified functions as middlewares and mounts the `Router` instances on the specified `pattern` hierarchy.
     * **Note** `pattern` is treated as a wildcard match by default and does not support `*`/`:param` prefixes.
-    * **See** [`> [Router]`](./Router.md) & [`> [Middlewares]`](./Middlewares.md) for **full documentation** on this method.
 * `any(...4 Overloads)`: Creates an HTTP route on the specified pattern. Alias methods are listed below for all available HTTP methods.
     * **Alias Methods:** `get()`, `post()`, `put()`, `delete()`, `head()`, `options()`, `patch()`, `trace()`, `connect()`, `upgrade()`, `ws()`.
     * **Overload Types**:
@@ -60,4 +59,4 @@ Below is a breakdown of the `Server` component which is an extended `Router` ins
       * `any(String: pattern, Object: options, Function: handler)`: Creates an any method HTTP route with the specified `options` and `handler`.
       * `any(String: pattern, Function: middleware, Function: handler)`: Creates an any method HTTP route with the specified route-specific `middleware` and `handler`.
       * `any(String: pattern, Function[]: middlewares, Function: handler)`: Creates an any method HTTP route with the specified set of route-specific `middlewares` and `handler`.
-    * **See** [`> [Router]`](./Router.md) for full documentation on this method.
+    * **See** [`Router`](./Router.md) for full documentation on this method.
