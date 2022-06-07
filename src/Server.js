@@ -22,7 +22,7 @@ class Server extends Router {
      * @param {Boolean} options.fast_buffers Buffer.allocUnsafe is used when set to true for faster performance.
      * @param {Boolean} options.fast_abort Determines whether  will abrubptly close bad requests. This can be much faster but the client does not receive an HTTP status code as it is a premature connection closure.
      * @param {Boolean} options.trust_proxy Specifies whether to trust incoming request data from intermediate proxy(s)
-     * @param {Number} options.max_body_length Maximum body content length allowed in bytes. For Reference: 1kb = 1000 bytes and 1mb = 1000kb.
+     * @param {Number} options.max_body_length Maximum body content length allowed in bytes. For Reference: 1kb = 1000 bytes and 1mb = 1000kb. Default: 256Kb
      * @param {Boolean} options.auto_close Whether to automatically close the server instance when the process exits. Default: true
      * @param {Object} options.ajv Ajv-JTD options
      * @param {Boolean|Object} options.json_errors Boolean or Object containing a JTD schema
@@ -50,7 +50,7 @@ class Server extends Router {
       ['fast_abort', options.fast_abort || false],
       ['trust_proxy', options.trust_proxy || false],
       ['unsafe_buffers', options.unsafe_buffers || false],
-      ['max_body_length', options.max_body_length || 1153434002],
+      ['max_body_length', options.max_body_length || 256000],
       ['ajv', typeof options.ajv === 'object' ? options.ajv : {}],
       ['json_errors', options.json_errors || false]
     ])
