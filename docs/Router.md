@@ -35,13 +35,13 @@ Below is a breakdown of the `Router` object which is essentially a mini-app that
       * `jwt`[`Object`] JWT options
         * secret (required)
 
-You must pass a secret to the options parameter. The secret can be a primitive type String, a function that returns a String or an object { private, public }.
+          You must pass a secret to the options parameter. The secret can be a primitive type String, a function that returns a String or an object { private, public }.
 
-In this object { private, public } the private key is a string, buffer or object containing either the secret for HMAC algorithms or the PEM encoded private key for RSA and ECDSA. In case of a private key with passphrase an object { private: { key, passphrase }, public } can be used (based on crypto documentation), in this case be sure you pass the algorithm inside the signing options prefixed by the sign key of the plugin registering options).
+          In this object { private, public } the private key is a string, buffer or object containing either the secret for HMAC algorithms or the PEM encoded private key for RSA and ECDSA. In case of a private key with passphrase an object { private: { key, passphrase }, public } can be used (based on crypto documentation), in this case be sure you pass the algorithm inside the signing options prefixed by the sign key of the plugin registering options).
 
-In this object { private, public } the public key is a string or buffer containing either the secret for HMAC algorithms, or the PEM encoded public key for RSA and ECDSA.
+          In this object { private, public } the public key is a string or buffer containing either the secret for HMAC algorithms, or the PEM encoded public key for RSA and ECDSA.
 
-Function based secret is supported by the request.jwtVerify() and reply.jwtSign() methods and is called with request, token, and callback parameters.
+          Function based secret is supported by the request.jwtVerify() and reply.jwtSign() methods and is called with request, token, and callback parameters.
         * **Note!** Route specific middlewares **NOT** supported with `any` method routes.
         * **Note!** Middlewares are executed in the order provided in the `Array` provided.
         * **Note!** Global/Router middlewares will be executed before route specific middlewares are executed.
