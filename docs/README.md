@@ -324,9 +324,9 @@ uquik
   Copy and modify to your needs a [PM2 configuration file (ecosystem.config.js)](./production/ecosystem.config.js)
 
   Run your application:
-```
-pm2 start ecosystem.config.js
-```
+  ```
+  pm2 start ecosystem.config.js
+  ```
   **Note:** always run your application on 127.0.0.1 for security
 
   For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/process-management/)
