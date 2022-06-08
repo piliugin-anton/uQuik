@@ -316,9 +316,7 @@ uquik
 ```
 
 ### Production
-- Set `trust_proxy` option to `true` for `new Server()` instance
-
-- #### Process manager (PM2)
+#### Process manager (PM2)
   In production it's recommended to have a process manager that will automatically restart your application.
   I recommend you to use a [`PM2`](https://pm2.keymetrics.io/) as a process manager, install it by running: `npm install pm2@latest -g`
   Copy and modify to your needs a [PM2 configuration file (ecosystem.config.js)](./production/ecosystem.config.js)
