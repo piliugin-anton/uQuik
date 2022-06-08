@@ -675,10 +675,8 @@ class Request extends Readable {
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
     const trustProxy = this.app_options.get('trust_proxy')
-    const xForwardedProto = this.get('X-Forwarded-Proto')
-    if (trustProxy && xForwardedProto) {
-      return xForwardedProto.indexOf(',') !== -1 ? xForwardedProto.split(',')[0] : xForwardedProto
-    }
+    const xForwardedProto = this.get('x-forwarded-proto')
+    if (trustProxy && xForwardedProto) return xForwardedProto.indexOf(',') !== -1 ? xForwardedProto.split(',')[0] : xForwardedProto
 
     // Use uWS initially defined protocol
     return this.app_options.get('is_ssl') ? 'https' : 'http'
@@ -711,7 +709,7 @@ class Request extends Readable {
      */
   get hostname () {
     const trustProxy = this.app_options.get('trust_proxy')
-    let host = this.get('X-Forwarded-Host')
+    let host = this.get('x-forwarded-host')
 
     if (!host || !trustProxy) {
       host = this.get('host')
@@ -753,14 +751,6 @@ class Request extends Readable {
      */
   get stale () {
     this._throw_unsupported('stale')
-  }
-
-  /**
-     * ExpressJS: Check if the request was an _XMLHttpRequest_.
-     * @returns {Boolean}
-     */
-  get xhr () {
-    return (this.get('X-Requested-With') || '').toLowerCase() === 'xmlhttprequest'
   }
 }
 
