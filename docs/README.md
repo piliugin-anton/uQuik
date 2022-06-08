@@ -331,6 +331,7 @@ For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/
 
 #### HTTP Proxy (Load balancer)
 Next step is to install an HTTP proxy(load balancer) `nginx`:
+
 For Linux [see this link](https://nginx.org/en/linux_packages.html)
 For Windows [see this link](https://nginx.org/en/download.html)
 
