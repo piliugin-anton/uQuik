@@ -330,7 +330,7 @@ pm2 start ecosystem.config.js
 For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/process-management/)
 
 #### HTTP Proxy (Load balancer)
-Next step is to install an HTTP proxy(load balancer) `nginx`:
+Next step is to install an HTTP proxy(load balancer) [`nginx`](https://nginx.org/en/):
 
 For **Linux** [see this link](https://nginx.org/en/linux_packages.html)
 
