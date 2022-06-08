@@ -330,16 +330,3 @@ uquik
   **Note:** always run your application on 127.0.0.1 for security
 
   For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/process-management/)
-
-- #### HTTP Proxy (Load balancer)
-  Next step is to install an HTTP proxy(load balancer) [`nginx`](https://nginx.org/en/):
-
-  For **Linux** [see this link](https://nginx.org/en/linux_packages.html)
-
-  For **Windows** [see this link](https://nginx.org/en/download.html)
-
-  `nginx` will handle http requests to both: **Frontend** (if any) and **Backend**. I recommend you to run your `uQuik` application in non-SSL mode and configure your SSL in `nginx` instead. Same goes for static files serving and compression.
-
-  [Here is an example configuration for `nginx`](./production/nginx-example.conf)
-
-  For more information about `nginx` [go here](https://nginx.org/en/docs/)
