@@ -319,7 +319,7 @@ uquik
 
 #### Process manager (PM2)
 In production it's recommended to have a process manager that will automatically restart your application.
-I recommend you to use a `PM2` as a process manager, install it by running: `npm install pm2@latest -g`
+I recommend you to use a [`PM2`](https://pm2.keymetrics.io/) as a process manager, install it by running: `npm install pm2@latest -g`
 Copy and modify to your needs a [PM2 configuration file (ecosystem.config.js)](./production/ecosystem.config.js)
 Run your application:
 ```
@@ -332,9 +332,9 @@ For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/
 #### HTTP Proxy (Load balancer)
 Next step is to install an HTTP proxy(load balancer) `nginx`:
 
-For Linux [see this link](https://nginx.org/en/linux_packages.html)
+For **Linux** [see this link](https://nginx.org/en/linux_packages.html)
 
-For Windows [see this link](https://nginx.org/en/download.html)
+For **Windows** [see this link](https://nginx.org/en/download.html)
 
 `nginx` will handle http requests to both: **Frontend** (if any) and **Backend**. I recommend you to run your `uQuik` application in non-SSL mode and configure your SSL in `nginx` instead. Same goes for static files serving and compression.
 
