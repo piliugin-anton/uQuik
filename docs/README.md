@@ -20,6 +20,8 @@ To see a thrown errors in console while you are developing your application crea
 
 - [Errors](https://github.com/piliugin-anton/uQuik/tree/master/docs#errors)
 
+- [Production](https://github.com/piliugin-anton/uQuik/tree/master/docs#production)
+
 ## Examples
 
 #### Hello World
@@ -312,3 +314,28 @@ uquik
   .catch((error) => console.log("[Example] Failed to start a server", error));
 
 ```
+
+### Production
+
+#### Process manager (PM2)
+In production it's recommended to have a process manager that will automatically restart your application.
+I recommend you to use a `PM2` as a process manager, install it by running: `npm install pm2@latest -g`
+Copy and modify to your needs a [PM2 configuration file (ecosystem.config.js)](./production/ecosystem.config.js)
+Run your application:
+```
+pm2 start ecosystem.config.js
+```
+**Note:** always run your application on 127.0.0.1 for security
+
+For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/process-management/)
+
+#### HTTP Proxy (Load balancer)
+Next step is to install an HTTP proxy(load balancer) `nginx`:
+For Linux [see this link](https://nginx.org/en/linux_packages.html)
+For Windows [see this link](https://nginx.org/en/download.html)
+
+`nginx` will handle http requests to both: **Frontend** (if any) and **Backend**. I recommend you to run your `uQuik` application in non-SSL mode and configure your SSL in `nginx` instead. Same goes for static files serving and compression.
+
+[Here is an example configuration for `nginx`](./production/nginx-example.conf)
+
+For more information about `nginx` [go here](https://nginx.org/en/docs/)
