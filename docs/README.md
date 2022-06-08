@@ -316,7 +316,7 @@ uquik
 ```
 
 ### Production
-0. Set `trust_proxy` option to `true` for `new Server()` instance
+Set `trust_proxy` option to `true` for `new Server()` instance
 
 #### Process manager (PM2)
 In production it's recommended to have a process manager that will automatically restart your application.
