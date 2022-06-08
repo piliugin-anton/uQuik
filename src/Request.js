@@ -616,9 +616,14 @@ class Request extends Readable {
      */
   get ip () {
     // Convert Remote IP to string on first access
-    if (typeof this.remote_ip !== 'string') this.remote_ip = getIP(this._remote_ip)
+    if (this.remote_ip) return this.remote_ip
 
-    return this.remote_ip
+    if (this.app_options.get('trust_proxy')) {
+      const xForwardedFor = this.get('x-forwarded-for')
+      if (xForwardedFor) return (this.remote_ip = xForwardedFor.split(',')[0])
+    }
+
+    return (this.remote_ip = getIP(this._remote_ip))
   }
 
   /**
@@ -627,9 +632,14 @@ class Request extends Readable {
      */
   get proxy_ip () {
     // Convert Remote Proxy IP to string on first access
-    if (typeof this.remote_proxy_ip !== 'string') this.remote_proxy_ip = getIP(this._remote_proxy_ip)
+    if (this.remote_proxy_ip) return this.remote_proxy_ip
 
-    return this.remote_proxy_ip
+    if (this.app_options.get('trust_proxy')) {
+      const xForwardedFor = this.get('x-forwarded-for')
+      if (xForwardedFor && xForwardedFor.indexOf(',') !== -1) return (this.remote_proxy_ip = xForwardedFor.split(',')[1])
+    }
+
+    return (this.remote_proxy_ip = getIP(this._remote_proxy_ip))
   }
 
   /**
