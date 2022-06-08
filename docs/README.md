@@ -325,6 +325,5 @@ uquik
   ```
   pm2 start ecosystem.config.js
   ```
-  **Note:** always run your application on 127.0.0.1 for security
 
   For more information about `PM2` [go here](https://pm2.keymetrics.io/docs/usage/process-management/)
