@@ -13,6 +13,7 @@
  */
 
 const db = require('./mime-db.json')
+const mimeScore = require('./mime-score')
 const extname = require('path').extname
 
 /**
@@ -38,7 +39,6 @@ exports.types = Object.create(null)
 
 // Populate the extensions/types maps
 populateMaps(exports.extensions, exports.types)
-
 /**
  * Get the default charset for a MIME type.
  *
@@ -47,22 +47,16 @@ populateMaps(exports.extensions, exports.types)
  */
 
 function charset (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
+  if (!type || typeof type !== 'string') return false
 
   // TODO: use media-typer
   const match = EXTRACT_TYPE_REGEXP.exec(type)
   const mime = match && db[match[1].toLowerCase()]
 
-  if (mime && mime.charset) {
-    return mime.charset
-  }
+  if (mime && mime.charset) return mime.charset
 
   // default text/* to utf-8
-  if (match && TEXT_TYPE_REGEXP.test(match[1])) {
-    return 'UTF-8'
-  }
+  if (match && TEXT_TYPE_REGEXP.test(match[1])) return 'UTF-8'
 
   return false
 }
@@ -76,17 +70,13 @@ function charset (type) {
 
 function contentType (str) {
   // TODO: should this even be in this module?
-  if (!str || typeof str !== 'string') {
-    return false
-  }
+  if (!str || typeof str !== 'string') return false
 
   let mime = str.indexOf('/') === -1
     ? exports.lookup(str)
     : str
 
-  if (!mime) {
-    return false
-  }
+  if (!mime) return false
 
   // TODO: use content-type or other module
   if (mime.indexOf('charset') === -1) {
@@ -105,9 +95,7 @@ function contentType (str) {
  */
 
 function extension (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
+  if (!type || typeof type !== 'string') return false
 
   // TODO: use media-typer
   const match = EXTRACT_TYPE_REGEXP.exec(type)
@@ -115,9 +103,7 @@ function extension (type) {
   // get extensions
   const exts = match && exports.extensions[match[1].toLowerCase()]
 
-  if (!exts || !exts.length) {
-    return false
-  }
+  if (!exts || !exts.length) return false
 
   return exts[0]
 }
@@ -137,11 +123,9 @@ function lookup (path) {
   // get the extension ("ext" or ".ext" or full path)
   const extension = extname('x.' + path)
     .toLowerCase()
-    .substring(1)
+    .slice(1)
 
-  if (!extension) {
-    return false
-  }
+  if (!extension) return false
 
   return exports.types[extension] || false
 }
@@ -152,33 +136,31 @@ function lookup (path) {
  */
 
 function populateMaps (extensions, types) {
-  // source preference (least -> most)
-  const preference = ['nginx', 'apache', undefined, 'iana']
-
   for (const type in db) {
     const mime = db[type]
     const exts = mime.extensions
 
-    if (!exts || !exts.length) {
-      return
-    }
+    if (!exts || !exts.length) continue
 
     // mime -> extensions
     extensions[type] = exts
 
     // extension -> mime
-    for (let i = 0; i < exts.length; i++) {
+    const extensionsLength = exts.length
+    for (let i = 0; i < extensionsLength; i++) {
       const extension = exts[i]
 
       if (types[extension]) {
-        const from = preference.indexOf(db[types[extension]].source)
-        const to = preference.indexOf(mime.source)
+        // const from = preference.indexOf(db[types[extension]].source)
+        // const to = preference.indexOf(mime.source)
 
-        if (types[extension] !== 'application/octet-stream' &&
-          (from > to || (from === to && types[extension].substring(0, 12) === 'application/'))) {
-          // skip the remapping
-          continue
-        }
+        // if (types[extension] !== 'application/octet-stream' && (from > to || (from === to && types[extension].slice(0, 12) === 'application/'))) continue
+
+        const from = mimeScore(types[extension], db[types[extension]].source)
+        const to = mimeScore(type, mime.source)
+
+        // skip the remapping
+        if (from > to) continue
       }
 
       // set the extension -> mime

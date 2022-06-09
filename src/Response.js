@@ -6,6 +6,7 @@ const cookie = require('./helpers/cookie')
 const signature = require('./helpers/cookie-signature')
 const statusCodes = require('./statusCodes.json')
 const mimeTypes = require('./helpers/mime-types')
+const vary = require('./helpers/vary')
 const { fastArrayJoin } = require('./utils')
 
 const SSEventStream = require('./SSEventStream')
@@ -814,7 +815,8 @@ class Response extends Writable {
      * @param {String} name
      */
   vary (name) {
-    return this.header('Vary', name)
+    vary(this, name)
+    return this
   }
 }
 

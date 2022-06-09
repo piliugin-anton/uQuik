@@ -150,7 +150,7 @@ class Server extends Router {
   listen (port, host = '127.0.0.1') {
     // Adding not found handler (404)
     this.any('/*', (request, response) => this.handlers.get('on_not_found')(request, response))
-    this.routes_locked = true
+    this._routes_locked = true
 
     return new Promise((resolve, reject) =>
       this.uws_instance.listen(host, port, (listenSocket) => {
@@ -240,10 +240,7 @@ class Server extends Router {
     }
 
     // Do not allow duplicate routes for performance/stability reasons
-    if (this._routes.get(record.method).get(record.pattern)) {
-      throw new Error(`Failed to create route as duplicate routes are not allowed. Ensure that you do not have any routers or routes that try to handle requests at the same pattern. [${record.method.toUpperCase()} ${record.pattern}]`
-      )
-    }
+    if (this._routes.get(record.method).get(record.pattern)) throw new Error(`Failed to create route as duplicate routes are not allowed. Ensure that you do not have any routers or routes that try to handle requests at the same pattern. [${record.method.toUpperCase()} ${record.pattern}]`)
 
     // Process and combine middlewares for routes that support middlewares
     // Initialize route-specific middlewares if they do not exist

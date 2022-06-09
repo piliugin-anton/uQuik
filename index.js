@@ -7,6 +7,7 @@ const Request = require('./src/Request')
 const Response = require('./src/Response')
 const CustomError = require('./src/CustomError')
 const CORS = require('./src/CORS')
+const StaticFiles = require('./src/StaticFiles')
 
 module.exports = {
   Server,
@@ -15,5 +16,6 @@ module.exports = {
   Request,
   Response,
   CustomError,
-  CORS
+  CORS,
+  StaticFiles
 }

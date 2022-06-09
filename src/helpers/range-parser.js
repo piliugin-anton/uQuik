@@ -22,9 +22,7 @@ const rangeParser = (size, str, options) => {
 
   const index = str.indexOf('=')
 
-  if (index === -1) {
-    return -2
-  }
+  if (index === -1) return -2
 
   // split the range string
   const arr = str.slice(index + 1).split(',')
