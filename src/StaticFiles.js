@@ -19,7 +19,7 @@ const resolveFile = (file, indexFile = '') => {
     } else {
       throw new CustomError('404 Not Found', 404)
     }
-  })
+  }).catch((ex) => { throw new CustomError('404 Not Found', 404) })
 }
 
 const destroy = (dataTransfer) => {

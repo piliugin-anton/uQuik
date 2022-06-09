@@ -318,9 +318,28 @@ uquik
 ```
 
 ### Static files
-#### Global
+```javascript
+const { Server, StaticFiles } = require("uquik");
+const path = require("path");
 
-#### Route-specific
+const uquik = new Server();
+
+const static = StaticFiles({
+  root: path.join(__dirname, "www"), // root directory
+  indexFile: "index.html", // index file name
+  compress: true, // enable gzip compression?
+  compressionThreshold: 1024, // compression threshold
+});
+
+uquik.get("/*", static);
+uquik.head("/*", static);
+
+uquik
+  .listen(5000, "127.0.0.1")
+  .then((socket) => console.log("[Example] Server started"))
+  .catch((error) => console.log("[Example] Failed to start a server", error));
+```
+
 
 
 ### Production
