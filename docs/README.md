@@ -20,6 +20,8 @@ To see a thrown errors in console while you are developing your application crea
 
 - [Errors](https://github.com/piliugin-anton/uQuik/tree/master/docs#errors)
 
+- [Static files](https://github.com/piliugin-anton/uQuik/tree/master/docs#static-files)
+
 - [Production](https://github.com/piliugin-anton/uQuik/tree/master/docs#production)
 
 ## Examples
@@ -314,6 +316,12 @@ uquik
   .catch((error) => console.log("[Example] Failed to start a server", error));
 
 ```
+
+### Static files
+#### Global
+
+#### Route-specific
+
 
 ### Production
 #### Process manager (PM2)
