@@ -84,7 +84,7 @@ class Server extends Router {
 
     this._middlewares = new Map([
       // This will contain global middlewares
-      ['/', new Map()]
+      ['__GLOBAL__', new Map()]
     ])
 
     this._routes = new Map([
@@ -248,7 +248,7 @@ class Server extends Router {
 
     // Parse middlewares that apply to this route based on execution pattern
     this._middlewares.forEach((middleware, pattern) => {
-      if (pattern !== '/' && record.pattern.startsWith(pattern)) middleware.forEach((object) => record.options.middlewares.set(record.options.middlewares.size, object))
+      if (pattern !== '__GLOBAL__' && record.pattern.startsWith(pattern)) middleware.forEach((object) => record.options.middlewares.set(record.options.middlewares.size, object))
     })
 
     // Map all user specified route specific middlewares with a priority of 2 + combine matched middlewares with route middlewares
@@ -316,7 +316,7 @@ class Server extends Router {
 
     // Create a middleware object with an appropriate priority
     const object = {
-      priority: record.pattern === '/' ? 0 : 1, // 0 priority are global middlewares
+      priority: record.pattern === '__GLOBAL__' ? 0 : 1, // 0 priority are global middlewares
       middleware: record.middleware
     }
 
@@ -401,7 +401,7 @@ class Server extends Router {
 
     // Determine next callback based on if either global or route middlewares exist
 
-    const globalMiddlewares = this._middlewares.get('/')
+    const globalMiddlewares = this._middlewares.get('__GLOBAL__')
     const globalMiddlewaresSize = globalMiddlewares.size
 
     // Execute global middlewares first as they take precedence over route specific middlewares
