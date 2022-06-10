@@ -57,9 +57,7 @@ class Router {
     if (Array.isArray(options.middlewares)) options.middlewares = new Map(options.middlewares.map((middleware, index) => [index, middleware]))
 
     // Concatenate any remaining callbacks to the route options middlewares property
-    if (callbacks.length > 0) {
-      callbacks.forEach((middleware) => options.middlewares.set(options.middlewares.size, middleware))
-    }
+    if (callbacks.length > 0) callbacks.forEach((middleware) => options.middlewares.set(options.middlewares.size, middleware))
 
     // Initialize the record object which will hold information about this route
     const record = {

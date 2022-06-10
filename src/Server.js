@@ -244,17 +244,17 @@ class Server extends Router {
 
     // Process and combine middlewares for routes that support middlewares
     // Initialize route-specific middlewares if they do not exist
-    if (!(record.options.middlewares instanceof Map)) record.options.middlewares = new Map()
+    if (!(record.options.get('middlewares') instanceof Map)) record.options.set('middlewares', new Map())
 
     // Parse middlewares that apply to this route based on execution pattern
     this._middlewares.forEach((middleware, pattern) => {
-      if (pattern !== '__GLOBAL__' && record.pattern.startsWith(pattern)) middleware.forEach((object) => record.options.middlewares.set(record.options.middlewares.size, object))
+      if (pattern !== '__GLOBAL__' && pattern !== '/' && record.pattern.startsWith(pattern)) middleware.forEach((object) => record.options.get('middlewares').set(record.options.get('middlewares').size, object))
     })
 
     // Map all user specified route specific middlewares with a priority of 2 + combine matched middlewares with route middlewares
-    record.options.middlewares.forEach((middleware, index) => record.options.middlewares.set(index, {
+    record.options.get('middlewares').forEach((middleware, index) => record.options.get('middlewares').set(index, {
       priority: 2,
-      middleware
+      ...middleware
     }))
 
     const route = new Route({
@@ -321,16 +321,14 @@ class Server extends Router {
     }
 
     // Store middleware object in its pattern branch
-    const middlewares = this._middlewares.get(record.pattern)
-    middlewares.set(middlewares.size, object)
+    this._middlewares.get(record.pattern).set(this._middlewares.get(record.pattern).size, object)
 
     // Inject middleware into all routes that match its execution pattern if it is non global
     if (object.priority !== 0) {
-      const match = record.pattern.endsWith('/') ? record.pattern.substr(0, record.pattern.length - 1) : record.pattern
-
+      // const match = record.pattern !== '/' && record.pattern.endsWith('/') ? record.pattern.substr(0, record.pattern.length - 1) : record.pattern
       this._routes.forEach((method) => {
         method.forEach((route, pattern) => {
-          if (pattern.startsWith(match)) route.use(object)
+          if ((pattern === '/' && pattern === record.pattern) || (pattern !== '/' && pattern.startsWith(record.pattern))) route.use(object)
         })
       })
     }
@@ -399,11 +397,8 @@ class Server extends Router {
     // Trigger error handler if an error was provided by a middleware
     if (error) return response.throw(error)
 
-    // Determine next callback based on if either global or route middlewares exist
-
     const globalMiddlewares = this._middlewares.get('__GLOBAL__')
     const globalMiddlewaresSize = globalMiddlewares.size
-
     // Execute global middlewares first as they take precedence over route specific middlewares
     if (globalMiddlewaresSize !== 0) {
       const currentGlobalMiddleware = globalMiddlewares.get(cursor)
@@ -417,8 +412,7 @@ class Server extends Router {
       }
     }
 
-    const routeMiddlewares = route.options.middlewares
-
+    const routeMiddlewares = route.middlewares
     // Execute route specific middlewares if they exist
     if (routeMiddlewares.size !== 0) {
       const currentRouteMiddleware = routeMiddlewares.get(cursor - globalMiddlewaresSize)
