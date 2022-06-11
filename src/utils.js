@@ -305,7 +305,8 @@ const parsePathParameters = (pattern) => {
   let counter = 0
   if (pattern.indexOf('/:') > -1) {
     const chunks = pattern.split('/').filter((chunk) => chunk.length > 0)
-    for (let index = 0; index < chunks.length; index++) {
+    const chunksLength = chunks.length
+    for (let index = 0; index < chunksLength; index++) {
       const current = chunks[index]
       if (current.startsWith(':') && current.length > 2) {
         results.push([current.substring(1), counter])

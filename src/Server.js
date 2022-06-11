@@ -325,10 +325,9 @@ class Server extends Router {
 
     // Inject middleware into all routes that match its execution pattern if it is non global
     if (object.priority !== 0) {
-      // const match = record.pattern !== '/' && record.pattern.endsWith('/') ? record.pattern.substr(0, record.pattern.length - 1) : record.pattern
       this._routes.forEach((method) => {
         method.forEach((route, pattern) => {
-          if ((pattern === '/' && pattern === record.pattern) || (pattern !== '/' && pattern.startsWith(record.pattern))) route.use(object)
+          if ((record.pattern === '/' && pattern === record.pattern) || (record.pattern !== '/' && pattern.startsWith(record.pattern))) route.use(object)
         })
       })
     }
