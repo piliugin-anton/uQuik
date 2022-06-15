@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 const { Readable, Writable } = require('readable-stream')
+const path = require('path')
 // eslint-disable-next-line no-unused-vars
 const Server = require('./Server') // lgtm [js/unused-local-variable]
 const cookie = require('./helpers/cookie')
@@ -459,6 +460,23 @@ class Response extends Writable {
         readable.once('end', endRequest)
       }
     }
+  }
+
+  /**
+     * Writes approriate headers to signify that file at path has been attached.
+     *
+     * @param {String} path
+     * @param {String=} name
+     * @returns {Response}
+     */
+  attachment (filePath, name) {
+    if (filePath) {
+      const fileName = name || path.basename(filePath)
+      this.header('Content-Disposition', `attachment; filename="${fileName}"`).type(path.extname(fileName))
+    } else {
+      this.header('Content-Disposition', 'attachment')
+    }
+    return this
   }
 
   /**
