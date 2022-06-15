@@ -21,7 +21,7 @@ class Negotiator {
   }
 
   charsets (provided) {
-    return this.preferred(this.headers['accept-charset'], provided, 'charset')
+    return this.preferred(this.headers.get('accept-charset'), provided, 'charset')
   }
 
   encoding (available) {
@@ -30,7 +30,7 @@ class Negotiator {
   }
 
   encodings (provided) {
-    return this.preferred(this.headers['accept-encoding'], provided, 'encoding')
+    return this.preferred(this.headers.get('accept-encoding'), provided, 'encoding')
   }
 
   language (available) {
@@ -39,7 +39,7 @@ class Negotiator {
   }
 
   languages (provided) {
-    return this.preferred(this.headers['accept-language'], provided, 'language')
+    return this.preferred(this.headers.get('accept-language'), provided, 'language')
   }
 
   mediaType (available) {
