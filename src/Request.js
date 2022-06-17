@@ -73,7 +73,7 @@ class Request extends Readable {
      */
   pause () {
     // Ensure request is not already paused before pausing
-    if (!super.isPaused() && !this.readableEnded) {
+    if (!this.readableEnded && !super.isPaused()) {
       this.raw_response.pause()
       return super.pause()
     }
@@ -86,7 +86,7 @@ class Request extends Readable {
      */
   resume () {
     // Ensure request is paused before resuming
-    if (super.isPaused() && !this.readableEnded) {
+    if (!this.readableEnded && super.isPaused()) {
       this.raw_response.resume()
       return super.resume()
     }
