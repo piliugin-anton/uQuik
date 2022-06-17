@@ -619,7 +619,7 @@ class Request extends Readable {
     if (this.remote_ip) return this.remote_ip
 
     if (this.app_options.get('trust_proxy')) {
-      const xForwardedFor = this.get('x-forwarded-for')
+      const xForwardedFor = this.headers.get('x-forwarded-for')
       if (xForwardedFor) return (this.remote_ip = xForwardedFor.split(',')[0])
     }
 
@@ -635,7 +635,7 @@ class Request extends Readable {
     if (this.remote_proxy_ip) return this.remote_proxy_ip
 
     if (this.app_options.get('trust_proxy')) {
-      const xForwardedFor = this.get('x-forwarded-for')
+      const xForwardedFor = this.headers.get('x-forwarded-for')
       if (xForwardedFor && xForwardedFor.indexOf(',') !== -1) return (this.remote_proxy_ip = xForwardedFor.split(',')[1])
     }
 
@@ -685,7 +685,7 @@ class Request extends Readable {
   get protocol () {
     // Resolves x-forwarded-proto header if trust proxy is enabled
     const trustProxy = this.app_options.get('trust_proxy')
-    const xForwardedProto = this.get('x-forwarded-proto')
+    const xForwardedProto = this.headers.get('x-forwarded-proto')
     if (trustProxy && xForwardedProto) return xForwardedProto.indexOf(',') !== -1 ? xForwardedProto.split(',')[0] : xForwardedProto
 
     // Use uWS initially defined protocol
@@ -705,13 +705,11 @@ class Request extends Readable {
      * @returns {Array}
      */
   get ips () {
-    const clientIP = this.ip
-    const proxyIP = this.proxy_ip
     const trustProxy = this.app_options.get('trust_proxy')
-    const xForwardedFor = this.get('x-forwarded-for')
+    const xForwardedFor = this.headers.get('x-forwarded-for')
     if (trustProxy && xForwardedFor) return xForwardedFor.split(',')
 
-    return [clientIP, proxyIP]
+    return [this.ip, this.proxy_ip]
   }
 
   /**
@@ -719,10 +717,10 @@ class Request extends Readable {
      */
   get hostname () {
     const trustProxy = this.app_options.get('trust_proxy')
-    let host = this.get('x-forwarded-host')
+    let host = this.headers.get('x-forwarded-host')
 
     if (!host || !trustProxy) {
-      host = this.get('host')
+      host = this.headers.get('host')
     } else if (host.indexOf(',') !== -1) {
       // Note: X-Forwarded-Host is normally only ever a
       //       single value, but this is to be safe.
