@@ -47,7 +47,7 @@ const StaticFiles = (options = {}) => {
 
     try {
       const [file, stats] = await resolveFile(req.path === '/' ? path.join(opts.root, opts.indexFile) : path.normalize(path.join(opts.root, req.path)), opts.indexFile)
-      const mimeType = mimeTypes.lookup(file)
+      const mimeType = mimeTypes.lookup(file) || 'application/octet-stream'
 
       stats.mtime.setMilliseconds(0)
       const timeUTC = stats.mtime.toUTCString()
