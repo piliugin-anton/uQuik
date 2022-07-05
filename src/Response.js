@@ -396,7 +396,7 @@ class Response extends Writable {
       // Attempt to stream the chunk using appropriate uWS.Response chunk serving method
       // This will depend on whether a total_size is specified or not
       let sent, finished
-      // const lastOffset = this.write_offset
+      const lastOffset = this.write_offset
       if (totalSize) {
         // Attempt to stream the current chunk using uWS.tryEnd with a total size
         const [ok, done] = this.raw_response.tryEnd(chunk, totalSize)
@@ -418,12 +418,20 @@ class Response extends Writable {
         stream.pause()
 
         // Bind a drain handler which will resume the once the backpressure is cleared
-        this.drain(() => {
-          // Resume the stream if it is paused
-          if (stream.isPaused()) stream.resume()
-
-          // Return the write boolean to uWS based on whether the stream is active or not
-          return !stream.isPaused()
+        this.drain((offset) => {
+          if (lastOffset !== -1) {
+            const [ok, done] = this.raw_response.tryEnd(chunk.slice(offset - lastOffset), totalSize)
+            if (done) {
+              if (!stream.destroyed) stream.destroy()
+            } else if (ok) {
+              // Resume the stream if it is paused
+              if (stream.isPaused()) stream.resume()
+            }
+            /* We always have to return true/false in onWritable.
+            * If you did not send anything, return true for success. */
+            return ok
+          }
+          return true
         })
       }
     }
