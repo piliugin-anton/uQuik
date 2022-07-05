@@ -19,7 +19,7 @@ Highly performant HTTP(S) web-framework for Node.js
 - ExpressJS API compatibility (partial)
 
 #### Requirements:
-- Node.js version 14.17.0 or higher
+- Node.js version 14.15.0 or higher
 
 ## Usage:
 
