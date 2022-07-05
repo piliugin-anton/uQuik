@@ -31,7 +31,7 @@ class Response extends Writable {
     this._bind_abort_handler()
 
     // Bind a finish/close handler which will end the response once writable has closed
-    super.once('finish', () => (this.streaming ? this.send() : undefined))
+    this.once('finish', () => this.streaming && this.send())
   }
 
   /**
@@ -419,19 +419,20 @@ class Response extends Writable {
 
         // Bind a drain handler which will resume the once the backpressure is cleared
         this.drain((offset) => {
-          if (lastOffset !== -1) {
-            const [ok, done] = this.raw_response.tryEnd(chunk.slice(offset - lastOffset), totalSize)
-            if (done) {
-              if (!stream.destroyed) stream.destroy()
-            } else if (ok) {
-              // Resume the stream if it is paused
-              if (stream.isPaused()) stream.resume()
-            }
-            /* We always have to return true/false in onWritable.
-            * If you did not send anything, return true for success. */
-            return ok
+          // On failure the timeout will start
+          const [ok, done] = this.raw_response.tryEnd(chunk.slice(offset - lastOffset), totalSize)
+          if (done) {
+            if (!stream.destroyed) stream.destroy()
+          } else if (ok) {
+            // We sent a chunk and it was not the last one, so let's resume reading.
+            // Timeout is still disabled, so we can spend any amount of time waiting
+            // for more chunks to send.
+            if (stream.isPaused()) stream.resume()
           }
-          return true
+
+          // We always have to return true/false in onWritable.
+          // If you did not send anything, return true for success.
+          return ok
         })
       }
     }
@@ -622,7 +623,7 @@ class Response extends Writable {
      * @param {String} name
      */
   _throw_unsupported (name) {
-    this.throw(new Error(`One of your middlewares or logic tried to call Response.${name} which is unsupported.`))
+    this.throw(new Error(`One of your middlewares or controller tried to call Response.${name} which is unsupported.`))
   }
 
   /**
