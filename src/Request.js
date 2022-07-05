@@ -615,7 +615,6 @@ class Request extends Readable {
      * @returns {String}
      */
   get ip () {
-    // Convert Remote IP to string on first access
     if (this.remote_ip) return this.remote_ip
 
     if (this.app_options.get('trust_proxy')) {
@@ -623,6 +622,7 @@ class Request extends Readable {
       if (xForwardedFor) return (this.remote_ip = xForwardedFor.split(',')[0])
     }
 
+    // Convert Remote IP to string on first access
     return (this.remote_ip = getIP(this._remote_ip))
   }
 

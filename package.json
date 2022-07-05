@@ -1,6 +1,6 @@
 {
   "name": "uquik",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "dependencies": {
     "ajv": "^8.11.0",
     "dotenv": "^16.0.1",
-    "fast-jwt": "^1.5.4",
+    "fast-jwt": "^1.6.0",
     "fast-uri": "^2.1.0",
     "readable-stream": "^4.0.0",
     "steed": "^1.1.3",
@@ -37,10 +37,10 @@
   },
   "homepage": "https://github.com/piliugin-anton/uQuik#readme",
   "devDependencies": {
-    "eslint": "^8.17.0",
+    "eslint": "^8.19.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-n": "^15.2.3",
+    "eslint-plugin-n": "^15.2.4",
     "eslint-plugin-promise": "^6.0.0",
     "nanobench": "^2.1.1"
   }
