@@ -422,7 +422,11 @@ class Response extends Writable {
 
         // Bind a drain handler which will resume the once the backpressure is cleared
         this.drain((offset) => {
-          if (this.completed) return !stream.destroyed && stream.destroy()
+          if (this.completed) {
+            if (!stream.destroyed) stream.destroy()
+
+            return true
+          }
 
           if (totalSize) {
             const [ok, done] = this.raw_response.tryEnd(this.raw_response.stream_chunk.slice(offset - this.raw_response.stream_lastOffset), totalSize)
@@ -441,7 +445,7 @@ class Response extends Writable {
           } else {
             if (stream.readable && stream.isPaused()) stream.resume()
 
-            return !stream.isPaused()
+            return true
           }
         })
       }
