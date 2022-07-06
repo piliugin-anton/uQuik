@@ -396,7 +396,7 @@ class Response extends Writable {
       // Attempt to stream the chunk using appropriate uWS.Response chunk serving method
       // This will depend on whether a total_size is specified or not
       let sent, finished
-      const lastOffset = this.write_offset
+      const lastOffset = this.raw_response.getWriteOffset()
       if (totalSize) {
         // Attempt to stream the current chunk using uWS.tryEnd with a total size
         const [ok, done] = this.raw_response.tryEnd(chunk, totalSize)
@@ -614,15 +614,6 @@ class Response extends Writable {
 
       return this._sse
     }
-  }
-
-  /**
-     * Returns the current response body content write offset in bytes.
-     * Use in conjunction with the drain() offset handler to retry writing failed chunks.
-     * @returns {Number}
-     */
-  get write_offset () {
-    return this.completed ? -1 : this.raw_response.getWriteOffset()
   }
 
   /* ExpressJS compatibility properties & methods */
