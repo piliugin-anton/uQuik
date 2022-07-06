@@ -330,7 +330,7 @@ class Response extends Writable {
       // Attempt to write the body to the client and end the response
       if (!this.streaming && !body) {
         // Add Content-Length where it's needed
-        if (!this.hasContentLength && this.wrapped_request.method !== 'HEAD') this.raw_response.writeHeader('Content-Length', '0')
+        if (!this.chunked && !this.hasContentLength && this.wrapped_request.method !== 'HEAD') this.raw_response.writeHeader('Content-Length', '0')
         // Send the response with the uWS.HttpResponse.endWithoutBody(length, close_connection) method as we have no body data
         // NOTE: This method is completely undocumented by uWS but exists in the source code to solve the problem of no body being sent with a custom content-length
         this.raw_response.endWithoutBody()
@@ -417,22 +417,32 @@ class Response extends Writable {
         // Pause the readable stream to prevent any further data from being read
         stream.pause()
 
+        this.raw_response.stream_lastOffset = lastOffset
+        this.raw_response.stream_chunk = chunk
+
         // Bind a drain handler which will resume the once the backpressure is cleared
         this.drain((offset) => {
-          // On failure the timeout will start
-          const [ok, done] = this.raw_response.tryEnd(chunk.slice(offset - lastOffset), totalSize)
-          if (done) {
-            if (!stream.destroyed) stream.destroy()
-          } else if (ok) {
-            // We sent a chunk and it was not the last one, so let's resume reading.
-            // Timeout is still disabled, so we can spend any amount of time waiting
-            // for more chunks to send.
-            if (stream.isPaused()) stream.resume()
-          }
+          if (this.completed) return !stream.destroyed && stream.destroy()
 
-          // We always have to return true/false in onWritable.
-          // If you did not send anything, return true for success.
-          return ok
+          if (totalSize) {
+            const [ok, done] = this.raw_response.tryEnd(this.raw_response.stream_chunk.slice(offset - this.raw_response.stream_lastOffset), totalSize)
+            if (done) {
+              if (!stream.destroyed) stream.destroy()
+            } else if (ok) {
+              // We sent a chunk and it was not the last one, so let's resume reading.
+              // Timeout is still disabled, so we can spend any amount of time waiting
+              // for more chunks to send.
+              if (stream.readable && stream.isPaused()) stream.resume()
+            }
+
+            // We always have to return true/false in onWritable.
+            // If you did not send anything, return true for success.
+            return ok
+          } else {
+            if (stream.readable && stream.isPaused()) stream.resume()
+
+            return !stream.isPaused()
+          }
         })
       }
     }
@@ -452,6 +462,7 @@ class Response extends Writable {
 
     // Do not allow streaming if response has already been aborted or completed
     if (!this.completed) {
+      this.chunked = true
       // Bind an 'abort' event handler which will destroy the consumed stream if request is aborted
       this.on('abort', () => {
         if (!readable.destroyed) readable.destroy()
@@ -465,8 +476,7 @@ class Response extends Writable {
 
       // Bind listeners to end request on stream closure if no total size was specified and thus we delivered with chunked transfer
       if (!totalSize) {
-        const endRequest = () => this.send()
-        readable.once('end', endRequest)
+        readable.once('end', () => this.send())
       }
     }
   }
