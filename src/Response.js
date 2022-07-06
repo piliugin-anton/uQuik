@@ -269,6 +269,7 @@ class Response extends Writable {
         // Wait for this chunk to be written to the client
         let drained = false
         return this.drain(() => {
+          if (this.completed) return true
           // Call the callback once the chunk is drained
           if (!drained) {
             drained = true
