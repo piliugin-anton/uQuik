@@ -1,6 +1,6 @@
 {
   "name": "uquik",
-  "version": "1.0.38",
+  "version": "1.0.39",
   "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "Hyper-Express"
   ],
   "author": "Anton Piliugin",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/piliugin-anton/uQuik.git"
