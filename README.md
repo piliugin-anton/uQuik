@@ -31,4 +31,4 @@ Highly performant HTTP(S) web-framework for Node.js
 
 
 ## License
-[MIT](./LICENSE)
+[Apache-2.0](./LICENSE)
