@@ -324,15 +324,15 @@ const path = require("path");
 
 const uquik = new Server();
 
-const static = StaticFiles({
+const staticFiles = StaticFiles({
   root: path.join(__dirname, "www"), // root directory
   indexFile: "index.html", // index file name
   compress: true, // enable gzip compression?
   compressionThreshold: 1024, // compression threshold
 });
 
-uquik.get("/*", static);
-uquik.head("/*", static);
+uquik.get("/*", staticFiles);
+uquik.head("/*", staticFiles);
 
 uquik
   .listen(5000, "127.0.0.1")
