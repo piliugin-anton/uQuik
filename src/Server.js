@@ -141,6 +141,18 @@ class Server extends Router {
   }
 
   /**
+     * Adds server name
+     *
+     * @param {String} hostname Hostname
+     * @returns {Server} Server instance
+     */
+  addServerName (hostname) {
+    this._options.set('host', hostname)
+    this.uws_instance.addServerName(hostname)
+    return this
+  }
+
+  /**
      * Starts  webserver on specified port and host.
      *
      * @param {Number} port
@@ -148,6 +160,8 @@ class Server extends Router {
      * @returns {Promise} Promise
      */
   listen (port, host = '127.0.0.1') {
+    if (!this._options.has('host')) this._options.set('host', host)
+    this._options.set('port', port)
     // Adding not found handler (404)
     this.any('/*', (request, response) => this.handlers.get('on_not_found')(request, response))
     // Lock routes modification

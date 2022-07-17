@@ -28,6 +28,7 @@ class Request extends Readable {
     // IMPORTANT TO GET ALL THE DATA!
     this.method = this.raw_request.getMethod().toUpperCase()
     this.path = this.raw_request.getUrl()
+    this.query_parameters = new URLSearchParams(this.raw_request.getQuery())
     this._remote_ip = this.raw_response.getRemoteAddress()
     this._remote_proxy_ip = this.raw_response.getProxiedRemoteAddress()
 
@@ -569,7 +570,9 @@ class Request extends Readable {
   get url () {
     if (this._url) return this._url
 
-    return (this._url = this.path + (this.query_parameters ? '?' + this.query_parameters.toString() : ''))
+    const port = this.app_options.get('port')
+    const queryString = this.query_parameters.toString()
+    return (this._url = this.protocol + '://' + this.app_options.get('host') + (port !== 80 && port !== 443 ? ':' + port : '') + this.path + (queryString ? '?' + queryString : ''))
   }
 
   get accept () {
@@ -597,17 +600,6 @@ class Request extends Readable {
     // Parse cookies from Cookie header and cache results
     const cookies = this.headers.get('cookie')
     return (this._cookies = cookies ? cookie.parse(cookies) : {})
-  }
-
-  /**
-     * Returns query parameters from incoming request.
-     * @returns {URLSearchParams}
-     */
-  get query_parameters () {
-    // Return from cache if already parsed once
-    if (this._query_parameters) return this._query_parameters
-
-    return (this._query_parameters = new URLSearchParams(this.raw_request.getQuery()))
   }
 
   /**
