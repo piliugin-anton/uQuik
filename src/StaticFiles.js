@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const zlib = require('zlib')
+const { pipeline } = require('readable-stream')
 
 const mimeTypes = require('./helpers/mime-types')
 const accepts = require('./helpers/accepts')
@@ -24,7 +25,7 @@ const resolveFile = (file, indexFile = '') => {
 
 const destroy = (dataTransfer) => {
   if (dataTransfer.readable && !dataTransfer.readable.destroyed) dataTransfer.readable.destroy()
-  if (dataTransfer.writable && !dataTransfer.writable.destroyed) dataTransfer.writable.destroy()
+  if (dataTransfer.transform && !dataTransfer.transform.destroyed) dataTransfer.transform.destroy()
 }
 
 const StaticFiles = (options = {}) => {
@@ -39,9 +40,10 @@ const StaticFiles = (options = {}) => {
   return async (req, res) => {
     const dataTransfer = {
       readable: null,
-      writable: null
+      transform: null
     }
-    res.on('abort', () => destroy(dataTransfer))
+
+    res.once('abort', () => destroy(dataTransfer))
 
     if (req.method !== 'GET' && req.method !== 'HEAD') return res.status(405).header('Allow', 'GET, HEAD').vary('Accept-Encoding').send()
 
@@ -115,6 +117,8 @@ const StaticFiles = (options = {}) => {
         end
       })
 
+      dataTransfer.readable.once('end', () => !dataTransfer.readable.destroyed && dataTransfer.readable.destroy())
+
       res
         .header('Content-Type', mimeType)
         .header('Last-Modified', timeUTC)
@@ -123,15 +127,13 @@ const StaticFiles = (options = {}) => {
       if (compression) {
         res.header('Content-Encoding', compression)
 
-        dataTransfer.writable = zlib.createGzip()
+        dataTransfer.transform = zlib.createGzip()
 
-        dataTransfer.writable.once('end', () => !dataTransfer.writable.destroyed && dataTransfer.writable.destroy())
+        dataTransfer.transform.once('end', () => !dataTransfer.transform.destroyed && dataTransfer.transform.destroy())
 
-        dataTransfer.readable
-          .pipe(dataTransfer.writable)
-          .pipe(res)
+        pipeline(dataTransfer.readable, dataTransfer.transform, res, (error) => res.throw(error))
       } else {
-        return res.stream(dataTransfer.readable, size)
+        res.stream(dataTransfer.readable, size)
       }
     } catch (ex) {
       if (ex.status && ex.status === 404) return res.master_context.handlers.get('on_not_found')(req, res)

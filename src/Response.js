@@ -256,7 +256,7 @@ class Response extends Writable {
       this.streaming = true
 
       // Ensure response has been initiated before writing any chunks
-      this._initiate_response()
+      if (!this.initiated) this._initiate_response()
 
       // Attempt to write the chunk to the client
       if (this.raw_response.write(chunk)) {
@@ -269,10 +269,6 @@ class Response extends Writable {
         // Wait for this chunk to be written to the client
         let drained = false
         return this.drain(() => {
-          if (this.completed) {
-            callback()
-            return true
-          }
           // Call the callback once the chunk is drained
           if (!drained) {
             drained = true
