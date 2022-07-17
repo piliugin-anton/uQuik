@@ -21,7 +21,7 @@ class Request extends Readable {
     // Pre-parse core data attached to volatile uWebsockets request/response objects
     this.raw_request = rawRequest
     this.raw_response = rawResponse
-    this.app_options = route.app._options
+    this.app_options = route.appOptions
 
     this.locals = {}
 

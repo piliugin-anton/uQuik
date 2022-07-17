@@ -315,7 +315,23 @@ class Server extends Router {
     if (!this._middlewares.has(record.pattern)) this._middlewares.set(record.pattern, new Map())
 
     // Create a middleware object with an appropriate priority
-    const object = {
+    const map = new Map([
+      ['priority', record.pattern === '__GLOBAL__' ? 0 : 1], // 0 priority are global middlewares
+      ['middleware', record.middleware]
+    ])
+
+    // Store middleware object in its pattern branch
+    this._middlewares.get(record.pattern).set(this._middlewares.get(record.pattern).size, map)
+
+    // Inject middleware into all routes that match its execution pattern if it is non global
+    if (map.get('priority') !== 0) {
+      this._routes.forEach((method) => {
+        method.forEach((route, pattern) => {
+          if ((record.pattern === '/' && pattern === record.pattern) || (record.pattern !== '/' && pattern.startsWith(record.pattern))) route.use(map)
+        })
+      })
+    }
+    /* const object = {
       priority: record.pattern === '__GLOBAL__' ? 0 : 1, // 0 priority are global middlewares
       middleware: record.middleware
     }
@@ -330,7 +346,7 @@ class Server extends Router {
           if ((record.pattern === '/' && pattern === record.pattern) || (record.pattern !== '/' && pattern.startsWith(record.pattern))) route.use(object)
         })
       })
-    }
+    } */
   }
 
   /* uWS -> Server Request/Response Handling Logic */
@@ -353,7 +369,7 @@ class Server extends Router {
     )
 
     // Wrap uWS.Response -> Response
-    const wrappedResponse = new Response(wrappedRequest, response, route)
+    const wrappedResponse = new Response(wrappedRequest, response, route, this.handlers)
 
     // Checking if we need to get request body
     if (wrappedRequest.contentLength) {
@@ -399,13 +415,13 @@ class Server extends Router {
     const globalMiddlewares = this._middlewares.get('__GLOBAL__')
     const globalMiddlewaresSize = globalMiddlewares.size
     // Execute global middlewares first as they take precedence over route specific middlewares
-    if (globalMiddlewaresSize !== 0) {
-      const currentGlobalMiddleware = globalMiddlewares.get(cursor)
+    if (globalMiddlewaresSize !== 0 && cursor < globalMiddlewaresSize) {
+      const currentGlobalMiddleware = globalMiddlewares.get(cursor).get('middleware')
       if (currentGlobalMiddleware) {
         const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
         response._track_middleware_cursor(cursor)
         // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-        const output = currentGlobalMiddleware.middleware(request, response, next)
+        const output = currentGlobalMiddleware(request, response, next)
         if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
         return
       }
@@ -414,14 +430,17 @@ class Server extends Router {
     const routeMiddlewares = route.middlewares
     // Execute route specific middlewares if they exist
     if (routeMiddlewares.size !== 0) {
-      const currentRouteMiddleware = routeMiddlewares.get(cursor - globalMiddlewaresSize)
-      if (currentRouteMiddleware) {
-        const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
-        response._track_middleware_cursor(cursor)
-        // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-        const output = currentRouteMiddleware.middleware(request, response, next)
-        if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-        return
+      const routeMiddlewareCursor = cursor - globalMiddlewaresSize
+      if (routeMiddlewareCursor < routeMiddlewares.size) {
+        const currentRouteMiddleware = routeMiddlewares.get(routeMiddlewareCursor).get('middleware')
+        if (currentRouteMiddleware) {
+          const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
+          response._track_middleware_cursor(cursor)
+          // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
+          const output = currentRouteMiddleware(request, response, next)
+          if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+          return
+        }
       }
     }
 

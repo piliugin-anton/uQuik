@@ -1,6 +1,6 @@
 {
   "name": "uquik",
-  "version": "1.0.40",
+  "version": "1.0.41",
   "description": "uQuik HTTP(S) framework",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/piliugin-anton/uQuik#readme",
   "devDependencies": {
-    "eslint": "^8.19.0",
+    "eslint": "^8.20.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.2.4",

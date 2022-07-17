@@ -317,10 +317,6 @@ const parsePathParameters = (pattern) => {
   return results
 }
 
-const asyncWait = (delay) => {
-  return new Promise((resolve) => setTimeout((res) => res(), delay, resolve))
-}
-
 const mergeRelativePaths = (basePath, newPath) => {
   // handle both roots merger case
   if (basePath === '/' && newPath === '/') return '/'
@@ -355,5 +351,4 @@ module.exports.fastArrayJoin = fastArrayJoin
 module.exports.getIP = getIP
 
 module.exports.parsePathParameters = parsePathParameters
-module.exports.asyncWait = asyncWait
 module.exports.mergeRelativePaths = mergeRelativePaths

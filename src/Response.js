@@ -13,15 +13,15 @@ const { fastArrayJoin } = require('./utils')
 const SSEventStream = require('./SSEventStream')
 
 class Response extends Writable {
-  constructor (wrappedRequest, rawResponse, route) {
+  constructor (wrappedRequest, rawResponse, route, appHandlers) {
     // Initialize the writable stream for this response
     super()
 
     // Store the provided parameter properties for later use
     this.wrapped_request = wrappedRequest
     this.raw_response = rawResponse
-    this.master_context = route.app
-    this.app_options = route.app._options
+    this.appHandlers = appHandlers
+    this.app_options = route.appOptions
 
     route.responseDecorators.forEach((decorator, name) => (this[name] = decorator))
 
@@ -386,47 +386,47 @@ class Response extends Writable {
 
   /**
      * Writes a given chunk to the client over uWS with the appropriate writing method.
-     * Note! This method uses `uWS.tryEnd()` when a `total_size` is provided.
-     * Note! This method uses `uWS.write()` when a `total_size` is not provided.
+     * Note! This method uses `uWS.tryEnd()` when a `totalSize` is provided.
+     * Note! This method uses `uWS.write()` when a `totalSize` is not provided.
      *
      * @private
      * @param {Buffer} chunk
-     * @param {Number=} total_size
+     * @param {Number=} totalSize
      * @returns {Array<Boolean>} [sent, finished]
      */
   _uws_write_chunk (chunk, totalSize) {
-    // The specific uWS method to stream the chunk to the client differs depending on if we have a total_size or not
-    if (totalSize) {
-      // Attempt to stream the current chunk using uWS.tryEnd with a total size
-      return this.raw_response.tryEnd(chunk, totalSize)
-    } else {
-      // Attempt to stream the current chunk uWS.write()
-      const sent = this.raw_response.write(chunk)
+    // The specific uWS method to stream the chunk to the client differs depending on if we have a totalSize or not
 
-      // Since we are streaming without a total size, we are not finished
-      return [sent, false]
-    }
+    // Attempt to stream the current chunk using uWS.tryEnd with a total size
+    if (totalSize) return this.raw_response.tryEnd(chunk, totalSize)
+    // Attempt to stream the current chunk uWS.write()
+    // Since we are streaming without a total size, we are not finished
+    return [this.raw_response.write(chunk), false]
   }
 
   /**
      * Streams individual chunk from a stream.
-     * Delivers with chunked transfer without content-length header when no total_size is specified.
-     * Delivers with backpressure handling and content-length header when a total_size is specified.
+     * Delivers with chunked transfer without content-length header when no totalSize is specified.
+     * Delivers with backpressure handling and content-length header when a totalSize is specified.
      *
      * @private
      * @param {Readable} stream
      * @param {Buffer} chunk
-     * @param {Number=} total_size
+     * @param {Number=} totalSize
      */
   _stream_chunk (stream, chunk, totalSize) {
     // Ensure the client is still connected and request is pending
     if (!this.completed) {
       // Write the chunk to the client using the appropriate uWS chunk writing method
       const [sent, finished] = this._uws_write_chunk(chunk, totalSize)
+
+      // Destroy the readable stream as no more writing will occur
       if (finished) {
-        // Destroy the readable stream as no more writing will occur
         if (!stream.destroyed) stream.destroy()
-      } else if (!sent) {
+        return
+      }
+
+      if (!sent) {
         // Remember the initial write offset for future backpressure sliced chunks
         const writeOffset = this.write_offset
         // Pause the readable stream to prevent any further data from being read as chunk was not fully sent
@@ -596,7 +596,7 @@ class Response extends Writable {
      */
   throw (error) {
     // Ensure error is an instance of Error
-    if (typeof error === 'object' && typeof error.message === 'string') return this.master_context.handlers.get('on_error')(this.wrapped_request, this, error)
+    if (typeof error === 'object' && typeof error.message === 'string') return this.appHandlers.get('on_error')(this.wrapped_request, this, error)
 
     // If error is not an instance of Error, throw a warning error
     throw new Error('Response.throw() expects an instance of an Error.')

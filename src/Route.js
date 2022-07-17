@@ -9,9 +9,9 @@ class Route {
      * @param {Function} handler
      * @param {Map} options
      */
-  constructor ({ app, method, pattern, options, handler }) {
+  constructor ({ appOptions, method, pattern, options, handler }) {
     this._routeData = new Map([
-      ['app', app],
+      ['appOptions', appOptions],
       ['method', method.toUpperCase()],
       ['pattern', pattern],
       ['handler', handler],
@@ -26,7 +26,7 @@ class Route {
      * Binds middleware to this route and sorts middlewares to ensure execution order.
      *
      * @private
-     * @param {Function} handler
+     * @param {Function} middleware
      */
   use (middleware) {
     // Store and sort middlewares to ensure proper execution order
@@ -52,8 +52,8 @@ class Route {
 
   /* Route Getters */
 
-  get app () {
-    return this._routeData.get('app')
+  get appOptions () {
+    return this._routeData.get('appOptions')
   }
 
   get method () {
