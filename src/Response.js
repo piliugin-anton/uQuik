@@ -426,47 +426,49 @@ class Response extends Writable {
         return
       }
 
-      if (!sent) {
-        // Remember the initial write offset for future backpressure sliced chunks
-        const writeOffset = this.write_offset
-        // Pause the readable stream to prevent any further data from being read as chunk was not fully sent
-        if (stream.readable && !stream.isPaused()) stream.pause()
+      if (sent) return
 
-        // Bind a drain handler to relieve backpressure
-        // Note! This callback may be called as many times as neccessary to send a full chunk when using the tryEnd method
-        this.drain((offset) => {
-          // Check if the response has been completed / connection has been closed
-          if (this.completed) {
-            // Destroy the readable stream as no more writing will occur
-            if (!stream.destroyed) stream.destroy()
+      // Pause the readable stream to prevent any further data from being read as chunk was not fully sent
+      if (stream.readable && !stream.isPaused()) stream.pause()
 
-            // Return true to signify this was a no-op
-            return true
-          }
+      // Remember the chunkk and initial write offset for future backpressure sliced chunks
+      this.raw_response.chunk = chunk
+      this.raw_response.writeOffset = this.write_offset
 
-          // If we have a total size then we need to serve sliced chunks as uWS does not buffer under the hood
-          if (totalSize) {
-            // Slice the chunk to the correct offset and send it to the client
-            const [flushed, ended] = this._uws_write_chunk(chunk.slice(offset - writeOffset), totalSize)
-            if (ended) {
-              // Destroy the readable stream as no more writing will occur
-              if (!stream.destroyed) stream.destroy()
-            } else if (flushed) {
-              // Resume the readable stream to allow more data to be read
-              if (stream.readable && stream.isPaused()) stream.resume()
-            }
-
-            // Return the flushed boolean as that signifies whether this specific chunk was fully sent
-            return flushed
-          }
-
-          // Resume the readable stream to allow more data to be read
-          if (stream.readable && stream.isPaused()) stream.resume()
+      // Bind a drain handler to relieve backpressure
+      // Note! This callback may be called as many times as neccessary to send a full chunk when using the tryEnd method
+      this.drain((offset) => {
+        // Check if the response has been completed / connection has been closed
+        if (this.completed) {
+          // Destroy the readable stream as no more writing will occur
+          if (!stream.destroyed) stream.destroy()
 
           // Return true to signify this was a no-op
           return true
-        })
-      }
+        }
+
+        // If we have a total size then we need to serve sliced chunks as uWS does not buffer under the hood
+        if (totalSize) {
+          // Slice the chunk to the correct offset and send it to the client
+          const [flushed, ended] = this._uws_write_chunk(this.raw_response.chunk.slice(offset - this.raw_response.writeOffset), totalSize)
+          if (ended) {
+            // Destroy the readable stream as no more writing will occur
+            if (!stream.destroyed) stream.destroy()
+          } else if (flushed) {
+            // Resume the readable stream to allow more data to be read
+            if (stream.readable && stream.isPaused()) stream.resume()
+          }
+
+          // Return the flushed boolean as that signifies whether this specific chunk was fully sent
+          return flushed
+        }
+
+        // Resume the readable stream to allow more data to be read
+        if (stream.readable && stream.isPaused()) stream.resume()
+
+        // Return true to signify this was a no-op
+        return true
+      })
     }
   }
 
