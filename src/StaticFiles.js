@@ -131,7 +131,7 @@ const StaticFiles = (options = {}) => {
 
         dataTransfer.transform.once('end', () => !dataTransfer.transform.destroyed && dataTransfer.transform.destroy())
 
-        pipeline(dataTransfer.readable, dataTransfer.transform, res, (error) => res.throw(error))
+        pipeline(dataTransfer.readable, dataTransfer.transform, res, () => destroy(dataTransfer))
       } else {
         res.stream(dataTransfer.readable, size)
       }
