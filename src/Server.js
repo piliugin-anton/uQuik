@@ -415,32 +415,26 @@ class Server extends Router {
     const globalMiddlewares = this._middlewares.get('__GLOBAL__')
     const globalMiddlewaresSize = globalMiddlewares.size
     // Execute global middlewares first as they take precedence over route specific middlewares
-    if (globalMiddlewaresSize !== 0 && cursor < globalMiddlewaresSize) {
-      const currentGlobalMiddleware = globalMiddlewares.get(cursor).get('middleware')
-      if (currentGlobalMiddleware) {
-        const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
-        response._track_middleware_cursor(cursor)
-        // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-        const output = currentGlobalMiddleware(request, response, next)
-        if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-        return
-      }
+    if (globalMiddlewaresSize !== 0 && cursor < globalMiddlewaresSize && globalMiddlewares.has(cursor)) {
+      const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
+      response._track_middleware_cursor(cursor)
+      // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
+      const output = globalMiddlewares.get(cursor).get('middleware')(request, response, next)
+      if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+      return
     }
 
     const routeMiddlewares = route.middlewares
     // Execute route specific middlewares if they exist
     if (routeMiddlewares.size !== 0) {
       const routeMiddlewareCursor = cursor - globalMiddlewaresSize
-      if (routeMiddlewareCursor < routeMiddlewares.size) {
-        const currentRouteMiddleware = routeMiddlewares.get(routeMiddlewareCursor).get('middleware')
-        if (currentRouteMiddleware) {
-          const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
-          response._track_middleware_cursor(cursor)
-          // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
-          const output = currentRouteMiddleware(request, response, next)
-          if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
-          return
-        }
+      if (routeMiddlewareCursor < routeMiddlewares.size && routeMiddlewares.has(routeMiddlewareCursor)) {
+        const next = (err) => this._chain_middlewares(route, request, response, cursor + 1, err)
+        response._track_middleware_cursor(cursor)
+        // If middleware invocation returns a Promise, bind a then handler to trigger next iterator
+        const output = routeMiddlewares.get(routeMiddlewareCursor).get('middleware')(request, response, next)
+        if (typeof output === 'object' && typeof output.then === 'function') output.then(next).catch(next)
+        return
       }
     }
 
