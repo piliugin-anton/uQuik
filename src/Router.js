@@ -51,7 +51,7 @@ class Router {
     // Write the route handler and route options object with fallback to the default options
     const handler = callbacks.pop()
     options = options || {
-      middlewares: method === 'any' ? undefined : new Map()
+      middlewares: new Map()
     }
 
     if (Array.isArray(options.middlewares)) options.middlewares = new Map(options.middlewares.map((middleware, index) => [index, middleware]))
@@ -63,7 +63,7 @@ class Router {
     const record = {
       method,
       pattern,
-      options: new Map(Object.entries(options)),
+      options: options instanceof Map ? options : new Map(Object.entries(options)),
       handler
     }
 

@@ -150,7 +150,10 @@ class Server extends Router {
   listen (port, host = '127.0.0.1') {
     // Adding not found handler (404)
     this.any('/*', (request, response) => this.handlers.get('on_not_found')(request, response))
+    // Lock routes modification
     this._routes_locked = true
+    // Attach middleware
+    this._attach_middlewares()
 
     return new Promise((resolve, reject) =>
       this.uws_instance.listen(host, port, (listenSocket) => {
@@ -235,30 +238,15 @@ class Server extends Router {
      */
   _create_route (record) {
     // Do not allow route creation once it is locked after a not found handler has been bound
-    if (this._routes_locked === true) {
-      throw new Error(`Routes/Routers must not be created or used after the set_not_found_handler() has been set due to uWebsockets.js's internal router not allowing for this to occur. [${record.method.toUpperCase()} ${record.pattern}]`)
+    if (this._routes_locked) {
+      throw new Error(`Routes/Routers can not be created when server is started. [${record.method.toUpperCase()} ${record.pattern}]`)
     }
 
     // Do not allow duplicate routes for performance/stability reasons
-    if (this._routes.get(record.method).get(record.pattern)) throw new Error(`Failed to create route as duplicate routes are not allowed. Ensure that you do not have any routers or routes that try to handle requests at the same pattern. [${record.method.toUpperCase()} ${record.pattern}]`)
-
-    // Process and combine middlewares for routes that support middlewares
-    // Initialize route-specific middlewares if they do not exist
-    if (!(record.options.get('middlewares') instanceof Map)) record.options.set('middlewares', new Map())
-
-    // Parse middlewares that apply to this route based on execution pattern
-    this._middlewares.forEach((middleware, pattern) => {
-      if (pattern !== '__GLOBAL__' && pattern !== '/' && record.pattern.startsWith(pattern)) middleware.forEach((object) => record.options.get('middlewares').set(record.options.get('middlewares').size, object))
-    })
-
-    // Map all user specified route specific middlewares with a priority of 2 + combine matched middlewares with route middlewares
-    record.options.get('middlewares').forEach((middleware, index) => record.options.get('middlewares').set(index, {
-      priority: 2,
-      ...middleware
-    }))
+    if (this._routes.get(record.method).has(record.pattern)) throw new Error(`Failed to create route as duplicate routes are not allowed. Ensure that you do not have any routers or routes that try to handle requests at the same pattern. [${record.method.toUpperCase()} ${record.pattern}]`)
 
     const route = new Route({
-      app: this,
+      appOptions: this._options,
       method: record.method,
       pattern: record.pattern,
       options: record.options,
@@ -311,6 +299,10 @@ class Server extends Router {
      * @param {Object} record
      */
   _create_middleware (record) {
+    // Do not allow middleware creation once routes is locked
+    if (this._routes_locked) {
+      throw new Error(`Middlewares can not be created when server is started. [${record.pattern}]`)
+    }
     // Initialize middlewares array for specified pattern
     if (!this._middlewares.has(record.pattern)) this._middlewares.set(record.pattern, new Map())
 
@@ -322,31 +314,20 @@ class Server extends Router {
 
     // Store middleware object in its pattern branch
     this._middlewares.get(record.pattern).set(this._middlewares.get(record.pattern).size, map)
+  }
 
-    // Inject middleware into all routes that match its execution pattern if it is non global
-    if (map.get('priority') !== 0) {
-      this._routes.forEach((method) => {
-        method.forEach((route, pattern) => {
-          if ((record.pattern === '/' && pattern === record.pattern) || (record.pattern !== '/' && pattern.startsWith(record.pattern))) route.use(map)
-        })
+  _attach_middlewares () {
+    this._middlewares.forEach((middlewares, middlewarePattern) => {
+      middlewares.forEach((middleware) => {
+        if (middleware.get('priority') !== 0) {
+          this._routes.forEach((method) => {
+            method.forEach((route, routePattern) => {
+              if ((middlewarePattern === '/' && routePattern === middlewarePattern) || (middlewarePattern !== '/' && routePattern.startsWith(middlewarePattern))) route.use(middleware)
+            })
+          })
+        }
       })
-    }
-    /* const object = {
-      priority: record.pattern === '__GLOBAL__' ? 0 : 1, // 0 priority are global middlewares
-      middleware: record.middleware
-    }
-
-    // Store middleware object in its pattern branch
-    this._middlewares.get(record.pattern).set(this._middlewares.get(record.pattern).size, object)
-
-    // Inject middleware into all routes that match its execution pattern if it is non global
-    if (object.priority !== 0) {
-      this._routes.forEach((method) => {
-        method.forEach((route, pattern) => {
-          if ((record.pattern === '/' && pattern === record.pattern) || (record.pattern !== '/' && pattern.startsWith(record.pattern))) route.use(object)
-        })
-      })
-    } */
+    })
   }
 
   /* uWS -> Server Request/Response Handling Logic */
