@@ -600,6 +600,14 @@ class Response extends Writable {
     throw new Error('Response.throw() expects an instance of an Error.')
   }
 
+  /**
+     * This method calls on_not_found handler
+     *
+     */
+  notFound () {
+    this.appHandlers.get('on_not_found')(this.wrapped_request, this)
+  }
+
   /* Response Getters */
 
   /**

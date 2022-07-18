@@ -117,8 +117,6 @@ const StaticFiles = (options = {}) => {
         end
       })
 
-      dataTransfer.readable.once('end', () => !dataTransfer.readable.destroyed && dataTransfer.readable.destroy())
-
       res
         .header('Content-Type', mimeType)
         .header('Last-Modified', timeUTC)
@@ -129,14 +127,15 @@ const StaticFiles = (options = {}) => {
 
         dataTransfer.transform = zlib.createGzip()
 
-        dataTransfer.transform.once('end', () => !dataTransfer.transform.destroyed && dataTransfer.transform.destroy())
-
-        pipeline(dataTransfer.readable, dataTransfer.transform, res, () => destroy(dataTransfer))
+        pipeline(dataTransfer.readable, dataTransfer.transform, res, (ex) => {
+          destroy(dataTransfer)
+          if (ex) res.throw(ex)
+        })
       } else {
         res.stream(dataTransfer.readable, size)
       }
     } catch (ex) {
-      if (ex.status && ex.status === 404) return res.master_context.handlers.get('on_not_found')(req, res)
+      if (ex.status && ex.status === 404) return res.notFound()
       res.throw(ex)
     }
   }
