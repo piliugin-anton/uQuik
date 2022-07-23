@@ -259,10 +259,14 @@ const byteToHex = [
 
 const fastArrayJoin = (array, separator = '') => {
   const length = array.length
-  const last = length - 1
   let result = ''
+  let firstAdded = false
   for (let i = 0; i < length; i++) {
-    result += i !== last ? array[i] + separator : array[i]
+    if (array[i] === undefined || array[i] === null) continue
+
+    result += firstAdded ? separator + array[i] : array[i]
+
+    if (!firstAdded) firstAdded = true
   }
   return result
 }
