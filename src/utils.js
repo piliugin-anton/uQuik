@@ -262,10 +262,14 @@ const fastArrayJoin = (array, separator = '') => {
   let result = ''
   const last = length - 1
   for (let i = 0; i < length; i++) {
-    if (array[i] === undefined || array[i] === null) {
+    if (array[i] === null || array[i] === undefined) {
       if (i !== last) result += separator
-    } else if (typeof array[i] === 'object') {
-      const value = array[i].toString()
+    } else if (typeof array[i] === 'object' || typeof array[i] === 'function') {
+      let value = '[object Object]'
+      if (typeof array[i].toString === 'function') {
+        const toStringValue = array[i].toString()
+        if (typeof toStringValue === 'string') value = toStringValue
+      }
       result += i !== last ? value + separator : value
     } else {
       result += i !== last ? array[i] + separator : array[i]
