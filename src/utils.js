@@ -257,24 +257,36 @@ const byteToHex = [
   'ff'
 ]
 
-const fastArrayJoin = (array, separator = '') => {
+const fastArrayJoin = (array, separator = ',') => {
   const length = array.length
-  let result = ''
   const last = length - 1
-  for (let i = 0; i < length; i++) {
-    if (array[i] === null || array[i] === undefined) {
-      if (i !== last) result += separator
-    } else if (typeof array[i] === 'object' || typeof array[i] === 'function') {
+  let result = ''
+  const stringifyValue = (anyValue) => {
+    const type = typeof anyValue
+    if (type === 'string') {
+      return anyValue
+    } else if (type === 'number') {
+      return anyValue.toString()
+    } else if (type === 'object' || type === 'function') {
       let value = '[object Object]'
-      if (typeof array[i].toString === 'function') {
-        const toStringValue = array[i].toString()
+      if (typeof anyValue.toString === 'function') {
+        const toStringValue = anyValue.toString()
         if (typeof toStringValue === 'string') value = toStringValue
       }
-      result += i !== last ? value + separator : value
-    } else {
-      result += i !== last ? array[i] + separator : array[i]
+      return value
     }
   }
+
+  for (let i = 0; i < length; i++) {
+    const isLast = i === last
+    if (array[i] === null || array[i] === undefined) {
+      if (!isLast) result += separator
+      continue
+    }
+    const value = stringifyValue(array[i])
+    result += !isLast ? value + separator : value
+  }
+
   return result
 }
 
