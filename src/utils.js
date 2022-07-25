@@ -267,13 +267,17 @@ const fastArrayJoin = (array, separator = ',') => {
       return anyValue
     } else if (type === 'number') {
       return anyValue.toString()
-    } else if (type === 'object' || type === 'function') {
+    } else if (type === 'object') {
       let value = '[object Object]'
       if (typeof anyValue.toString === 'function') {
         const toStringValue = anyValue.toString()
         if (typeof toStringValue === 'string') value = toStringValue
       }
       return value
+    } else if (type === 'function') {
+      return anyValue.toString()
+    } else {
+      return anyValue
     }
   }
 
